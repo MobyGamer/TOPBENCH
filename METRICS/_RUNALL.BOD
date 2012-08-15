@@ -1,0 +1,1701 @@
+{Exercises all of the string operations: STOS, MOVS, LODS, SCAS, CMPS.
+REP LODSW is not used in real life but is included to measure mem read speed.
+With the exception of REP LODSW, this suite simulates typical program
+operations like searching/comparing for individual characters}
+  asm
+    mov     dx,ds {we're not using dx at all in this test}
+
+    {Basic test mostly simulates what real programs do:
+    fill a buffer with stosw,
+    then copy that buffer to system ram with a movsw+adc+movsb copy,
+    then scan the entire buffer for a character with scasb,
+    then compare both buffers looking for differences with cmpsb.
+    Finally, unlike real programs, rep lodsw to test block memory read speed.}
+
+    cld
+    xor     ax,ax
+    les     di,[buf1]
+    mov     cx,bufsize
+    shr     cx,1
+    rep     stosw           {fill buf1 with 00h}
+    adc     cx,0
+    rep     stosb
+
+    les     di,[buf2]
+    lds     si,[buf1]
+    mov     cx,bufsize
+    shr     cx,1
+    rep     movsw
+    adc     cx,0
+    rep     movsb           {typical copy routine that handles cx=odd number}
+
+    sub     si,bufsize
+    sub     di,bufsize      {reset buffer pointers}
+    mov     byte ptr es:[di+bufsize-2],$ff
+                            {put a target search byte "FF" at end of es:di buffer}
+    mov     cx,bufsize
+    mov     al,$ff
+    repne   scasb           {should stop shortly before the end of the buffer}
+
+    sub     di,bufsize-1    {reset buffer pointers}
+    mov     cx,bufsize
+    repe    cmpsb           {should stop one byte from the end of both buffers}
+
+    sub     si,bufsize-1
+    mov     cx,bufsize
+    shr     cx,1
+    rep     lodsw           {maximum transfer rate block memory read}
+
+    mov     ds,dx           {restore ds or Pascal will freak out}
+
+  end;
+{Exercises all effective addressing modes by actually trying to move memory 
+with them.  All encodings are included.  Included mostly for the benefit of 
+emulator authors.
+Accumulator has optimized forms, so both accum and generic reg8/16 tested.}
+  asm
+    {Make half-assed attempt at not causing trouble by pointing as much as
+    we can to known preallocated space.  Chances are low that putting values
+    right back into memory won't cause a problem anyway, but it would be just
+    my luck that I would somehow manage to land in some interrupt handlers's
+    variable area.}
+    lea     bx,scratchspace {1K scratch in DS.  disp16=256 and disp8=1.}
+    mov     si,bx
+    mov     di,bx
+    push    bp
+    mov     bp,bx
+    mov     ax,ds
+    mov     es,ax {for exercising segment overrides}
+
+    mov ax,[bx+si]
+    mov [bx+si],ax
+    mov ax,[bx+di]
+    mov [bx+di],ax
+    mov ax,[bp+si]
+    mov [bp+si],ax
+    mov ax,[bp+di]
+    mov [bp+di],ax
+    mov ax,[si]
+    mov [si],ax
+    mov ax,[di]
+    mov [di],ax
+    mov ax,[disp16]
+    mov [disp16],ax
+    mov ax,[bx]
+    mov [bx],ax
+    mov ax,[bx+si+disp8]
+    mov [bx+si+disp8],ax
+    mov ax,[bx+di+disp8]
+    mov [bx+di+disp8],ax
+    mov ax,[bp+si+disp8]
+    mov [bp+si+disp8],ax
+    mov ax,[bp+di+disp8]
+    mov [bp+di+disp8],ax
+    mov ax,[si+disp8]
+    mov [si+disp8],ax
+    mov ax,[di+disp8]
+    mov [di+disp8],ax
+    mov ax,[bp+disp8]
+    mov [bp+disp8],ax
+    mov ax,[bx+disp8]
+    mov [bx+disp8],ax
+    mov ax,[bx+si+disp16]
+    mov [bx+si+disp16],ax
+    mov ax,[bx+di+disp16]
+    mov [bx+di+disp16],ax
+    mov ax,[bp+si+disp16]
+    mov [bp+si+disp16],ax
+    mov ax,[bp+di+disp16]
+    mov [bp+di+disp16],ax
+    mov ax,[si+disp16]
+    mov [si+disp16],ax
+    mov ax,[di+disp16]
+    mov [di+disp16],ax
+    mov ax,[bp+disp16]
+    mov [bp+disp16],ax
+    mov ax,[bx+disp16]
+    mov [bx+disp16],ax
+
+    seges mov ax,[bx+si]
+    seges mov [bx+si],ax
+    seges mov ax,[bx+di]
+    seges mov [bx+di],ax
+    seges mov ax,[bp+si]
+    seges mov [bp+si],ax
+    seges mov ax,[bp+di]
+    seges mov [bp+di],ax
+    seges mov ax,[si]
+    seges mov [si],ax
+    seges mov ax,[di]
+    seges mov [di],ax
+    seges mov ax,[disp16]
+    seges mov [disp16],ax
+    seges mov ax,[bx]
+    seges mov [bx],ax
+    seges mov ax,[bx+si+disp8]
+    seges mov [bx+si+disp8],ax
+    seges mov ax,[bx+di+disp8]
+    seges mov [bx+di+disp8],ax
+    seges mov ax,[bp+si+disp8]
+    seges mov [bp+si+disp8],ax
+    seges mov ax,[bp+di+disp8]
+    seges mov [bp+di+disp8],ax
+    seges mov ax,[si+disp8]
+    seges mov [si+disp8],ax
+    seges mov ax,[di+disp8]
+    seges mov [di+disp8],ax
+    seges mov ax,[bp+disp8]
+    seges mov [bp+disp8],ax
+    seges mov ax,[bx+disp8]
+    seges mov [bx+disp8],ax
+    seges mov ax,[bx+si+disp16]
+    seges mov [bx+si+disp16],ax
+    seges mov ax,[bx+di+disp16]
+    seges mov [bx+di+disp16],ax
+    seges mov ax,[bp+si+disp16]
+    seges mov [bp+si+disp16],ax
+    seges mov ax,[bp+di+disp16]
+    seges mov [bp+di+disp16],ax
+    seges mov ax,[si+disp16]
+    seges mov [si+disp16],ax
+    seges mov ax,[di+disp16]
+    seges mov [di+disp16],ax
+    seges mov ax,[bp+disp16]
+    seges mov [bp+disp16],ax
+    seges mov ax,[bx+disp16]
+    seges mov [bx+disp16],ax
+
+    mov al,[bx+si]
+    mov [bx+si],al
+    mov al,[bx+di]
+    mov [bx+di],al
+    mov al,[bp+si]
+    mov [bp+si],al
+    mov al,[bp+di]
+    mov [bp+di],al
+    mov al,[si]
+    mov [si],al
+    mov al,[di]
+    mov [di],al
+    mov al,[disp16]
+    mov [disp16],al
+    mov al,[bx]
+    mov [bx],al
+    mov al,[bx+si+disp8]
+    mov [bx+si+disp8],al
+    mov al,[bx+di+disp8]
+    mov [bx+di+disp8],al
+    mov al,[bp+si+disp8]
+    mov [bp+si+disp8],al
+    mov al,[bp+di+disp8]
+    mov [bp+di+disp8],al
+    mov al,[si+disp8]
+    mov [si+disp8],al
+    mov al,[di+disp8]
+    mov [di+disp8],al
+    mov al,[bp+disp8]
+    mov [bp+disp8],al
+    mov al,[bx+disp8]
+    mov [bx+disp8],al
+    mov al,[bx+si+disp16]
+    mov [bx+si+disp16],al
+    mov al,[bx+di+disp16]
+    mov [bx+di+disp16],al
+    mov al,[bp+si+disp16]
+    mov [bp+si+disp16],al
+    mov al,[bp+di+disp16]
+    mov [bp+di+disp16],al
+    mov al,[si+disp16]
+    mov [si+disp16],al
+    mov al,[di+disp16]
+    mov [di+disp16],al
+    mov al,[bp+disp16]
+    mov [bp+disp16],al
+    mov al,[bx+disp16]
+    mov [bx+disp16],al
+
+    seges mov al,[bx+si]
+    seges mov [bx+si],al
+    seges mov al,[bx+di]
+    seges mov [bx+di],al
+    seges mov al,[bp+si]
+    seges mov [bp+si],al
+    seges mov al,[bp+di]
+    seges mov [bp+di],al
+    seges mov al,[si]
+    seges mov [si],al
+    seges mov al,[di]
+    seges mov [di],al
+    seges mov al,[disp16]
+    seges mov [disp16],al
+    seges mov al,[bx]
+    seges mov [bx],al
+    seges mov al,[bx+si+disp8]
+    seges mov [bx+si+disp8],al
+    seges mov al,[bx+di+disp8]
+    seges mov [bx+di+disp8],al
+    seges mov al,[bp+si+disp8]
+    seges mov [bp+si+disp8],al
+    seges mov al,[bp+di+disp8]
+    seges mov [bp+di+disp8],al
+    seges mov al,[si+disp8]
+    seges mov [si+disp8],al
+    seges mov al,[di+disp8]
+    seges mov [di+disp8],al
+    seges mov al,[bp+disp8]
+    seges mov [bp+disp8],al
+    seges mov al,[bx+disp8]
+    seges mov [bx+disp8],al
+    seges mov al,[bx+si+disp16]
+    seges mov [bx+si+disp16],al
+    seges mov al,[bx+di+disp16]
+    seges mov [bx+di+disp16],al
+    seges mov al,[bp+si+disp16]
+    seges mov [bp+si+disp16],al
+    seges mov al,[bp+di+disp16]
+    seges mov [bp+di+disp16],al
+    seges mov al,[si+disp16]
+    seges mov [si+disp16],al
+    seges mov al,[di+disp16]
+    seges mov [di+disp16],al
+    seges mov al,[bp+disp16]
+    seges mov [bp+disp16],al
+    seges mov al,[bx+disp16]
+    seges mov [bx+disp16],al
+
+    mov dx,[bx+si]
+    mov [bx+si],dx
+    mov dx,[bx+di]
+    mov [bx+di],dx
+    mov dx,[bp+si]
+    mov [bp+si],dx
+    mov dx,[bp+di]
+    mov [bp+di],dx
+    mov dx,[si]
+    mov [si],dx
+    mov dx,[di]
+    mov [di],dx
+    mov dx,[disp16]
+    mov [disp16],dx
+    mov dx,[bx]
+    mov [bx],dx
+    mov dx,[bx+si+disp8]
+    mov [bx+si+disp8],dx
+    mov dx,[bx+di+disp8]
+    mov [bx+di+disp8],dx
+    mov dx,[bp+si+disp8]
+    mov [bp+si+disp8],dx
+    mov dx,[bp+di+disp8]
+    mov [bp+di+disp8],dx
+    mov dx,[si+disp8]
+    mov [si+disp8],dx
+    mov dx,[di+disp8]
+    mov [di+disp8],dx
+    mov dx,[bp+disp8]
+    mov [bp+disp8],dx
+    mov dx,[bx+disp8]
+    mov [bx+disp8],dx
+    mov dx,[bx+si+disp16]
+    mov [bx+si+disp16],dx
+    mov dx,[bx+di+disp16]
+    mov [bx+di+disp16],dx
+    mov dx,[bp+si+disp16]
+    mov [bp+si+disp16],dx
+    mov dx,[bp+di+disp16]
+    mov [bp+di+disp16],dx
+    mov dx,[si+disp16]
+    mov [si+disp16],dx
+    mov dx,[di+disp16]
+    mov [di+disp16],dx
+    mov dx,[bp+disp16]
+    mov [bp+disp16],dx
+    mov dx,[bx+disp16]
+    mov [bx+disp16],dx
+
+    seges mov dx,[bx+si]
+    seges mov [bx+si],dx
+    seges mov dx,[bx+di]
+    seges mov [bx+di],dx
+    seges mov dx,[bp+si]
+    seges mov [bp+si],dx
+    seges mov dx,[bp+di]
+    seges mov [bp+di],dx
+    seges mov dx,[si]
+    seges mov [si],dx
+    seges mov dx,[di]
+    seges mov [di],dx
+    seges mov dx,[disp16]
+    seges mov [disp16],dx
+    seges mov dx,[bx]
+    seges mov [bx],dx
+    seges mov dx,[bx+si+disp8]
+    seges mov [bx+si+disp8],dx
+    seges mov dx,[bx+di+disp8]
+    seges mov [bx+di+disp8],dx
+    seges mov dx,[bp+si+disp8]
+    seges mov [bp+si+disp8],dx
+    seges mov dx,[bp+di+disp8]
+    seges mov [bp+di+disp8],dx
+    seges mov dx,[si+disp8]
+    seges mov [si+disp8],dx
+    seges mov dx,[di+disp8]
+    seges mov [di+disp8],dx
+    seges mov dx,[bp+disp8]
+    seges mov [bp+disp8],dx
+    seges mov dx,[bx+disp8]
+    seges mov [bx+disp8],dx
+    seges mov dx,[bx+si+disp16]
+    seges mov [bx+si+disp16],dx
+    seges mov dx,[bx+di+disp16]
+    seges mov [bx+di+disp16],dx
+    seges mov dx,[bp+si+disp16]
+    seges mov [bp+si+disp16],dx
+    seges mov dx,[bp+di+disp16]
+    seges mov [bp+di+disp16],dx
+    seges mov dx,[si+disp16]
+    seges mov [si+disp16],dx
+    seges mov dx,[di+disp16]
+    seges mov [di+disp16],dx
+    seges mov dx,[bp+disp16]
+    seges mov [bp+disp16],dx
+    seges mov dx,[bx+disp16]
+    seges mov [bx+disp16],dx
+
+    mov dl,[bx+si]
+    mov [bx+si],dl
+    mov dl,[bx+di]
+    mov [bx+di],dl
+    mov dl,[bp+si]
+    mov [bp+si],dl
+    mov dl,[bp+di]
+    mov [bp+di],dl
+    mov dl,[si]
+    mov [si],dl
+    mov dl,[di]
+    mov [di],dl
+    mov dl,[disp16]
+    mov [disp16],dl
+    mov dl,[bx]
+    mov [bx],dl
+    mov dl,[bx+si+disp8]
+    mov [bx+si+disp8],dl
+    mov dl,[bx+di+disp8]
+    mov [bx+di+disp8],dl
+    mov dl,[bp+si+disp8]
+    mov [bp+si+disp8],dl
+    mov dl,[bp+di+disp8]
+    mov [bp+di+disp8],dl
+    mov dl,[si+disp8]
+    mov [si+disp8],dl
+    mov dl,[di+disp8]
+    mov [di+disp8],dl
+    mov dl,[bp+disp8]
+    mov [bp+disp8],dl
+    mov dl,[bx+disp8]
+    mov [bx+disp8],dl
+    mov dl,[bx+si+disp16]
+    mov [bx+si+disp16],dl
+    mov dl,[bx+di+disp16]
+    mov [bx+di+disp16],dl
+    mov dl,[bp+si+disp16]
+    mov [bp+si+disp16],dl
+    mov dl,[bp+di+disp16]
+    mov [bp+di+disp16],dl
+    mov dl,[si+disp16]
+    mov [si+disp16],dl
+    mov dl,[di+disp16]
+    mov [di+disp16],dl
+    mov dl,[bp+disp16]
+    mov [bp+disp16],dl
+    mov dl,[bx+disp16]
+    mov [bx+disp16],dl
+
+    seges mov dl,[bx+si]
+    seges mov [bx+si],dl
+    seges mov dl,[bx+di]
+    seges mov [bx+di],dl
+    seges mov dl,[bp+si]
+    seges mov [bp+si],dl
+    seges mov dl,[bp+di]
+    seges mov [bp+di],dl
+    seges mov dl,[si]
+    seges mov [si],dl
+    seges mov dl,[di]
+    seges mov [di],dl
+    seges mov dl,[disp16]
+    seges mov [disp16],dl
+    seges mov dl,[bx]
+    seges mov [bx],dl
+    seges mov dl,[bx+si+disp8]
+    seges mov [bx+si+disp8],dl
+    seges mov dl,[bx+di+disp8]
+    seges mov [bx+di+disp8],dl
+    seges mov dl,[bp+si+disp8]
+    seges mov [bp+si+disp8],dl
+    seges mov dl,[bp+di+disp8]
+    seges mov [bp+di+disp8],dl
+    seges mov dl,[si+disp8]
+    seges mov [si+disp8],dl
+    seges mov dl,[di+disp8]
+    seges mov [di+disp8],dl
+    seges mov dl,[bp+disp8]
+    seges mov [bp+disp8],dl
+    seges mov dl,[bx+disp8]
+    seges mov [bx+disp8],dl
+    seges mov dl,[bx+si+disp16]
+    seges mov [bx+si+disp16],dl
+    seges mov dl,[bx+di+disp16]
+    seges mov [bx+di+disp16],dl
+    seges mov dl,[bp+si+disp16]
+    seges mov [bp+si+disp16],dl
+    seges mov dl,[bp+di+disp16]
+    seges mov [bp+di+disp16],dl
+    seges mov dl,[si+disp16]
+    seges mov [si+disp16],dl
+    seges mov dl,[di+disp16]
+    seges mov [di+disp16],dl
+    seges mov dl,[bp+disp16]
+    seges mov [bp+disp16],dl
+    seges mov dl,[bx+disp16]
+    seges mov [bx+disp16],dl
+
+    {restore our frame}
+    pop     bp
+
+  end;
+{
+Exercises almost every single 8086 opcode, in roughly opcode order.  
+Exceptions are anything that would interrupt the timing of the code, any non- 
+8086 instruction, and all floating-point instructions.  (This code must run on 
+all processors.)  Instructions explicitly not exercised are:
+
+  Instructions skipped          Because:
+  ~~~~~~~~~~~~~~~~~~~~          ~~~~~~~
+  HLT                           It would delay by a random amount
+  IN, OUT                       Port accesses vary highly from machine
+                                to machine, and are not really what this
+                                benchmark was built to test
+  AAD/AAM with custom operand   Intel only
+  WAIT, ESC                     These require optional/external hardware
+  LOCK                          Kills the OS on multi-CPU machines (verified!)
+  INT3 (trap to debugger)       Not used during normal program execution
+  INTO (int4, overflow handler) Not used during normal program execution
+  SALC (set AL on carry)        Undocumented (D6h); Intel only
+  POP CS                        Undocumented and only works on Intel 808x
+  POP SP                        PUSH SP is broken on 808x so we avoid POP SP
+}
+
+  asm
+    mov     ax,foow
+    mov     dx,$5678
+    (*lea     bx,scratchspace {init some vars}*)
+
+    {Start exercising opcodes in roughly order of encoding.
+    NOTE:  All opcode encodings are not represented with these sections;
+    however, all mod r/m sections are represented in the effective addressing
+    tests in the _ea.bod file.  (For MOV only, anyway.)}
+    add     ax,foow     {accum, imm16}
+    add     dx,foow     {reg,   imm16}
+    add     al,foob     {accum, imm8}
+    add     dl,foob     {reg,   imm8}
+    add     [w],ax      {mem16, accum}
+    add     [w],dx      {mem16, reg}
+    add     [b],al      {mem8,  accum}
+    add     [b],dl      {mem8,  reg}
+    add     al,[b]      {accum, mem8}
+    add     dl,[b]      {reg,   mem8}
+    add     ax,[w]      {accum, mem16}
+    add     dx,[w]      {reg,   mem16}
+    add     ax,dx       {accum, reg}
+    add     dx,ax       {reg,   accum}
+    add     al,dl       {accum, reg}
+    add     dl,al       {reg,   accum}
+
+    push    es
+    pop     es
+
+    or      ax,foow     {accum, imm16}
+    or      dx,foow     {reg,   imm16}
+    or      al,foob     {accum, imm8}
+    or      dl,foob     {reg,   imm8}
+    or      w,ax        {mem16, accum}
+    or      w,dx        {mem16, reg}
+    or      b,al        {mem8,  accum}
+    or      b,dl        {mem8,  reg}
+    or      al,b        {accum, mem8}
+    or      dl,b        {reg,   mem8}
+    or      ax,w        {accum, mem16}
+    or      dx,w        {reg,   mem16}
+    or      ax,dx       {accum, reg}
+    or      dx,ax       {reg,   accum}
+    or      al,dl       {accum, reg}
+    or      dl,al       {reg,   accum}
+
+    push    cs
+    pop     es          {POP CS is an undocumented opcode that actually works
+                        on 8088/8086 but we're not going to use it -- it means
+                        something completely different on later processors}
+
+    adc     ax,foow     {accum, imm16}
+    adc     dx,foow     {reg,   imm16}
+    adc     al,foob     {accum, imm8}
+    adc     dl,foob     {reg,   imm8}
+    adc     w,ax        {mem16, accum}
+    adc     w,dx        {mem16, reg}
+    adc     b,al        {mem8,  accum}
+    adc     b,dl        {mem8,  reg}
+    adc     al,b        {accum, mem8}
+    adc     dl,b        {reg,   mem8}
+    adc     ax,w        {accum, mem16}
+    adc     dx,w        {reg,   mem16}
+    adc     ax,dx       {accum, reg}
+    adc     dx,ax       {reg,   accum}
+    adc     al,dl       {accum, reg}
+    adc     dl,al       {reg,   accum}
+
+    push    ax
+    mov     ax,sp
+    push    ss
+    pop     ss          {halts all interrupts including NMI for next instr.}
+    mov     sp,ax
+    pop     ax
+
+    sbb     ax,foow     {accum, imm16}
+    sbb     dx,foow     {reg,   imm16}
+    sbb     al,foob     {accum, imm8}
+    sbb     dl,foob     {reg,   imm8}
+    sbb     w,ax        {mem16, accum}
+    sbb     w,dx        {mem16, reg}
+    sbb     b,al        {mem8,  accum}
+    sbb     b,dl        {mem8,  reg}
+    sbb     al,b        {accum, mem8}
+    sbb     dl,b        {reg,   mem8}
+    sbb     ax,w        {accum, mem16}
+    sbb     dx,w        {reg,   mem16}
+    sbb     ax,dx       {accum, reg}
+    sbb     dx,ax       {reg,   accum}
+    sbb     al,dl       {accum, reg}
+    sbb     dl,al       {reg,   accum}
+
+    push    ds
+    pop     ds
+
+    and     ax,foow     {accum, imm16}
+    and     dx,foow     {reg,   imm16}
+    and     al,foob     {accum, imm8}
+    and     dl,foob     {reg,   imm8}
+    and     w,ax        {mem16, accum}
+    and     w,dx        {mem16, reg}
+    and     b,al        {mem8,  accum}
+    and     b,dl        {mem8,  reg}
+    and     al,b        {accum, mem8}
+    and     dl,b        {reg,   mem8}
+    and     ax,w        {accum, mem16}
+    and     dx,w        {reg,   mem16}
+    and     ax,dx       {accum, reg}
+    and     dx,ax       {reg,   accum}
+    and     al,dl       {accum, reg}
+    and     dl,al       {reg,   accum}
+
+    seges mov ax,[bx]   {segment override ES is opcode 26h}
+
+    daa
+
+    sub     ax,foow     {accum, imm16}
+    sub     dx,foow     {reg,   imm16}
+    sub     al,foob     {accum, imm8}
+    sub     dl,foob     {reg,   imm8}
+    sub     w,ax        {mem16, accum}
+    sub     w,dx        {mem16, reg}
+    sub     b,al        {mem8,  accum}
+    sub     b,dl        {mem8,  reg}
+    sub     al,b        {accum, mem8}
+    sub     dl,b        {reg,   mem8}
+    sub     ax,w        {accum, mem16}
+    sub     dx,w        {reg,   mem16}
+    sub     ax,dx       {accum, reg}
+    sub     dx,ax       {reg,   accum}
+    sub     al,dl       {accum, reg}
+    sub     dl,al       {reg,   accum}
+
+    segcs mov ax,[bx]   {segment override CS is opcode 2Eh}
+
+    das
+
+    xor     ax,foow     {accum, imm16}
+    xor     dx,foow     {reg,   imm16}
+    xor     al,foob     {accum, imm8}
+    xor     dl,foob     {reg,   imm8}
+    xor     w,ax        {mem16, accum}
+    xor     w,dx        {mem16, reg}
+    xor     b,al        {mem8,  accum}
+    xor     b,dl        {mem8,  reg}
+    xor     al,b        {accum, mem8}
+    xor     dl,b        {reg,   mem8}
+    xor     ax,w        {accum, mem16}
+    xor     dx,w        {reg,   mem16}
+    xor     ax,dx       {accum, reg}
+    xor     dx,ax       {reg,   accum}
+    xor     al,dl       {accum, reg}
+    xor     dl,al       {reg,   accum}
+
+    segss mov ax,[bx]   {segment override SS is opcode 36h}
+
+    aaa
+
+    cmp     ax,foow     {accum, imm16}
+    cmp     dx,foow     {reg,   imm16}
+    cmp     al,foob     {accum, imm8}
+    cmp     dl,foob     {reg,   imm8}
+    cmp     w,ax        {mem16, accum}
+    cmp     w,dx        {mem16, reg}
+    cmp     b,al        {mem8,  accum}
+    cmp     b,dl        {mem8,  reg}
+    cmp     al,b        {accum, mem8}
+    cmp     dl,b        {reg,   mem8}
+    cmp     ax,w        {accum, mem16}
+    cmp     dx,w        {reg,   mem16}
+    cmp     ax,dx       {accum, reg}
+    cmp     dx,ax       {reg,   accum}
+    cmp     al,dl       {accum, reg}
+    cmp     dl,al       {reg,   accum}
+
+    segds lodsw         {segment override DS is opcode 3Eh}
+
+    aas
+
+    inc     ax
+    inc     cx
+    inc     dx
+    inc     bx
+    inc     si
+    inc     di
+    dec     ax
+    dec     cx
+    dec     dx
+    dec     bx
+    dec     si
+    dec     di
+    {ensure we can do this next part without borking the machine}
+    pushf
+    cli
+    inc     sp
+    inc     bp
+    dec     sp
+    dec     bp
+    popf
+
+    push    ax
+    push    cx
+    push    dx
+    push    bx
+    push    bp
+    push    si
+    push    di
+    pop     di
+    pop     si
+    pop     bp
+    pop     bx
+    pop     dx
+    pop     cx
+    pop     ax
+
+    {Jcc and JMP tests -- timings are identical for most forms so we will
+    only test a few.  jcxz is the only one with different timings so it is
+    explicitly tested as well.}
+    xor     cx,cx       {zero out cx}
+    dec     cx          {cx := -1}
+    stc                 {set carry flag}
+    jc      @L1         {jump if carry - yes}
+    nop
+@L1:
+    clc                 {clear carry flag}
+    jc      @L1         {jump if carry - no}
+    inc     cx
+    jcxz    @L1         {jump if cx=0 - yes 1st pass, no 2nd}
+    sub     cx,2
+    jmp     @L3
+@L2:
+    inc     cx
+    clc
+@L3:
+    jbe     @L2         {jump if cf=1 or zf=1}
+    mov     cx,2
+@loopfun:
+    nop
+    loop    @loopfun
+@endofJMPtests:
+
+    {test has optimized forms for accumulator}
+    test    ax,foow     {accum, imm16}
+    test    dx,foow     {reg,   imm16}
+    test    al,foob     {accum, imm8}
+    test    dl,foob     {reg,   imm8}
+    test    w,ax        {mem16, accum}
+    test    w,dx        {mem16, reg}
+    test    b,al        {mem8,  accum}
+    test    b,dl        {mem8,  reg}
+    test    al,b        {accum, mem8}
+    test    dl,b        {reg,   mem8}
+    test    ax,w        {accum, mem16}
+    test    dx,w        {reg,   mem16}
+    test    ax,dx       {accum, reg}
+    test    dx,ax       {reg,   accum}
+    test    al,dl       {accum, reg}
+    test    dl,al       {reg,   accum}
+
+    lea     ax,[w]
+
+{8e mov     segreg,rmw}
+    mov     es,[bx+si+1234h]
+
+    lea     bx,scratchspace
+
+    nop
+
+    xchg    w,ax        {mem16, accum}
+    xchg    w,dx        {mem16, reg}
+    xchg    b,al        {mem8,  accum}
+    xchg    b,dl        {mem8,  reg}
+    xchg    al,b        {accum, mem8}
+    xchg    dl,b        {reg,   mem8}
+    xchg    ax,w        {accum, mem16}
+    xchg    dx,w        {reg,   mem16}
+    xchg    ax,dx       {accum, reg}
+    xchg    dx,ax       {reg,   accum}
+    xchg    al,dl       {accum, reg}
+    xchg    dl,al       {reg,   accum}
+
+    cbw
+
+    {both near and far calls explicitly included so they can be measured}
+    call    doNothingNear
+    call    doNothingFar
+
+    pushf
+    cli
+    lahf
+    sahf
+    popf
+
+    push    ds
+    pop     es
+    mov     di,si       {es:di should now equal ds:si}
+    movsb
+    movsw
+    movsb
+    movsw
+    lodsb
+    stosb
+    lodsw
+    stosw
+    lodsb
+    stosb
+    lodsw
+    stosw               {tests both aligned and unaligned moves}
+
+    cmpsb
+    cmpsw
+    cmpsb
+    cmpsw               {aligned and unaligned}
+    scasb
+    scasw
+    scasb
+    scasw               {aligned and unaligned}
+
+
+    mov     al,foob
+    mov     cl,foob
+    mov     dl,foob
+    mov     bl,foob
+    mov     ah,foob
+    mov     ch,foob
+    mov     dh,foob
+    mov     bh,foob
+    mov     ax,foow
+    mov     cx,foow
+    mov     dx,foow
+    mov     bx,foow
+    {A lot of hassle just to test the mov encodings of sp and bp :-P }
+    pushf
+    cli
+    mov     dx,sp
+    mov     sp,foow
+    mov     sp,dx
+    mov     dx,bp
+    mov     bp,foow
+    mov     bp,dx
+    popf
+    mov     si,foow
+    mov     di,foow
+
+    les     bx,[foow]
+    pushf
+    cli
+    push    ds
+    lds     si,[foow]
+    pop     ds
+    popf
+
+    mov     bx,$FFFF
+    rol     bl,1
+    rol     [b],1
+    ror     bl,1
+    ror     [b],1
+    rcl     bl,1
+    rcl     [b],1
+    rcr     bl,1
+    rcr     [b],1
+    shl     bl,1
+    shl     [b],1
+    shr     bl,1
+    shr     [b],1
+    sal     bl,1
+    sal     [b],1
+    sar     bl,1
+    sar     [b],1
+    rol     bx,1
+    rol     [w],1
+    ror     bx,1
+    ror     [w],1
+    rcl     bx,1
+    rcl     [w],1
+    rcr     bx,1
+    rcr     [w],1
+    shl     bx,1
+    shl     [w],1
+    shr     bx,1
+    shr     [w],1
+    sal     bx,1
+    sal     [w],1
+    sar     bx,1
+    sar     [w],1
+
+    {Nybble work is common, so let's choose 4.  Higher values could be used,
+    but can be optimized out (ie. rol al,5 = ror al,3) so we'll avoid them.}
+    mov     cl,4
+    rol     bl,cl
+    rol     [b],cl
+    ror     bl,cl
+    ror     [b],cl
+    rcl     bl,cl
+    rcl     [b],cl
+    rcr     bl,cl
+    rcr     [b],cl
+    shl     bl,cl
+    shl     [b],cl
+    shr     bl,cl
+    shr     [b],cl
+    sal     bl,cl
+    sal     [b],cl
+    sar     bl,cl
+    sar     [b],cl
+    rol     bx,cl
+    rol     [w],cl
+    ror     bx,cl
+    ror     [w],cl
+    rcl     bx,cl
+    rcl     [w],cl
+    rcr     bx,cl
+    rcr     [w],cl
+    shl     bx,cl
+    shl     [w],cl
+    shr     bx,cl
+    shr     [w],cl
+    sal     bx,cl
+    sal     [w],cl
+    sar     bx,cl
+    sar     [w],cl
+
+    aad
+    aam
+    xlat
+
+    mov     ax,foow
+    mov     dx,$5678    {get non-zeros in registers again}
+
+    cmc
+
+    not     dl
+    not     ax
+    neg     dl
+    neg     ax
+
+    {mul/div tests.  Values inspired by "PIT ticks to usec" conversion}
+    mov     dx,8381
+    mul     dx
+    mov     bx,10000
+    div     bx
+    imul    dx
+    idiv    bx
+
+    clc
+    stc
+    cli
+    sti
+
+    std
+    cld {reversed from opcode encoding to ensure we don't bork future moves}
+
+{Call a BIOS do-nothing interrupt to test INT.  Dummy interrupt in this case 
+is 1C, the user hook interrupt, which we haven't hooked so it should just do 
+an iret.  If a TSR is loaded that DOES hook it, it's going to skew things, so 
+remember to remind the user to test on a clean boot if possible.}
+    int     1Ch
+    (* old do-nothing interrupt test was READ CURSOR POSITION
+    {returns data from BIOS DATA AREA, shouldn't actually touch hardware}
+    push    ax
+    push    bx
+    push    cx
+    push    dx
+    mov     ah,3
+    mov     bh,0
+    int     10h
+    pop     dx
+    pop     cx
+    pop     bx
+    pop     ax
+    *)
+
+    pushf
+    call    doNothingInterrupt; {...to force an IRET in memory to be measured.  
+Previous test also calls an IRET but the IRET is usually located in the BIOS 
+ROM if 1c hasn't been hooked.}
+
+    (*this completely crashed a virtual session -- it turns out that,
+    unless you're writing a multi-CPU operating system, you shouldn't
+    use LOCK indiscriminantly :-D
+    lock    xor dx,foow {LOCK prefix takes 2 cycles on 8086}*)
+
+    {Although the effective addressing test exercises this massively,
+    we should do a little something here.}
+    mov     ax,foow     {accum, imm16}
+    mov     dx,foow     {reg,   imm16}
+    mov     al,foob     {accum, imm8}
+    mov     dl,foob     {reg,   imm8}
+    mov     w,ax        {mem16, accum}
+    mov     w,dx        {mem16, reg}
+    mov     b,al        {mem8,  accum}
+    mov     b,dl        {mem8,  reg}
+    mov     al,b        {accum, mem8}
+    mov     dl,b        {reg,   mem8}
+    mov     ax,w        {accum, mem16}
+    mov     dx,w        {reg,   mem16}
+    mov     ax,dx       {accum, reg}
+    mov     dx,ax       {reg,   accum}
+    mov     al,dl       {accum, reg}
+    mov     dl,al       {reg,   accum}
+    {don't forget some segment overrides:}
+    mov     dx,cs:[bx]
+    mov     dx,ss:[bp]
+    mov     dx,es:[si]
+    mov     dx,ds:[di]
+
+    lea     bx,scratchspace
+    {stupid pascal in-line assembler won't recognize push rmw!}
+    {push   [bx]} DB $FF,$37
+    {pop    [bx]} DB $8F,$07
+
+  end;
+
+{
+3-D Games benchmark suite
+
+Most benchmark suites are (rightly) accused of not being very true to how real
+programs are built and executed; they run blocks of code that the programmer
+thought was a decent way to test a machine, and I am slightly guilty of it as
+well.  So while block memory reads/writes and a complete opcode exercise are
+exhaustive and useful, they are not very practical.
+
+This test suite attempts to rectify that by mimicing the opcode execution
+frequency of a 1990-era 3-D game, the type of program that most users of this
+benchmark would be concerned with.  The code in this suite may look completely
+nonsensical and arbitrary, but it consists of the actual instruction
+frequncy/distribution as a typical 3-D game of 1990.  (The order of the
+instructions is of course not the same as the actual code of any program, but
+some instructions were relocated to a more typical position; for example, all
+the MULs are not in the same place, etc.)
+
+How was this block constructed?  Using DOSBOX's debugger, in-game execution
+for several games was logged and sections of the main calculation loop (the
+part that calculates the 3-D and then rasterizes the polygons) were
+identified.  The log was then run through a filter that changed each
+instruction to its base form (ie. "ADD AL,BL" was changed to "ADD
+accum8,reg8", "MOV DX,[BX+SI+1432]" was changed to "MOV reg16,[BX+SI+disp16]",
+etc.) so that each unique encoding/form could be tallied into buckets.
+Finally, all buckets were averaged, and then divided by a constant to produce
+the instruction categories and frequencies in this code block.  The target for
+this code block was roughly 400 instructions.  (The division was necessary
+because reproducing them verbatim would have resulted in a benchmark block
+that would take over a second to execute on a slow machine, and the target for
+all blocks is roughly 2ms.)
+
+The games that were analyzed were:
+
+Title              Year Engine Developer  Speed(1) Instructions(2)
+~~~~~              ~~~~ ~~~~~~~~~~~~~~~~  ~~~~~    ~~~~~~~~~~~~
+Interphase         1990 Image Works       fast     96645
+Indianapolis 500   1989 Electronic Arts   fast     175069
+Stellar 7          1990 Dynamix           moderate 124692
+Stunt Driver       1990 Spectrum Holobyte moderate 165974
+Killing Cloud      1991 Vektor Grafix     moderate 180249
+LHX Attack Chopper 1990 Electronic Arts   moderate 225797
+Flight Simulator 4 1990 Sublogic          moderate 309737
+Battle Command     1991 Realtime          moderate 420442
+Blue Angels        1990 Artech            slow     413359
+
+(1) This is my subjective visual feel for the framerate of a game at a given 
+machine speed.
+
+(2) This is the actual 3-D game instruction count for one calculation block.
+Lower numbers usually translate to more efficient code and a faster game.
+
+The above games were chosen because:
+
+- They all had filled polygons in scenes of non-simple detail
+- Had impressive framerates for slow computers of their era
+- Supported CGA
+- Could run on slow machines (8088) but scaled appropriately to faster ones
+  (386+)
+- Were developed as far apart from each other as possible (ie. all of the
+above game engines were made by a different team.).  This also explains why
+there are no "duplicates"; for example, LHX Attack Chopper is present but IL-
+Stormuvick or Chuck Yeager's Air Combat are not, because all three use the
+same engine written by Brent Iverson and it would have skewed the
+distribution.  This also explains why Vette! is absent (because Stunt Driver
+was chosen), why UFO or Jet are absent (because Flight Simulator 4 was
+chosen), etc.
+
+CGA was chosen as a requirement so that the "update screen" routine could be
+easily identified (memory moves to ES=B800, no INs or OUTs involving EGA/VGA
+hardware).  The analyzed code was identified as the code that executes
+*between* these moves, ie. included everything except the actual buffer-to-
+screen copy.
+
+I made some interesting observations when looking at the execution history:
+
+- I used to think that the difference between a fast and slow 3-D game was due 
+to optimization of MULs or something, but all of the above games performed the 
+same 9 MULs per rotation.  Only Stunt Driver was different; it calculated only 
+6 MULs when the car was driving, probably because it only needed to account 
+for 2 axis at a time due to the nature of the simulation.
+
+- Indianapolis 500 performs nearly double the amount of calculations as
+Interphase, yet I marked it as "fast", and it is suitably impressive on an
+808x machine.  Why?  Because the game's viewport is only half the screen
+(roughly a 320x100 area instead of the full 320x200).  But that's okay,
+because it's a driving game on an oval track; you don't need a lot of vision 
+up or down.
+
+- The games varied wildly with their math representations; many used what
+appeared to be 16.16 fixed point, but I believe I saw a few others, such as
+8.16 (Interphase) and 8.24 (Flight Simluator). I could be wrong however, and
+encourage you to do your own research/disassembly/logging.  All my data is
+available upon request if you'd like to study it (but I warn you, the 
+sed/awk/shell scripts I wrote to process it will likely disgust you).
+
+}
+  asm
+
+
+    {Init so we have a consistent starting point}
+    mov  ax,$0101
+    mov  bx,ax
+    mov  cx,ax
+    mov  dx,ax
+    mov  [w],ax
+    mov  [b],al
+    les  di,buf1
+
+    {actual suite begins:}
+    adc  DX,[W]
+    adc  DX,[W]
+    adc  DX,$0101
+    adc  DX,DX
+    adc  DX,DX
+    adc  DX,DX
+    adc  DX,DX
+    mul  ax
+    add  [W],DX
+    add  AX,[W]
+    add  AX,$0101
+    add  AX,$0101
+    add  AX,DX
+    add  AX,DX
+    add  DX,[W]
+    add  DX,[W]
+    add  DX,AX
+    add  DX,AX
+    add  DX,AX
+    add  DX,$0101
+    add  DX,$0101
+    add  DX,$0101
+    add  DX,$0101
+    add  DX,$0101
+    mul  BX
+    add  DX,DX
+    add  DX,DX
+    add  DX,DX
+    add  [W],$0101
+    and  AL,DL
+    and  AL,DL
+    and  DX,$0101
+    and  DX,$0101
+    and  DL,BL
+    and  CL,BL
+    and  DL,ES:[di]
+    call doNothingNear
+    call doNothingNear
+    call doNothingNear
+    call doNothingFar
+    call doNothingNear
+    call doNothingNear
+    call doNothingNear
+    call doNothingNear
+    cmp  DX,[bp+$0101]
+    cmp  DX,[bx+$0101]
+    cmp  DX,[si+$0101]
+    cmp  DX,[si+$0101]
+    cmp  DX,[si+$0101]
+    cmp  DX,DX
+    cmp  DX,DX
+    cmp  DX,DX
+    cwd
+    cwd
+    cwd
+    dec  byte [W]
+    mul  DX
+    dec  DX
+    dec  DX
+    dec  DX
+    dec  DX
+    dec  DL
+    imul DX
+    cmp  DX,$0101
+    cmp  DX,DX
+    xor  dx,dx
+    idiv BX
+    add  DX,AX
+    add  DX,$0101
+    imul DX
+    add  DX,AX
+    add  DX,$0101
+    imul DX
+    {lea  bx,[buf1]}
+    {imul word ptr [bx+$0101]}
+    cmp  DX,$0101
+    cmp  DX,DX
+    imul [W]
+
+    {Most of these jumps branch}
+
+    stc
+    jc   @L2
+    nop
+@L2:
+    jc   @L3
+    nop
+@L3:
+
+    xor  CX,CX
+    jcxz @L4
+    nop
+@L4:
+
+    cmp  DX,DX
+    je   @l5
+    nop
+@L5:
+    cmp  [B],$FF
+    je   @l6
+    nop
+@L6:
+    cmp  cx,cx
+    je   @l7
+    nop
+@L7:
+    je   @l8
+    nop
+@L8:
+    je   @l9
+    nop
+@L9:
+    je   @la
+    nop
+@La:
+    je   @lb
+    nop
+@Lb:
+    je   @lc
+    nop
+@Lc:
+    je   @ld
+    nop
+@Ld:
+    je   @le
+    nop
+@Le:
+    je   @lf
+    nop
+@Lf:
+    je   @lg
+    nop
+@Lg:
+    je   @lh
+    nop
+@Lh:
+
+    mov  cl,$ff
+    cmp  CL,$01
+
+    jg   @g1
+    nop
+@g1:
+    jg   @g2
+    nop
+@g2:
+    jg   @g3
+    nop
+@g3:
+    jg   @g4
+    nop
+@g4:
+    jg   @g5
+    nop
+@g5:
+    jge  @g6
+    nop
+@g6:
+    jge  @g7
+    nop
+@g7:
+    jge  @g8
+    nop
+@g8:
+    jge  @g9
+    nop
+@g9:
+    jge  @ga
+    nop
+@ga:
+    jge  @gb
+    nop
+@gb:
+
+    or   DX,AX
+    xor  cx,cx
+    cmp  DX,CX {cx should still be 0, DX should be non-zero}
+
+    jl   @q1
+    nop
+@q1:
+    jl   @q2
+    nop
+@q2:
+    jl   @q3
+    nop
+@q3:
+    jl   @q4
+    nop
+@q4:
+    jl   @q5
+    nop
+@q5:
+    jle  @q6
+    nop
+@q6:
+    jle  @q7
+    nop
+@q7:
+    jle  @q8
+    nop
+@q8:
+    jle  @q9
+    nop
+@q9:
+    jle  @qa
+    nop
+@qa:
+    jle  @qb
+    nop
+@qb:
+
+    jmp  @s1
+    nop
+@s1:
+    jmp  @s2
+    nop
+@s2:
+    jmp  @s3
+    nop
+@s3:
+    jmp  @s4
+    nop
+@s4:
+    jmp  @s5
+    nop
+@s5:
+    jmp  @s6
+    nop
+@s6:
+
+    clc
+    jnc  @c1
+    nop
+@c1:
+    jnc  @c2
+    nop
+@c2:
+    jnc  @c3
+    nop
+@c3:
+
+    mov  AX,$0101
+    mov  DX,AX
+    mov  [W],DX
+    dec  DX
+
+    cmp  DX,[W]
+    jne  @n1
+    nop
+@n1:
+    cmp  DX,[W]
+    jne  @n2
+    nop
+@n2:
+    cmp  DX,[W]
+    jne  @n3
+    nop
+@n3:
+    cmp  DX,[W]
+    jne  @n4
+    nop
+@n4:
+    cmp  DX,AX
+    jne  @n5
+    nop
+@n5:
+    cmp  DX,$0101
+    jne  @n6
+    nop
+@n6:
+    cmp  DX,DX
+    jne  @n7
+    nop
+@n7:
+    cmp  DX,$0101
+    jne  @n8
+    nop
+@n8:
+    cmp  DX,DX
+    jne  @n9
+    nop
+@n9:
+
+
+    mov  DX,$0002
+    mov  cx,dx
+@lp1:
+    lodsb
+    loop @lp1
+
+    mov  cx,dx
+@lp3:
+    lodsb
+    loop @lp3
+
+    mov  cx,dx
+@lp5:
+    lodsw
+    loop @lp5
+
+    mov  cx,dx
+@lp7:
+    lodsw
+    loop @lp7
+
+    mov  AX,[bp+$0101]
+    mov  AX,[bx+$0101]
+    mov  DX,[bx+$0101]
+    mov  AX,[di+$0101]
+    mov  DX,[di+$0101]
+    mul  ax
+    mov  [W],AX
+    mov  [W],AX
+    mov  [W],AX
+    mov  [W],AX
+    mov  [W],AX
+    mov  [W],DX
+    mov  [W],DX
+    mov  [W],DX
+    mov  [W],DX
+    mov  AX,[si+$0101]
+    mov  DX,[si+$0101]
+    mov  AX,[bp+$0101]
+    mov  AX,[bp+$0101]
+    mov  AX,[bp+$0101]
+    mov  AX,[bx+$0101]
+    mov  AX,[bx+$0101]
+    mov  AX,[W]
+    mov  AX,[W]
+    mov  AX,[W]
+    mov  AX,[W]
+    mov  AX,[W]
+    mov  AX,[W]
+    mov  AX,[W]
+    mov  AX,[si]
+    mov  AX,[si+$0101]
+    mov  AX,[si+$0101]
+    mov  AX,$0101
+    mul  DX
+    mov  AX,DX
+    mov  AX,DX
+    mov  AX,DS
+    mov  AX,DS
+    mov  AX,DS
+    mov  AX,ES:[bx+$0101]
+    mov  AX,ES:[W]
+    mov  AL,[bx+$0101]
+    mov  AL,[b]
+    mov  AL,DL
+    mov  AL,DL
+    mov  AL,ES:[di]
+    mov  DX,[bp+$0101]
+    mov  DX,[bp+$0101]
+    mov  DX,[bx+$0101]
+    mov  DX,[di+$0101]
+    mul  ax
+    mov  DX,[W]
+    mov  DX,[W]
+    mov  DX,[W]
+    mov  DX,[W]
+    mov  DX,[W]
+    mov  DX,[W]
+    mov  DX,[W]
+    mov  DX,[W]
+    mov  DX,[W]
+    mov  DX,[si+$0101]
+    mov  DX,[si+$0101]
+    mul  ax
+    mov  DX,AX
+    mov  DX,AX
+    mov  DX,AX
+    mov  DX,AX
+    mov  DX,AX
+    mov  DX,AX
+    mov  DX,AX
+    mul  ax
+    mov  DX,AX
+    mov  DX,AX
+    mov  DX,AX
+    mov  DX,AX
+    mov  DX,$0101
+    mov  DX,$0101
+    mov  DX,$0101
+    mov  DX,$0101
+    mul  DX
+    mov  DX,DX
+    mov  DX,DX
+    mov  DX,DX
+    mov  DX,DX
+    mov  DX,DX
+    mov  DX,DX
+    mov  DX,DX
+    mov  DX,DX
+    mov  DX,DX
+    mov  DX,DX
+    mov  DX,DX
+    mov  DX,DX
+    mov  DX,DS
+    mov  DX,DS
+    mov  DX,DS
+    mov  DX,ES:[W]
+    mov  DL,$01
+    mov  DL,$01
+    mov  DL,$01
+    mov  DL,DL
+    mov  DL,DL
+    mov  DL,DL
+    mov  DL,ES:[di+$0101]
+    mov  AX,ES:[di+$0101]
+    mov  AX,ES:[W]
+    mov  DX,ES:[W]
+
+    movsw
+
+    mul  DX
+    xchg DX,AX
+    neg  DX
+    neg  BX
+    mov  AX,DX
+    not  DX
+    not  DL
+    not  DL
+    {forced vars to ensure the stupid div works}
+    xor  DX,DX
+    mov  AX,$F0F0
+    mov  BX,$0FFF
+    div  BX
+    or   AL,DL
+    or   AL,DL
+    or   AL,DL
+    mul  DX
+    or   DX,DX
+    or   DX,DX
+    or   DL,DL
+
+   {Although synthetic, it looks silly to have pushpoppushpoppushpop etc. so I
+    stuck instructions between them.  Opcode distribution was preserved.}
+
+    push ds
+    rcl  DX,1
+    pop  ds
+
+    push es
+    rcl  DX,1
+    pop  es
+
+    push DX
+    rcl  DX,1
+    pop  DX
+
+    push DX
+    rcl  DX,1
+    pop  DX
+
+    push DX
+    rcl  DX,1
+    pop  DX
+
+    push DX
+    rcl  DX,1
+    pop  DX
+
+    push DX
+    rcl  DX,1
+    pop  DX
+
+    push DX
+    rcl  DX,1
+    pop  DX
+
+    push DX
+    rcr  DX,1
+    pop  DX
+
+    push DX
+    rol  DL,1
+    pop  DX
+    mul  DX
+
+    push DX
+    ror  DL,1
+    pop  DX
+
+    push DX
+    inc  cl   {cx should be 0 from previous loop iterations}
+    inc  cl
+
+    ror  DX,cl
+    pop  DX
+
+    rep stosb {cx=2, es:di=buf, al=?}
+    ror  DL,1
+    sar  DX,1
+    sar  DX,1
+    sar  DX,1
+    seges lodsb
+    seges lodsw
+    shl  DX,1
+    shl  DX,1
+    shl  DX,1
+    shl  DX,1
+    shl  DX,1
+    mul  DX
+    shl  DX,1
+    shl  DX,1
+    shl  DX,1
+    shl  DX,1
+    shl  DX,1
+    mul  DX
+    shl  DX,1
+    shl  DX,1
+    shl  DX,1
+    shl  DX,1
+    shl  DX,1
+    shl  DL,1
+    xor  DX,AX
+    shr  DX,1
+    shr  DX,1
+    shr  DX,1
+    shr  DX,1
+    shr  DX,1
+    shr  DX,1
+    shr  DX,1
+    shr  DX,1
+    mov  cl,4
+    shr  DL,cl
+    les  di,[buf1]
+    stosb
+    stosb
+    stosb
+    stosw
+    stosw
+    stosw
+    sub  DX,[W]
+    sub  DX,[si+$0101]
+    sub  DX,AX
+    sub  DX,$0101
+    sub  DX,$0101
+    sub  DX,$0101
+    mul  DX
+
+    sub  DX,DX
+    sub  DX,DX
+    sub  DX,DX
+    sub  DX,DX
+    sub  DX,DX
+    test AL,01010101b
+    test AL,10101010b
+    test AL,11110000b
+    test byte [W],00001111b
+    test DL,11001100b
+    xchg DX,DX
+    xchg DL,[b]
+    xor  AX,AX
+    xor  DX,DX
+    xor  DL,DL
+    xor  DL,DL
+
+  end;
+  asm
+{Performs common memory write operations to video cards.
+REP STOS is not performed because it would cause unacceptable visible
+disruption to the screen while the realtime updates are in progress.
+Also, size of block move is not a full 80x25 screen because otherwise
+it would be a major slowdown to the tests.}
+    mov     dx,ds
+
+    les     di,[buf1]
+    lds     si,[screenseg]
+    mov     cx,screenarea
+    shr     cx,1
+    cld
+    rep     movsw           {copy screen ram to buffer}
+    mov     ds,dx
+    les     di,[screenseg]
+    lds     si,buf1
+    lodsb                   {simulate writing a single character+attr to the}
+    stosw                   {screen from an ascii text buffer}
+    lodsb                   {again, from odd address}
+    stosw
+    sub     si,2
+    sub     di,4            {reset buffer pointers}
+    mov     cx,screenarea
+    shr     cx,1
+    rep     movsw           {simulate restoring an entire saved text screen}
+
+    mov     ds,dx
+
+  end;
+

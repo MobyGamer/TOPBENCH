@@ -1,0 +1,27 @@
+This is a message from one of the TMi0SDGL users regarding use of the lib in
+Visual dBase for Windows. I think it contains useful tip for incorporating
+TMi0SDGL into applications written in languages other than Pascal and C/C++.
+
+---------------
+From:   Gordon.Hickam@AFC.AFC-FMS.fms.sprint.com
+
+The DLLs work with Visual DBase 5.5a.  Use the EXTERN command to prototype
+the function.  Examples follow:
+
+* Prototype the functions
+extern cstring cpu_type() cpudet16.dll
+extern cstring fpu_type() cpudet16.dll
+extern cstring getVendorString() cpudet16.dll
+extern clong cpu_speed() cpudet16.dll
+* Now go try them by printing the information out to the screen.
+? "CPU Type:"+cpu_type()
+? "FPU Type:"+fpu_type()
+? "CPU Vendor:"+GetVendorString()
+? "CPU Speed:"+LTRIM(STR(cpu_speed()))
+
+Thank you for developing this.
+
+Gordon Hickam
+
+----------------------
+...and thank you, Mr. Hickam, for providing me (and others) with this info.

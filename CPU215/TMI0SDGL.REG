@@ -1,0 +1,7 @@
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\B-coolWare\UpdateMe\Updatable]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\B-coolWare\UpdateMe\Updatable\TMi0SDGL]
+"Title"="TMi0SDGL(tm) Revision 2 x86 CPU/FPU Detection Library"
+"Version"="2.15.007"

@@ -1,0 +1,566 @@
+Dies ist die History-Datei fÅr "Die Detecting Unit fÅr Pascal"
+Sie beinhaltet Datum, Versionsnummer, Neuerungen und Anzahl der
+Funktionen in der Unit. Die Zahlen kînnen ein wenig schwanken (+-5), da
+ich nicht Zeit habe alle nachzuzÑhlen und ich mich - schlicht und ergreifend
+- manchmal verzÑhlt habe ...
+
+Copyright (C) 1995, 1996 by Eike Frost
+
+History :
+
+⁄ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ¬ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒø
+≥ ⁄> Funktionen    ≥ ⁄ƒƒ> Version   ≥
+≥ ≥ ⁄ƒƒƒƒƒƒƒƒø     ≥ ≥    ⁄ƒƒƒƒƒƒƒƒƒ¡ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒø
+≥Fun≥ Datum  ¿ƒƒƒƒƒŸVer   ≥  Erweiterungen / VerÑnderungen                     ≥
+
+ 56  02.05.95      1.00a   : Erste Ausgabe der Unit, 56 Funktionen
+ 58  15.07.95      1.01    : GraInf und VesaInf neu, WhatGCard Åberarbeitet,
+                             erstmals vollstÑndige Anleitung DETECT.DOC
+ 85  22.07.95      1.02    : MouseLanguage, MouseButtons, DoubleClickSpeed,
+                             MouseMickeysVert/Hori, MouseDisplayPage,
+                             EGARegisterSupp/Vers, SaveStateBuffer,
+                             KeyIsInsert, KeyIsCapsLock, KeyIsNumLock,
+                             KeyIsScrollLock, ExtKeyboardSupp,
+                             KeyBufferStart/End und KeyBufferlength neu,
+                             Modifizierungen an den Diskettenfunktionen. Die
+                             erste Version mit borland Pascal 7.00
+100  25.07.95      1.03    : Is4Dos/Ndos, IsKStack, IsWildUnix, IsArnakey,
+                             IsTaskSwitch5, IsDrDosTskMx, IsFPFLock/XChk/
+                             PopUp/Dlock, IsFluShot, IsHyperDisk,
+                             IsMSLanTastic, IsInset neu, Einige Multiplex-
+                             Routinen berichtigt, In GraInf die EGA Routinen
+                             hinzugefÅgt.
+112  26.07.95      1.03a   : MashineType, BiosRevision, IsDMAChannel3,
+                             IsSlave 8259, IsRealClock, IsKeybIntercept,
+                             IsWaitExtEvent, IsExtBiosDSeg, IsMicroChannel,
+                             IsKeyb16_9, BiosSource und BiosVersion neu,
+                             Handbucherweiterungen
+121  27.07.95      1.03b   : WhatCpu Åberarbeitet, WhatCopro, Is386Bug,
+                             WhatWeitek, WhatMSW, IsMSWProtMode,
+                             IsMSWMonCoPro, IsMSWEmuCoPro, WhatGDT und
+                             WhatIdt neu, XMS und XMM-RoutinenÅberarbeitung,
+                             Neue Unit DetectGlobals mit den Externen
+                             Routinen und allen globalen Werten/Typen und
+                             Funktionen, Verbesserung und VerkÅrzung der
+                             öberleitungsroutinen
+123  28.07.95      1.04    : CoProRounding, CoProPrecision neu, WhatCopro
+                             erkennt jetzt auch 80287XL und 80487 Built-In.
+123  30.07.95      1.04a   : XMS-Routinen arbeiten jetzt richtig.
+127  01.08.95      1.04b   : Funktionen IsVCPI, VCPIVersion, IsUMB und
+                             UMBLargestBl neu, Handbucherweiterungen, neues
+                             DEMO-Programm EXAMPLE.PAS, eigene Datei fÅr
+                             History-Liste HISTORY.TXT, MashineType erkennt
+                             jetzt folgende dazugekommene Modelle :
+                               AT&T 6300, Olivetti PC, AT Modell 099
+                               (Original), 7531/2 Industrial AT, AT Model 239
+                               6mHz, AT Model 339, 339 8mHz, Compaq DeskPro
+                               80386/25e, Compaq 386/16, Phoenix BIOS wird
+                               bei 2 Modellen erkannt, Compaq Deskpro
+                               386s/386SX 16 mHz, XT/286, PS/2 Modell 50,
+                               PS/2 Modell 50Z, PS/2 Modell 60, 7552
+                               "GearBox", PCjr, XT, Portable PC, XT/370,
+                               3270 PC, PC-0, PC-1, PS/2 Modell 80, 80-141
+                               16 mHz, 80-071 16 mHz, 80 20 mHz, 80-111 20
+                               mHz, 70-121, 70 Portable, 70 Desktop, 70-A21,
+                               Compaq PC (Original), Compaq Plus
+130  02.08.95      1.04c   : CmosBaseMemory, CmosExtMemory und CmosTotalMem
+                             neu, Handbucherweiterungen, Bugfix in
+                             MashineType
+138  03.08.95      1.05    : Neue Unit DetectFX fÅr Soundkarten, deren
+                             Zubehîr, deren Treiber ..., IsSB, WhatSB,
+                             WhatSBPort, WhatSBVersion, IsAdlib,
+                             IsAdlibDriver, AdlibDrvVer und AdlibDrvAdr neu
+139  04.08.95      1.05a   : IsRolandMPU neu, Beispieldatei EXAMPLE.PAS
+                             Åberarbeitet.
+138  05.08.95      1.05b   : IsRolandMPU wieder gelîscht (zeigte auf einigen
+                             Rechnern Probleme und zeigte falsche
+                             Informationen an), Bei GraInf sind die
+                             Funktionen 11-26 hinzugekommen, in WhatGCard
+                             einige Bugs bereinigt, Datei DETECTGR.TXT fÅr
+                             die Variablen fÅr Grafikkarten neu, WhatCPU
+                             erkennt jetzt auch den Pentium Prozessor.
+109  02.09.95      1.06    : Multiplexroutinen (Also alle Routinen, die fest-
+                             stellen, ob eine Software installiert ist oder
+                             nicht wurden in eine Funktion und eine neue Unit
+                             umgeschrieben. Dies spart unheimlich viel
+                             Programmcode, entlastet das Datensegment ein
+                             bi·chen und die Unit DetectSoftware wird nicht
+                             zu gro·. Au·erdem habe ich alle Konstanten in
+                             die neue Unit DetectConstants verbannt. Die
+                             Definition DetectMultiplex darf man nicht so
+                             ernst nehmen, da z.B. Versionsabfragen immernoch
+                             in DetectSoftware stehen. Neue Funktionen sind :
+                             Version4Dos, Shell4Dos, PSPSegment4Dos,
+                             VersionNDos, ShellNDos, PSPSegmentNDos. Die
+                             Grafikdetektionsroutinen wurden grundlegend
+                             erweitert. Einige Routinen lassen einige Rechner
+                             abstÅrzen, ÅberprÅfe das gerade ...
+125  03.09.95      1.06a   : IsHMA, HMAStatus, HMAUsedByDos5, HMAFreeDos5,
+                             HMAFreeAddrress5, IsDPMI, DPMIVersion, DPMICPU,
+                             DPMIModeEntry, WhatPharLap, Is386Max,
+                             _386MaxVersion, _386MaxSegment,
+                             _386MaxEMSActive, _386MaxWin3Supp, IsMICEMM,
+                             MICEMMCS neu, Bug in XMSVersion behoben,
+                             Multiplex erkennt jetzt auch Dos/16M und den
+                             PharLap Dos Extender.
+162 04.09.95       1.06b   : IsEmm386, Emm386Api, Emm386Status, Emm386Weitek,
+                             IsVDS, VDSVersion, VDSProduct, VDSMaxDMABSize,
+                             VDSTransfersOk, VDSIsBuffer1Meg, VDSIsAutoRemap,
+                             VDSIsContiguousMem, VDSIsBiosBit, IsDesqView,
+                             DesqViewVersion/WnNo/TrueVid/Width/Height/Co/Cn/
+                             Ex/MemAvail/MemLarge/MemTotal,
+                             TskSwtch5EntryPoint, TaskMaxVersion,
+                             TaskMaxMaxTasks, TaskMaxActTasks, IsTame,
+                             TameDataArea, IsTBScanX, TBScanXVersion und
+                             TBScanXStatus neu.
+180 05.09.95       1.07    : N_NCacheStatus, N_DiskReetStatus,
+                             N_DiskMonStatus, N_DiskReetRes, N_DiskMonRes,
+                             N_FileSavRes, IsCAM_SCSI, IsCMCIntSCSIDriv,
+                             IsStacker, StackerVersion, IsPcAnywhere,
+                             PcAnyWhereStatus/Port/Baud, IsDiskSpoolII,
+                             DiskSpoolSegment, DiskSpoolSpoolSt und
+                             DiskSpoolDeSpSt neu, Multiplex erkennt jetzt
+                             auch die Norton Utilities N-Cache-F, N-Cache-S,
+                             N-DiskReet, N-DiskMon und N-FileSav.
+199 08.09.95       1.07a   : IsWindows, WindowsMode, WinEnhVersion/VirtMashId/
+                             OldAp/OldApVer/DriverVer/DeviceType/PixelWidth/
+                             PixelHeight/Colors/Bits_Pixel/Bit_Planes/XAspect/
+                             YAspect/Brushes/Pens/Markers/Fonts neu.
+226 09.09.95       1.07b   : IsSmartDrive, SMDeviceVer/SizeNow/MonSize/EleSize/
+                             CacheHits/CacheMisses/RCache/WCache/DblBuffering,
+                             SMIOCTLVer/Size/MaxSize/MinSize/Enabled/
+                             LockedTracks/WriteThrough/WriteBuffer/HitRate/
+                             DMABuffering/MemoryType/FlushReBoot/TracksTotal/
+                             TracksUsed/TracksLocked/TracksDirty neu.
+237 11.09.95       1.08    : IsPC_TCP, PC_TCP_Interrupt, IsFossil, FossilType/
+                             SpecLevel/Revision/IDString, IsVidFossil,
+                             VidFossilVer/Rev/Hfn neu, Bugfix fÅr VDS-Erkennung
+                             und Weitek-Prozessoren. EXAMPLE.PAS hat ein neues
+                             MenÅ (jetzt scrollend). Ich habe die Anleitungs-
+                             datei komplett neu geschrieben (jetzt gibt es
+                             ein Inhaltsverzeichnis und besseren Aufbau).
+237 12.09.95       1.09    : Handbuch jetzt mit Angabe, aus welcher Unit welche
+                             Funktion stammt, vollstÑndig.
+238 15.09.95       1.10    : Is386MulBug neu, Is386Bug in Is386PopAdBug
+                             umbenannt, neues Assembler-Modul (DETECTG2.ASM),
+                             Neue Prozessortypen werden erkannnt (8 neue),
+                             Neue Koprozessor-Typen werden erkannt (20 neue).
+255 16.09.95       1.10a   : CPUFreq, CoproFreq, WaitStates, BusWidth,
+                             IsP5FDivBug, IsCPUCache, CPUCacheLevel, CPUCacheKB
+                             First/Second, CPUCacheThruFirst/Second, MemThru,
+                             BiosExtThru, EMSThru, VideoWaits, BiosSpeed,
+                             DosSpeed neu, Bug in EXAMPLE.PAS ausgebessert,
+                             neue Unit DetectCaches) fÅr die CacheRoutinen von
+                             Norbert Juffa, Grîstenteils Originalcode aus
+                             CompTest.
+261 17.09.95       1.10b   : WhetStones, WhetStonesXT, Dhrystones, DhrystonesXT,
+                             MFLOPS, MFLOPSXT neu. Bugs in den Dos-Bildschirm-
+                             ausgabespeed-Routinen behoben. Neue Unit
+                             DetectWhet mit den Whetstone-Routinen, DetectDhry
+                             mit den Dhrystone-Routinen und DetectLLL (Lawrence
+                             Livermoore Loops) fÅr die MFLOPS (Million Floating
+                             Point Opertations per Second), die letzte Unit
+                             wurde gegenÅber den anderen Units aus Comptest
+                             stark verÑndert (Pointer-Arithemik), damit sie
+                             statt 50kb Datensegment nur noch 600 Byte Daten-
+                             segment verbraucht.
+268 18.09.95       1.10c   : HDCylinders, HDHeads, HDSectors, HDCapacity,
+                             HDTrackSeek, HDAverageSeek, HDMaximumSeek neu,
+                             Neue Unit DetectHD fÅr spezielle HD-Routinen,
+                             im Hauptteil der Unit stehen die Routinen fÅr
+                             die Zugriffszeiten, da der Timer einfach nicht
+                             in Funktionen funktioniert.
+279 20.09.95       1.11    : IsQEMM, QEMMApi, QEMMVersion, QEMMStatus,
+                             QEMMIsHiRam, QMMHiRamMCB, QEMMStealthStatus,
+                             QEMMStealthRom, IsQManifest, IsQVidRam und
+                             VidRamCS neu, Bugs in DetectHD behoben, Handbuch
+                             erweitert, Memory ManagerRoutinen in die neue Unit
+                             DetectMM, Einige Speicher-Optimierungen in
+                             DetectSoftware vorgenommen.
+297 22.09.95       1.11a   : IsNetWork, NetType, AppendStatus, AppendPath,
+                             SetverList, SetverCount, SetverText, IsCD,
+                             QEMMInitConv/Ext/Exp/Extra/Total, QEMMCurrConv/
+                             Ext/EMSXMS/Hiram/Mapped/DMAB/DMATasks/DMAMap/
+                             Code/Data/Total, QEMMUnAvailConv/Ext/Exp/ShdwTop
+                             neu, Multiplex erkennt jetzt 7 weitere Programme
+                             und unterscheidet bei Graftable zwischen 4.0-
+                             oder 5.0+.
+300 23.09.95       1.11b   : QEMMMemType, QEMMAccess, QEMMStealth neu.
+300 04.10.95       1.12·   : GraInf erkennt jetzt die Functionality und State
+                             Informationen auf einer MCGA bzw. VGA (GraInf-
+                             Nummer 45-73), au·erdem sind einige PC3270-
+                             Informationen hinzugekommen (GraInf-Nummer
+                             73-80). Multiplex erkennt jetzt auch 10 neue
+                             Programme.
+
+                             Erste Beta Release ! (IrrtÅmlich 1.26
+                             genannt)
+300 05.10.95       1.12a   : Die Funktion Multiplex wurde in IsInstalled
+                             umbenannt, da hier nicht nur Multiplex-Ab-
+                             fragen stattfinden. Der Unitname bleibt aber
+                             gleich, da ja bald auch der alternative
+                             Multiplex eingebaut wird. IsInstalled kennt
+                             jetzt 27 neue Programme. EXAMPLE.EXE kennt
+                             jetzt die Befehle PgDn, PgUp, Pos1 und End.
+301 06.10.95       1.12b   : WhichAddress neu.
+296 07.10.95       1.12c   : IsTame, IsCAM_SCSI und IsCMCIntSCSIDriv wurden
+                             in IsInstalled integriert, TameDataArea und
+                             TskSwtch5Entrypoint wurden in WhichAddress
+                             integriert, Bugs in IsInstalled behoben.
+                             Die If-Then abfragen in IsInstalled wurden
+                             durch Booleanische Gleichungen ersetzt.
+                             IsInstalled erkennt jetzt 7 neue Programme,
+                             WhichSegment erkennt 7 neue Adressen.
+297 08.10.95       1.12d   : Back&Forth bei IsInstalled neu, IsIBMCache neu.
+315 09.10.95       1.13    : IBMCTotalRRequests/TotalHits/PhysicalDReads/
+                             TotalSecReqDR/IsExtUsed/Version/Size/
+                             SectorsPage, AvaLevelSupp/DriverType, TesPort,
+                             MSCDEXVersion, SwellVersion, IsIBMYaleESIO,
+                             SRDiskSuppDrives/MemType/Version/ConfVersion
+                             neu. WhichSegment und IsInstalled haben auch ein
+                             paar neue Programme.
+324 10.10.95       1.14    : IsInstalled erkennt jetzt 16 weitere Programme,
+                             WhichAddress erkennt 9 weitere Adresssen,
+                             KeyboardId, IsAPM, APMVersion/Is16Prot/Is32Prot/
+                             IsBIOSPowMngmnt/ACLineStatus/BatteryStatus/
+                             BatteryLife, BusType und IsJetStream neu.
+                             EXAMPLE wurde in EXAMPLE und EXAMPLE2
+                             aufgeteilt (Code Segment). Die QualitÑt des
+                             Source-Codes wurde in DETECTCO.PAS und
+                             DETECTSO.PAS drastisch gesteigert.
+330 11.10.95       1.14a   : EISAIsId, EISASlotType, EISAConfigVersion,
+                             EISAConfigCheckSum, EISANumDevFunc und EISAId
+                             neu, DetectSystem und DetectConstants aufgebes-
+                             sert.
+330 12.10.95       1.14b   : IsInstalled erkennt jetzt 6 neue Programme aus
+                             PCTools, WhichAddress erkennt 3 neue Adressen
+                             aus PCTools.
+338 15.10.95       1.14c   : PCT5DeskHotKey/ColorSheme/IsResident, PCT6Desk-
+                             Version/CacheIsDrive, StackeyVersion, MDPIs-
+                             ForeGround und MDPIsMultitasking neu.
+339 18.10.95       1.14d   : IsMicroChannel wurde in BusType integriert. Bios-
+                             Short neu, CountryString erkennt 4 neue LÑnder,
+                             DosVersion erkennt jetzt auch DR Dos.
+344 20.10.95       1.15    : IDEType, ATA_PIStrings/Bools/Words/IsDrive
+                             neu, diese Funktionen wurden in die neue,
+                             voll dokumentierte Unit DETECTAT.PAS gepackt.
+344 21.10.95       1.15a   : Die IDE-Abfragen kann man jetzt auch mit
+                             Laufwerk D aufrufen.
+344 22.10.95       1.15b   : IsInstalled erkennt 13 neue Programme,
+                             WhichAddress 1 neue Adresse.
+344 23.10.95       1.15c   : DETECTG2.ASM wurde in DETECTGL.ASM integriert, die
+                             Routinen werden nun Åber DETECTGL.PAS aufgerufen,
+                             was die Tipparbeit bei neuen Assembler-Routinen
+                             verkleinert.
+352 24.10.95       1.15d   : IsMouseSystemsDrv, MouseSystemsVer, IsLogitechDrv,
+                             LogiCompParas/SerBaudRate/SerReportRate/SerFirmRev/
+                             SerPort neu.
+352 26.10.95       1.15e   : WhatCPU erkennt jetzt auch den Intel 80C86/C88.
+352 08.11.95       1.15f   : DosSpeed wurde wegen InkompatiblitÑten in den
+                             Assembler-Teil verlagert und vîllig umgekrempelt.
+354 29.11.95       1.15g   : VESAIsVidMode und VESAVidModeString wegen Um-
+                             schreibung der VESA-Routinen neu, erweitertes
+                             DEMO-Programm. Die Benchmarks (MFLOPS, Whet-
+                             stones, Dhrystones) haben jetzt wegen des sonst
+                             ÅberfÅllten Datensegments ihre eigene Unit
+                             (und das dazugehîrige Beispielprogramm ...)
+                             bekommen. Die Dateien sind jetzt unter
+                             BENCH.PAS (Unit) und BENCHEX.PAS (Beispiel)
+                             gespeichert.
+354 01.12.95       1.15h   : Die Funktion WhatGCard erkennt jetzt auch :
+                             S3 86c911, 86c911A/86c924, 86c928 C/D/E,
+                             86c801/805 A/B/C/D, 86c928 PCI und Trio32.
+                             Die Funktion GraInf erkennt jetzt die Diamond
+                             Stealth und dessen Video-DAC. Die Routine
+                             PreSpeedTest in den Units DetectGraphics und
+                             DetectSystem wurde vom Bug bereinigt, der
+                             jedes System ohne installierten EMS-Treiber
+                             abstÅrzen lie·. Bei der Routine IsExistEMS
+                             (DetectMemory) wurde das gleiche Manko
+                             verbessert.
+354 03.12.95       1.16    : WhatGCard erkennt jetzt den Unterschied zwischen
+                             AHEAD A und B, der Speicher dieser Chips wird
+                             jetzt auch ermittelt. Die Funktion erkennt
+                             au·erdem noch die ATI Boards EGAWonder und
+                             Basic-16, die ATI-Chips 28800-6 und 68800, den
+                             Avance Logic AL2101-Chip, die Chips&Technologies
+                             Chips 82c450, 82c451, 82c452, 82c453, 82c455,
+                             82c456, 82c457, F65510, F65520, F65530 und
+                             die Cirrus Chips CL-GD5402, CL-GD5402 r1,
+                             CL-GD5420, CL-GD5420 r1, CL-GD5422, CL-GD5426,
+                             CL-GD5424, CL-GD5428, CL-GD543x, CL-GD6205,
+                             CL-GD6235, CL-GD6215, CL-GD6225, AVGA2 (5402),
+                             CL-GD6440, CL-GD6412, CL-GD5410, CL-GD6420,
+                             CL-GD6410. Die Funktionen 82-93 der Funktion
+                             GraInf sind neu.
+354 04.12.95       1.16a   : GraInf Funktionen 94-100 neu, Erkennung des
+                             Video Memory bei einigen Cirruschips.
+                             WhatGCard erkennt jetz auch die Compaq-Karten
+                             IVGS, AVGA, QVision 1024, QVison 1280 und AVPort,
+                             die MXIC Chips MX86010, MX86000, die NCR VGA
+                             Chips NCR 77C22, NCR 77C21, NCR 77C22E und
+                             NCR 77C22E+, die OAK Chips OTI-087, OTI-083,
+                             OTI037C, OTI-067, OTI-077, OTI-057, die
+                             Paradise/Western Digital Chips PVGA1A, WD90C00,
+                             WD90C22, WD90C20A, WD90C20, WD90C24, WD90C26,
+                             WD90C30, WD90C31, WD90C33, WD90C10 und
+                             WD90C11, die Primus 2000 Grafikkarte und
+                             die RealTek Chips RT3103, RT3105 und RT3106.
+354 05.12.95       1.16b   : WhatGCard erkennt jetzt auch die Trident Chips
+                             TR8900, TR8900C, TR9000, TR8900CL/D, TR9000i,
+                             TR8900CXr, LCD9100B, LX8200, TVGA9200CXi,
+                             LCD9320, GUI9420 und TVGA 8800BR, die TSENG
+                             Chips ET4000w32/i/p, den UMC Chip, den Weitek
+                             Chip und den Yamaha 6388 Chip.
+355 06.12.95       1.16c   : WhatRamDac neu, erkennt 17 RAMDACS. GraInf
+                             Funktionen 101-103 neu.
+358 08.12.95       1.16d   : TransFormMFLOPS, TransFormMFLOPSIIT und PeakMFLOPS
+                             der Unit Bench neu. Das Beispielprogramm kann
+                             die DAten jetzt auch in eine Datei ausgeben.
+367 21.12.95       1.16e   : IsVerify, ZipKeyVersion, IsPCAnyWhereIV,
+                             PcAnyWhereIVApi, PCAnywhereIVVer und
+                             PCAnyWhereIVStat neu, IsInstalled erkennt 2 neue
+                             Programme.
+376 28.1.96        1.16f   : KeyboardController, IsOnBoardSCSI, IsIML,
+                             IsIMLSCSISupp, BiosExtensions, IsMPU401, IsGUS,
+                             GUS_Port und GUS_Memory neu.
+377 12.2.96        1.16g   : Unit DetectBios und Funktion GetBiosRecord
+                             neu. DETECT.INC und Schalter NoHd neu.
+381 1.3.96         1.16h   : GetFontAddress, GetNumberHandles, GetEMSHandleSize
+                             und GetEMSHandleName neu.
+386 3.3.96         1.16i   : GetPaletteRegister, MouseDrivertype,
+                             MouseCursorType, MouseIntrRate und MouseAccellProf
+                             neu.
+392 4.3.96         1.16j   : MouseBallpoint, MouseIniPath, MousePointerStyle,
+                             MousePointerSize, MousePointerSChange und
+                             MouseVersionWord neu.
+395 5.3.96         1.16k   : WhatRAMDAC erkennt jetzt bei ET4000-Bios'en
+                             folgende RAMDACS : Normaler VGA-DAC,
+                             Sierra SC1148x Hicolor DAC, Sierra Mark2 (15 Bit)
+                             oder Mark3 (15/16 Bit) DAC, ATT20c490/1/2
+                             (15/16/24 Bit), AcuMos ADAC1 (15/16/24 Bit),
+                             15/16/24 Bit DAC, Interner Cirrus 15/16/24 Bit
+                             DAC, Diamond SS2410 (15/24 Bit), Hicolor DAC.
+                             GraInf Funktion 104 neu (RealTek Bios-String).
+                             Funktionen IsZNIXMouseDrv, IsTrueDOXMouseDrv und
+                             IsHPMouseDrv neu.
+397 13.3.96        1.16l   : Unit DetectPorts neu. Funktionen GetParDevParams
+                             und GetParDevTimeOut neu. DetectConstants wurde
+                             in mehrere Compiler-Abschnitte unterteilt. Die
+                             dpdxxx Konstanten neu. FARTBELL.EXE wurde aus
+                             IsInstalled entfernt, weil sehr unzuverlÑssig.
+404 16.3.96        1.16m   : GetSerDevUART, GetSerDevBaudRate,
+                             GetSerDevDataBits, GetSerDevParity,
+                             GetSerDevStopBits, GetSerDevBreak, GetSerDevFlags
+                             neu. Bei EXAMPLE.EXE die Fenster fÅr's Bios vîllig
+                             Åberarbeitet.
+397 18.3.96        1.16n   : IsInstalled erkennt jetzt auch Compaq ADAPT.COM,
+                             Unchain, Blank-It und Parker. IsMathCopro,
+                             IsGameAdapter, CRTModeReg, Displayport,
+                             VideoBuffer, VideoPage, TextRows, TextColumns,
+                             KeyIsInsert, KeyIsCapsLock, KeyIsNumLock,
+                             KeyIsScrollLock, KeyBufferStart und KeyBufferEnd
+                             wurden entfernt, da jetzt Åber DetectBios
+                             auslesbar. NeuzÑhlung der dokumentierten
+                             Routinen.
+391 22.3.96        1.16o   : Funktion WhichVersion neu. In diese Funktion
+                             wurden folgende Funktionen integriert :
+                             WhatPharLap, StackerVersion, MSCDEXVersion,
+                             SwellVersion, StackeyVersion und ZipKeyVersion.
+                             Folgende EintrÑge wurden neu programmiert :
+                             CompaqAdapt und ScreenR.
+                             Die Funktion IsInstalled beeinhaltet nun auch die
+                             Funktion IsStacker.
+391 23.03.96       1.16p   : Die Funktion IsInstalled erkennt jetzt noch
+                             folgende Programme : BWLPD, ScanBoot, BWCom14,
+                             TelApi und ObjectKernel. WhichAddress erkennt
+                             die Adresse von ScanBoot. WhichVersion erkennt
+                             die Version von ObjectKernel.
+
+                             2. Betaversion - Upload auf Berni's Box
+391 24.03.96       1.16q   : Die Funktion BusType erkennt jetzt auch den
+                             PCI-Bus (PCI16/32).
+395 25.03.96       1.16r   : CPUFreq Åberarbeitet. Diese Funktion gibt
+                             jetzt im Real-Mode die richtigen Werte zu-
+                             rÅck, im V86-Mode sind sie meist auch noch
+                             richtig. Unit DetectProcessors mit Funktionen
+                             IsCPUId und TestCPUId neu. Funktionen TestVertHz
+                             und TestHorizHz neu.
+397 26.03.96       1.16s   : Die Funktion WhatCPU erkennt jetzt 8 neue
+                             Prozessoren (Cyrix Cx486??/Cx486?/Cx486x2/Cx486S/
+                             Cx486S2/Cx486DX/Cx486DX2). Funktionen CPUReset
+                             und CPUResetStr neu.
+399 27.03.96       1.16t   : Die Funktionen IsCD und IsDriveNet wurden ent-
+                             fernt. DafÅr gibt es jetzt die Funktionen
+                             IsDevice, DeviceType, DeviceMethod und
+                             DeviceRemove mid den ddi???-Konstanten.
+401 28.03.96       1.16u   : HDTransferRead und HDTransferWrite neu.
+                             Konstante UnitVersion neu (In DetectConstants
+                             definiert).
+406 30.03.96       1.17    : Funktionen IsVBEAI, VBEAIVersion, VBEAILDevice,
+                             VBEAIGetInfo und IsDGIS neu. Records VBEAIWave,
+                             VBEAIMidi und VBEAIVolInfo neu.
+
+                             3. Betaversion
+
+406 19.04.96       1.17a   : WhatGCard erkennt jetzt die 86C968 richtig.
+                             IsInstalled erkennt 2 neue Programme,
+                             WhichVersion ist fÅr neue Programme verfÅgbar.
+                             IsCPUId funktioniert jetzt. WhatCPU erkennt
+                             jetzt auch den Cyrix 5x86 (M1SC) und den Cyrix
+                             6x86 (M1). Die Report-Funktion wurde aus Example
+                             entfernt (PlatzgrÅnde ...). Beispielbeschreibung
+                             jetzt auch im Handbuch. CPUResetStr erkennt
+                             jetzt auch : Cyrix M5, M6, M7, 5x86; NexGen
+                             Nx586-100, 100 E2/C0, 120 D1/B0, NexGen-Familie;
+                             IBM 486SLC, 486SLC2, 486BLC3; Intel 486 Typen :
+                             DX2, SL, SX2, DX2WB, DX4, DX4WB. TestCPUId
+                             erkennt jetzt die NexGen CPU. Die Flags
+                             dcuCMOVcc, dcuMashineCheck, dcuPageGlobalEn,
+                             dcuMemTypeRangeReg und dcuLocalAPIC sind fÅr
+                             die CPU-Id Routine hinzugefÅgt worden.
+406 20.04.96       1.17b   : Variable dcuIAMMXSupp fÅr TestCPUId neu.
+                             WhatCPU erkennt jetzt auch den NexGen-Chip.
+                             In der Anleitung ist jetzt ein Kapitel mit
+                             AbkÅrzungen hinzugekommen.
+410 24.04.96       1.17c   : Funktion WhatChipset in der (neuen) Unit
+                             DetectChipsets neu. Erkennt 4 Cyrix Chipsets
+                             und die Intel Chipsets Saturn, Mercury 82434LX,
+                             Neptun 82434NX und Triton. Unit DetectBus neu
+                             (Funktionen Bustype, EISAIsId, EISASlotType,
+                             EISAConfigVersion, EISAConfigChecksum,
+                             EISANumDevFunc und EISAId wurden nach hier
+                             verschoben). PCI-Erkennug umgeschrieben.
+                             Funktionen IsPCIDevice, GetPCIConfig und
+                             GetPCIVendor neu.
+412 26.04.96       1.17d   : Konstanten dcpCx??? gelîscht, dcpCyr??? in
+                             dcp??? geÑndert und neue Konstante dcpVarCyrix
+                             eingefÅgt. So kann man den Cyrix-Typ direkt
+                             aus dem Cyrix-Register DIR1 auslesen, was auch
+                             fÅr zukÅnftige Erweiterungen Platz offen lÑ·t.
+                             Funktionen GetCyrixReg (mit Variablen dre???)
+                             und CyrixId neu. Es werden somit ca. 20 neue
+                             Cyrix Chips erkannt. DETECTGR.TXT wurde in die
+                             Anleitung integriert. CPUResetStr erkennt jetzt
+                             32 neue CPU's (einige Steppings wurden auch
+                             hinzugefÅgt). iComp und Cyrix-Index in Anleitung
+                             Integriert. Im BeispielProgramm sind die
+                             Fenster Installiert ? 1-6 und die Software-
+                             Verschiedenes 1-4 zusammengefasst worden,
+                             au·erdem wurden ein paar Prozedurnamen geÑndert.
+                             Warenzeichenabteilung in DETECT.DOC neu.
+412 27.04.96       1.17e   : Die Softwareabteilung aus EXAMPLE wurde voll-
+                             stÑndig in ein Fenster verpackt. Bugfix bei
+                             der Chipsatzerkennung. Erweiterung der CPUID-
+                             Routine.
+
+                             4. BETA-Release
+415 16.05.96       1.17f     Funktionen IsQuickCacheII, QuickCacheIIVer und
+                             GetQuickCacheIIInfo neu. Neue Kommentierungen
+                             in DetectSoftware. DETECT.DOC etwas aufgearbei-
+                             tet.
+415 28.05.96       1.17g     Die Funktion WhatChipSet erkennt jetzt auch
+                             folgende ChipsÑtze : UMC 82C881, UMC 82C481A,
+                             UMC 82C391A, SiS 501/502/503.
+417 05.07.96       1.17h     Die Funktion CyrixId erkennt jetzt auch :
+                             Cx 5x86-S (1x, 2x, 3x, 4x Clock-Mode),
+                             Cx 5x86-P (1x, 2x, 3x, 4x Clock-Mode),
+                             Cx 6x86-S (1x, 2x, 3x, 4x Clock-Mode),
+                             Cx 6x86-P (1x, 2x, 3x, 4x Clock-Mode). Also 16
+                             neue Kennungen. Die CPUId-Routinen wurden
+                             stark ausgebaut. Anhaenge der Anleitung
+                             angepasst. GetNumberMCBs und GetMCBSeg neu.
+423 06.07.96       1.17i     Funktionen GetMCBPSP/Parent/Size/Owner/
+                             Interrupts und MouseVendor neu. Die Funktion
+                             DosVersion erkennt jetzt auch IBM DOS, Compaq
+                             DOS, AT&T DOS, Zenith DOS, HP-DOS, ZDS (Group
+                             Bull), Packard-Bell DOS, DEC DOS, Olivetti DOS,
+                             Toshiba DOS, Novell Netware, MS Multimedia
+                             Systems, RxDOS, PTS-DOS, GS Embedded DOS, Novell
+                             DOS, Windows NT und Windows 95. Biosshort sucht
+                             jetzt auch nach Commodore und Toshiba. BiosShort
+                             unterscheidet jetzt auch zwischen AMI, AMI
+                             Hiflex und AMI Flash-Bios. IsInstalled erkennt
+                             3 neue Programme. BusType erkennt jetzt auch
+                             den VESA-Local Bus.
+424 10.07.96       1.18      Funktionen IsEPP neu. IsInstalled erkennt 3
+                             weitere Programme. MashineType erkennt ca.
+                             100 weitere Modelle.
+
+                             5. BETA-Release
+433 17.07.96       1.18a     Funktionen EnvSeg, EnvLen, EnvUsed, DevCount,
+                             DevName, DevHeader, DevAttributes, DevStrategy
+                             und DevInterrupt neu. Starke Erweiterung des
+                             Glossars.
+433 18.07.96       1.18b     CyrixId erkennt jetzt 13 weitere Kennungen.
+                             Erweiterung der CPUID-Routine. dcuAddressingExt-
+                             Bit fuer CPUID neu. Glossar erweitert.
+                             CPUResetStr erkennt 11 weitere Prozessoren und
+                             1 weitere Familie.
+433 20.07.96       1.18b.a   Bugfixes aus Ingo Bîttchers Bugliste ...
+                             VDSProduct erkennt jetzt auch OS/2.
+433 21.07.96       1.18c     Bugfixes aus Ingo Bîttchers Bugliste ...
+                             GraInf liest den Speicher jetzt auch aus
+                             dem VESA-Infoblock aus. Erweiterung der CPUID-
+                             Routinen um AMD-spezifische Details. Flags
+                             dcuAmIAMMXSupp, dcuAmFloatCondMove,
+                             dcuAmIntCondMove, dcuExtGlobalPagExt,
+                             dcuAmSysCallSysRet, dcuAmCMPXCHG8B,
+                             dcuAmMException, dcuAmK86MSR, dcuAmTSCSupp,
+                             dcuAmPageExt, dcuAmDebExt, dcuAmVModeExt,
+                             dcuAmFPU fuer die AMD-Extended-Flags neu.
+                             Der AMD-Prozessorname kann jetzt auch aus-
+                             gelesen werden.
+433 22.07.96       1.18d     AMD-CPUID Stepping, Model und Familie/Generation
+                             hinzugefÅgt. Intel PentiumPro Cache-Erkennung
+                             ueber CPUID neu. AMD-Cache-Erkennung ueber
+                             spezielle CPUID-Befehle hinzugefÅgt.
+434 23.07.96       1.18e     GetPCIVendor erkennt 117 weitere Hersteller.
+                             IdentifyPCIDevice (ca. 450 verschiedene Devices)
+                             neu. DeviceType erkennt jetzt auch Interlink-,
+                             Mod- und Netzlaufwerke. Alle Laufwerksroutinen
+                             wurden aus ASM nach Pascal Åbersetzt.
+                             WhichChipset erkennt 13 weitere ChipsÑtze.
+434 24.07.96       1.18e.a   PCI-Device-Klassen in Detectbus integriert.
+444 08.08.96       1.18f     Funktionen IdentifyPCIClass,
+                             IdentifyPCISubClass, IsDosInHMA, IsDosInRom,
+                             GetDosOEMNumber, GetDosSwitchChar, IsDEVPrefix,
+                             GetDosBusyFlag, GetPrtScrStatus und
+                             GetMemAllocMethod neu. Neue Unit DetectDos.
+                             Funktionen DosVersion, DosMemory, FreeDosMemory,
+                             CountryCode und CountryString wurden hierhin
+                             verschoben. DosVersion in GetDosVersion
+                             umbenannt. GetDosVersion erkennt die interne
+                             Revision.
+451 13.08.96       1.18g     Funktionen DosBuffers, DosFilesPointer,
+                             DosFilesCount, DosFilesUsed, DosFCBCount,
+                             DosStacksCount, DosStacksSize neu. Schwerer
+                             Bug in CountryCode behoben. CountryString er-
+                             kennt 2 weitere Laender (Island und TÅrkei).
+461 14.08.96       1.18h     Funktionen DosActiveGlobalCodePage,
+                             DosDefaultGlobalCodePage, DosThousandSeparator,
+                             DosDecimalSeparator, DosDatalistSeparator,
+                             DosDateFormat, DosTimeFormat, DosTimeSeparator,
+                             DosCurrencyFormat, DosCaseMapCallAddress. In
+                             DETECT.DOC ist der Eintrag 'Beispiel :'
+                             hinzugekommen. VDSProduct erkennt jetzt auch
+                             Novell Dos EMM386.
+466 24.08.96       1.19      Bugs in IdentifyPCISubClass bereinigt. WhatCPU
+                             erkennt jetzt auch unter OS/2 bzw. W'95 den
+                             Pentium korrekt. Funktionen NumberHandleTables,
+                             OpenHandlesTable, OpenHandleTabelSize,
+                             UsedTabelEntrys und GetOpenFileStatus neu.
+
+                             6. BETA-Release
+
+'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.
+
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+::::::::::::::::::::::::::‹€€€€‹::::::‹€‹:::‹€€€€€€€‹::::::::::::::::::::::::
+::::::::::::::::::::::::::€€€:::::::::€€€:::€€€::::::::::::::::::::::::::::::
+::::::::::::::::::::::::::€€€€€€::::::€€€:::€€€€€€:::::::::::::::::::::::::::
+::::::::::::::::::::::::::€€€:::::‹‹::€€€:::€€€::::::::::::::::::::::::::::::
+::::::::::::::::::::::::::ﬂ€€€€ﬂ:::ﬂ€‹€€ﬂ:::ﬂ€ﬂ::::::::::::::::::::::::::::::
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.

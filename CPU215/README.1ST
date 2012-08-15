@@ -1,0 +1,82 @@
+ ... README.1ST ....................................... TMi0SDGL Revision 2 ...
+ Document no.: N-0020-96.00M02.15   Too-Much-in-0ne-So-Don't-Get-Lost(tm) Rev.2
+                                                             Companion Document
+                                                                   Version 2.15
+                                           Copyright(c) 1996-2000 by B-coolWare
+
+ This archive is sealed with RAR v2.0 to prove autenticity of its contents.
+ It is in self-extracting form thus you should not have RAR to extract files
+ from archive, but if you want to extract only some of them, you must use RAR
+ version 2.00 or later (DOS, Windows or Unix release).
+
+ What's this?
+ ~~~~~~~~~~~~
+ This is an update to TMi0SDGL Revision 2 Version 2.14 that fixes some
+ major and minor problems in it and adds some new detection methods.
+ See WHATSNEW.215 file for details on what was changed since v2.14. Also,
+ please read updated HELPME.PLS and if said there applies to you, then try
+ to do described procedure - this will hopefully help me to get rid of yet
+ another serious problem in the library.
+
+ ---
+
+ Also, my new PGP RSA (v2.6.x) and DSS/Diffie-Hellman (v5.x) keys are
+ included with this release along with my old key revocation certificate.
+ I have changed the key because my e-mail address was changed and because
+ I decided to increase key length. Revocation certificate and new keys are
+ in VMZ.ASC. Please take time to update your PGP public key ring with these
+ keys. You can also get my public keys from ldap://certserver.pgp.com
+ and pgpkeys international network.
+
+ Why am I distributing these keys? Well, you can read Phil Zimmermann's
+ article about privacy to see yourself why you should use and encourage
+ others to use cryptography in your everyday communications - because
+ if you won't now, someday you'll find out that you can't no more even if
+ you want to. Otherwise, why do you enclose your paper mail in envelopes?
+ Why don't you use postcards? E-mail is in many aspects alike usual mail with
+ that slight difference that it can be read by unauthorized person(s) along
+ the way it is delivered (and it sometimes pass thru a big lot of hosts,
+ and each of them can be configured to scan pass-thru e-mail for some
+ keywords of interest, or something like that...). It is illegal to
+ perlustrate your private mail, and the envelope basically assures you
+ nobody did, but that's not the case with e-mail - neither you nor your
+ recipient can't say for sure nobody read it along the way, because if someone
+ did, there'll be no signs of it in the message. So you better use
+ cryptography to "envelope" your e-mail even if its contents is not valuable.
+ It's just a good habit that could someday help to protect your privacy,
+ which is your right in a free world, when someday you'll have to send out
+ some vital information you don't want anybody but the recipient to know.
+ You'll be already prepared then.
+ And PGP technology's a good choice to start with right now. It's easy,
+ and it's cheap (and some specific releases are even free), it uses safe and
+ strong cryptography algorithms, and it's not from government, in which case
+ it could possibly have a trapdoor for governmental security agencies to get
+ access to encrypted messages (and FBI already requested that commercial
+ vendors establish such trapdoors in their encryption software, like Master
+ Key that will be able to decrypt any messages regardless of encryption key
+ used, though this request was denied for now... But who knows what will be
+ when they put it second time...).
+ So, go ahead, try it and send me your public keys (or put them on the
+ key-server and let me know).
+
+ How to obtain PGP?
+ ~~~~~~~~~~~~~~~~~~
+ If you are US/Canada resident, then go to http://www.pgp.com,
+ else to http://www.pgpi.com and select version that suits you best. Both
+ sites provide freeware versions for personal use and commercial versions
+ for businesses for a variety of platforms.
+
+ ---
+
+ DISCLAIMER:
+
+ This software product is provided on "AS IS" basis and is not supported by
+ its author. No warranties of any kind are applied to this product. I can
+ only guarantee that it will occupy some disk space. The whole risk is with
+ you. Now you are warned...
+
+
+                                               Vladimir M. Zakharychev
+                                               aka Bobby Z. of B-coolWare.
+
+                                                              25.06.2000

@@ -1,0 +1,3 @@
+  {freemem(buf2,bufsize); freemem(buf1,bufsize);}
+  testMemoryBlockOps:=_PZTimerCount;
+end;

@@ -1,0 +1,962 @@
+ÚÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ÉÍÍÍÍÍÍÍÍ» ³File:TMi0SDGL.DOC ³Subject: TMi0SDGL R2 Library Documentation.  ³
+³ÌÍÍÍÍÍÍÍÍÊ»ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ºÖÄÖÄÒÄÒ· º³Date:25.06.2000³      Copyright(c) 1996-2000 by B-coolWare.     ³
+³ºÓÄÐÄÐÄ½ÓÄº³Version: 2.15  ³ This document should not be changed in any way ³
+³ÈÍÍÍÍÍÍÍÍÍ¼³Revision: 02/16³and should be distributed with related software.³
+ÀÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+ Document no.: LM-0020.96.00M02.16
+
+
+
+
+
+                    Too-Much-in-0ne-So-Don't-Get-Lost(tm)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+         CPU/FPU detection library for Intel 80x86 and compatibles
+
+                                 Revision 2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ TMi0SDGL Revision 2 and this document are Copyright(c) 1996-2000 by B-coolWare.
+ Other brands and product names mentioned herein are trademarks or registered
+ trademarks of their respective holders.
+
+ The contents of this document is subject to change without prior notices.
+ Printed in Russian Federation (or wherever you are, heh)
+ Printed on recycled paper (at least I hope so...)
+ Product is not tested on animals and is ozone-friendly.
+
+
+                                                                           ..i
+
+ Contents................................................................ Page
+
+ 1. License Agreement . . . . . . . . . . . . . . . . . . . . . . . . . . 1
+  1.1 Distribution Conditions . . . . . . . . . . . . . . . . . . . . . . 1
+ 2. Library Features  . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+ 3. Notes For Programmers . . . . . . . . . . . . . . . . . . . . . . . . 3
+  3.1 General Notes . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+  3.2 Known Problems And Incompatibilities  . . . . . . . . . . . . . . . 4
+ 4. Library Reference . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+  4.1 Function Reference  . . . . . . . . . . . . . . . . . . . . . . . . 6
+  4.2 Variable Reference  . . . . . . . . . . . . . . . . . . . . . . . . 6
+  4.3 Tips On Using DLLs  . . . . . . . . . . . . . . . . . . . . . . . . 7
+ 5. Credits . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+  5.1 Hall Of Fame  . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+ 6. How To Contact The Author . . . . . . . . . . . . . . . . . . . . . . 9
+  6.1 Author's Reward . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+
+ Appendices...................................................................
+
+ Appendix A. List Of Files In Original Distribution Archive.
+ Appendix B. Useful Resources On Internet/WWW.
+
+
+
+                                                                           ..1
+
+ 1. License Agreement.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ The TMi0SDGL Revision 2 CPU/FPU detection library is free copyrighted software
+ and is copyright(c) 1996-2000 by B-coolWare.
+ Parts of this license agreement may resemble with GNU General Public License
+ Agreement, but THIS IS NOT A GNU product. Author reserves some specific rights
+ for this product which GNU GPL forbid to reserve. Please read this license in
+ its entirety and do not use this product if you do not accept the license.
+
+ a) GRANT OF LICENSE.
+
+ i. You, the end user, are hereby granted the permission to use the TMi0SDGL 2
+    library ("the code") in your own non-commercial applications of any kind
+    without any royalty to its author. You are also granted the right to copy
+    or otherwise distribute the code provided that you charge no fee for it
+    except a reasonable fee for the physical act of copying but not exceeding
+    US $5 in total. You are also granted the right to modify the code to adapt
+    it for your purposes or eliminate a bug. In case of modifying the code, you
+    should add a notice that the code was modified and contact author in order
+    to provide him with copy of all modified files so that changes you made can
+    be incorporated in subsequent releases. Regardless of the extent of such
+    modifications, the code will still copyright(c) by B-coolWare and you
+    should keep all copyright messages intact. However you are not allowed to
+    distribute the modified code and/or change its version number.
+ii. You are allowed to use the code in commercial software (including
+    shareware) without prior author's written permission provided that none of
+    the key features of the software are based on this code (like they are in
+    System Information tools for example). In this case you should only add the
+    copyright notice somewhere in your software that says that portions of your
+    software are copyright(c) by B-coolWare.
+    If some or all of the key features of your commercial product are based on
+    this code, you should inquire author's written permission to use this code
+    before you publish your software.
+
+ b) YOUR OBLIGATIONS AND LIABILITIES.
+    You are not allowed to change copyright for this code, sell or lease it, or
+    charge fee for distributing it that exceeds your expences from doing it or
+    exceeds US $5 whichever amount is less. You are not allowed to use the code
+    in commercial software (including shareware) if the key features of such
+    software are based on the use of this code without prior author's written
+    permission.
+    If you will not comply with the terms above you will be liable for
+    violation of Russian Copyright Law for Programs and Databases as well as
+    other national and international copyright laws, treaties and provisions.
+    Parties that aquire this code from you will still have their rights for as
+    long as they will comply with the terms of this license.
+
+ c) WARRANTIES AND AUTHOR'S LIABILITIES.
+    Author hereby disclaims all warranties regarding to this code, its quality,
+    errorlessness and fitness for a particular purpose. I can only guarantee
+    that the code will occupy disk space. In case of any data losses, physical
+    damage to your hardware or loss of profits author shall not be liable for
+    it even if he or his representatives were advised of the possibility of
+    such damages. This code is provided on "AS IS" basis with no technical
+    support. The whole risk is with you.
+
+ d) AUTHOR'S SPECIFIC RIGHTS.
+    Author reserves the right to use this code in any software of his own, or
+    the company he is employed at, whether commercial or not. He also reserves
+    the right to change software legal status in future releases as he sees fit
+    (to shareware, for example).
+
+ Last word to all computer freaks:
+    PLEASE do not sell or lease this software - it took much time and effort
+    of several people to produce it and if you think someone should be paid for
+    it - you're not the right person anyway.
+
+
+ 1.1 Distribution Conditions.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ This library is copyrighted free software. This means that it can be freely
+ distributed and used in any non-commercial software provided that no fee
+ charged from recipients and that copyright notices are not changed. Thus, you
+ are free to distribute this library by any means provided that you make no
+ profit from it and do not modify the copyright notices. Upload it to your
+ favorite BBSes and ftp sites, give it to your friends - the wider it will
+ spread - the better.
+ * Archive sites:
+ this software may be included in public non-commercial ftp/http archives
+ and/or CD-ROMs published by public non-commercial archive sites provided any
+ charge is solely to recover the cost of distribution. All such distributions
+ must contain all files that builds the distribution, including this file.
+ Please contact author for the most recent version available before publishing
+ the software.
+ Remember: if you distribute this library, include ALL files that came in
+ original archive (or better distribute the original archive itself). This is
+ especially true for documentation files including the one you read now.
+
+ The most recent version of the library can always be downloaded via
+ World-Wide-Web at
+  http://come.to/b-coolware
+
+ This library is also uploaded to SimTel archives shortly after release.
+ It is put into /pub/simtelnet/msdos/sysinfo directory under name cpuXXX.zip,
+ where XXX is the version number (215 for this release), and DLL source code
+ in cpuspXXX.zip.
+
+
+
+                                                                           ..2
+
+ 2. Library Features.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ TMi0SDGL Revision 2 comes in source code for three different languages, namely
+ 80x86 Assembler, C/C++ and Borland Turbo/Object Pascal. It detects CPU brand
+ and model, FPU brand and model, CPU clock speed of the system it is ran on
+ as well as some other features for several CPUs.
+
+ Currently detected processors:
+
+Intel    : 8088, 8086, 80C88, 80C86, 80188, 80186, 80286, 80386SX, 80386DX,
+           386SL, i376, RapidCAD, i486SX, i486DX or i487SX, Pentium, P24T
+           (Pentium Overdrive), P54C, P55C, Pentium Pro (P6), Pentium II,
+           Celeron(tm) and Celeron A (128k cache), Pentium II Xeon(tm) and
+           Pentium IIe, Pentium III brands, any succeeding Intel CPUs when
+           they become available.
+           For newer i486s also determines exact model (SX,SX2,DX,DX2,DX2WB,
+           DX4,Overdrive).
+NEC      : V20, V30
+           V40 and V50 detection method is known but not implemented.
+C&T      : 38600 and 38600SX
+AMD      : Am386SX-40, Am386DX-40, Enhanced Am486DX2, DX4, DX2+, DX4+, X5
+           (Am5x86 - 486DX4 class CPU), Elan SC400 (486-class microcontroller),
+           5k86 and SSA5 (K5 - P5 class CPU), K6, K6-2, K6-III, Athlon(tm),
+           Duron(tm).
+VIA Cyrix: Cx486SLC, Cx486DLC, all other Cx486 models, M1sc (5x86), M1 (6x86),
+           M2/M-II (6x86MX, P5MMX-like CPU), VIA Cyrix III.
+TI       : Ti486SXL (Potomac), new Ti486DX, DX2, DX4
+IBM      : 386SLC, 486SLC, 486SLC2, 486BL3 (Blue Lightning)
+UMC      : U5S, U5SD, U486DX2, U486SX2
+NexGen   : Nx586, Nx686
+Centaur/
+IDT Tech.: WinChip C6, WinChip 2 (aka C6+), WinChip 2A (100MHz bus version),
+           WinChip 3
+Rise     : iDragon(tm) mP6, mP6 II
+
+ Currently detected math co-processors:
+
+Intel    : 8087, 80287, 80287XL, 80387, RapidCAD, internal where applicable
+Cyrix    : 82x87, 83x87, 84x87, EMC87, internal where applicable
+AMD      : internal, where applicable
+ULSI     : 82x87, 83x87
+C&T      : 38700
+IIT      : 2C87, 3C87, 4C87
+NexGen   : Nx587, internal where applicable
+Weitek   : Abacus (all models simply reported as Weitek)
+Centaur/
+IDT Tech.: internal
+Rise     : internal
+
+ Also detects emulated FPUs on 386 and up.
+
+ Also detects L1 cache size for processors with L1 cache.
+
+ Also determines if CPU is in real or protected (V86) mode (386+).
+
+ Calculates clock speed for all listed processors, even under Windows
+ and DESQview (OS/2 requires HW_TIMER set to ON in DOS Box Settings for correct
+ calculation).
+ Works fine in plain DOS, Windows (including Windows 95), DESQview, can be ran
+ in OS/2 DOS Box though the results may be disappointing. 16-bit version works
+ fine under Windows NT (32-bit doesn't) :( Even works in Sun's SunPC for
+ Solaris x86 emulation box - reports 286 at speeds of 100MHz or more! :)
+
+ Includes compiled libraries for Pascal, C/C++, DLLs for Delphi, C/C++,
+ Visual Basic, etc. Applications can target plain DOS, protected mode DOS,
+ Windows 3.1x and Windows 95 (sorry, no Windows NT | OS/2 support for now...)
+
+ Full source code allows for easy adaptation and expansion of the library.
+ Comments wherever possible tells what is done and why - the code is extremely
+ easy to read and understand.
+
+
+
+                                                                           ..3
+
+ 3. Notes For Programmers.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ This section includes information for users of previous versions of TMi0SDGL
+ (1.1x) as well as information on known problems with the library and what is
+ under the hood.
+
+ 3.1 General Notes.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Some previous versions of TMi0SDGL were spread wide enough and many people
+ already made use of them. There are significant changes made in Revision 2
+ and following is detailed information on what was changed and how to deal
+ with this new revision. Note that the code was rewritten from scratch and
+ is not compatible with previous versions. If you made use of any 1.x
+ version, you'll have to rewrite your software in parts that use the library.
+
+ a) MAKEFILEs do not include rules to make C protected mode executables -
+    there's too many C compilers able to produce such .EXEs, each using its
+    different unique set of command line parameters. I assume that you are
+    using Borland C++ as C compiler, Turbo Librarian as object librarian and
+    Turbo Assembler 4.0 or later as assembler. If you using another compiler -
+    well, try to change command line options used to make the library and
+    examples... You SHOULD use the assembler with similar functionality and
+    language/macro features as Borland Turbo Assembler 4.0 (MASM 5.1 will do
+    ok, for example)! I'm not sure that PharLap 386|ASM will compile this code
+    but you can use -op switch with Turbo Assembler to produce PharLap-style
+    object file to use with PharLap family of DOS Extenders and their 386|LINK.
+    Things you'll have to change in MAKEFILEs are:
+
+    CC = name of C compiler executable
+    LIB = name of object librarian executable
+    ASM = name of assembler executable
+    INCLUDE = path to include files
+    ASMINC = path to assembler include files
+    CCOPTC = options to produce .OBJ files from .C files
+    CCOPTL = options to link .OBJ files into .EXE file
+    ASMOPTN = options to produce real mode .OBJ files from .ASM files
+    ASMOPTX = options to produce protected mode .OBP files from .ASM files
+              (in fact, these are the same as ASMOPTN but with added __DPMI__
+               define)
+
+    It is doubtly that you'll have to change anything else, except maybe the
+    name of the library (I suggest you name it CPUTYPEX.LIB, where X denotes
+    protected mode).
+
+    If you modify MAKEFILEs to accomodate them for any C compiler other than
+    Borland C++, please send me a copy so that I'll be able to include it in
+    next releases. Microsoft C/C++ 7.0 command line for 16-bit targets is
+    included commented in the makefile._c (tested and working).
+
+    Note, that starting with v2.02 you can use DLLs in your Windows apps.
+    Some compilers do allow to use DLLs in DOS Protected Mode, not only in
+    Windows, so this might be a way for you to include TMi0SDGL features in
+    your DOS PM apps.
+
+ b) There are several limitations you should know of when writing a protected-
+    mode program in Borland Pascal that uses TMi0SDGL:
+
+    1. If no memory manager is installed on the system where the program is
+       ran (except maybe HIMEM.SYS) it is likely that you will get Runtime
+       Error 216 (General Protection Fault Exception) on 386 and up. This is
+       due to Borland DPMI host(RTM)'s implementation of V86 monitor: it does
+       not allow to write to special control registers of 386+. Most advanced
+       memory managers like Quarterdeck's QEMM or Qualitas's 386Max do allow
+       this operation under certain conditions (they check which flags are
+       subject to be changed) and the TMi0SDGL code works fine under them.
+
+       Regrettably, it is too complicated or even impossible to get to PL0 if
+       there's no VCPI-compliant memory manager installed and the system is in
+       protected mode, so I do not know how to workaround this problem to this
+       date. Under VCPI though, it is possible to get to privilege level 0
+       where all special instructions are allowed and are executed with no
+       exceptions. Known VCPI services providers are QEMM, Microsoft's EMM386
+       and some other memory managers.
+
+
+                                                                           ..4
+
+
+    2. It is not possible to detect IBM 386SLC, 486SLC, 486SLC2 and 486BL3 CPUs
+       in protected mode. The detection method for these CPUs involves RDMSR
+       instruction which may generate either Exception 6 (Invalid Opcode) or
+       Exception 13 (General Protection Violation) if the CPU is not one of
+       above. These exceptions must be trapped but most V86 monitors do not
+       allow to do it. Thus detection of these CPUs is limited only to real
+       mode or protected mode with DPMI-compliant memory manager (with some
+       ill-behaved DPMI hosts this won't work too).
+
+ c) Assembler code relies on automatic jump optimization provided in TASM via
+    JUMPS directive. If you use assembler that do not support JUMPS, you will
+    probably get some "jump is out of range" errors during compilation and will
+    have to fix those jumps manually (replace
+            Jcc location                JCXZ location
+             with                        with
+            JNcc temploc      and       TEST CX,CX
+            JMP  location               JNZ  temploc
+           temploc:                     JMP  location
+                                       temploc:
+    - this is done automatically by TASM with JUMPS enabled, really useful
+      feature).
+
+ 3.2 Known Problems And Incompatibilities.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ a) Some of detected processors require CPU to be in real mode or a DPMI-
+    compliant memory manager installed for correct detection. Namely, these are
+    IBM's 386SLC, 486SLC, 486SLC2 and 486BL3 chips. These chips contain MSRs
+    (Machine-Specific Registers) that are accessible via RDMSR and WRMSR
+    instructions, officially introduced in Intel Pentium processor. These
+    instructions can only be executed in real mode or on CPL0. Another issue
+    with these instructions is that when they are given an invalid register
+    index, they raise Exception 13 which should be intercepted again in real
+    mode or on CPL0 to be properly handled.
+
+ b) Under some memory managers (namely, Soft-ICE 2.6x from Nu-Mega Technologies
+    and Borland's DPMI16BI.OVL from their DOS Extender) the 386SX and 386DX
+    distinguishing do not work properly. This is due to limitations in V86
+    monitor design of these managers: they do not allow free access to CR0
+    register even if no dangerous flags are affected. Again, this problem
+    goes away only in real mode or under a VCPI-compliant memory manager.
+    Also, this problem  do not appear under Quarterdeck's QEMM386 memory
+    manager - it handles CR0 access much more flexibly and allows to change
+    some flags in it even from V86 task (presumably to allow Manifest to
+    distinguish SX from DX :). I tried to workaround this problem in
+    protected mode code using DPMI's exception interception mechanism but
+    some DPMI hosts may not properly reflect these exceptions to my handlers
+    anyway.
+
+ c) I have no information on how to distinguish different models of Weitek
+    numeric coprocessors, thus all models are reported simply as Weitek. If
+    anyone know reliable method for distinguishing Weiteks, please let me know.
+
+ d) Lot of problems appear in OS/2 DOS Box. Some of them:
+
+    1. You have to set HW_TIMER=ON in DOS Box settings for correct clock speed
+       calculation, otherwise it gets divided by 2 (well, the OS name says it
+       all :).
+    2. OS/2's V86 monitor is very rough and don't allow to play with protected
+       instructions and registers. Almost nothing can be done about it -
+       perhaps I should write an OS/2 protected mode driver to do all the dirty
+       work... Or maybe somebody with good experience in writing OS/2 drivers
+       will do it for me - me myself is not experienced in this at all, I never
+       tried to write an OS/2 program yet. If someone is willing to contribute
+       to TMi0SDGL this way - please contact me and we'll discuss details.
+
+
+                                                                           ..5
+
+ e) CPUID-related code assumes that every CPU that support it implements CPUID
+    at least to level 1 (thus software is able to get processor feature flags
+    and Family/Model/Step info). As far as I know this is true for current
+    Cyrix, AMD, UMC, NexGen and Centaur processors, BUT this may be false for
+    other upcoming CPUs, resulting in senceless info retrieved from such CPU.
+
+ f) Because Intel 487SX is actually a 486DX designed for coprocessor socket,
+    it is impossible to distinguish 487SX from 486DX unless this is a new
+    chip with CPUID support (marked & on chip), thus these older versions are
+    reported as "486DX or 487SX". It is also impossible to distinguish older
+    486DX2 chips - they are also detected as 486DX or 487SX.
+
+ g) Windows NT is currently not supported with 32-bit DLL. This is because
+    the OS applies its strict I/O protection to all nonprivileged apps, and
+    TMi0SDGL's DLL is such, causing access violations when trying to access
+    certain I/O ports, which is crucial for detection of some CPUs, like
+    Cyrix ones. I suggest I will have to write a device driver for NT that
+    will execute at ring 0 or 1 and thus will have access to needed ports.
+    But I do not have the DDK to implement one...
+    For now, the DLL detects if it is ran under Windows NT and ceases to
+    function if so. Windows 95 version of the DLL does not perform any
+    checks though and will almost surely crash under Windows NT.
+
+ h) WATCOM C/C++ development suite is currently not supported. The code will
+    not be linked with WATCOM C/C++. I'll try to add WATCOM-specific defines
+    or source files in subsequent releases. Until then - sorry...
+
+ i) Some systems equipped with Intel HX chipset and running Windows 95 with
+    EMM386 active cause TSC-based CPU speed detection to crash with GPE on
+    RDTSC instruction. Reason for this behavior is being investigated. For
+    now it is known that the source of the problem is EMM386 and that CR4.TSD
+    bit does not affect execution (even if it is cleared, the GPE still
+    occurs). The only workaround to date is to disable EMM386 (who needs it
+    anyway..?)
+
+ j) Tomas Navratil reported that Celeron systems with some particular mother-
+    boards caused TSC-based speed detection to hang. Problem is being
+    investigated. Reported troublemaker is Acer ALI M1621 chipset. After
+    changing to VIA Apollo PRO the problem gone. Also, TSC code runs ok on
+    other VIA chipsets as reported.
+
+ k) Seems that AMD implemented RDTSC differently from Intel's specs:
+    executing it from V86 *always* generates GPE not honoring CR4.TSD state
+    while Intel specifies that CR4.TSD controls GPE generation on RDTSC in
+    *all* processor modes (real, V86, protected). Also, some people reported
+    that this behavior is also exposed by newer Intel processors. Check for
+    CR4.TSD state is added but may cause problems itself because reading
+    control registers is a privileged instruction...
+
+
+
+                                                                           ..6
+ 4. Library Reference.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ This chapter gives summary on library functions and variables.
+
+ 4.1 Function Reference.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ cpu_Type
+ ~~~~~~~~
+ prototype:  Pascal                               C/C++
+    Static:  function cpu_Type : String;          char * cpu_Type();
+       DLL:  function cpu_Type : PChar;           char * cpu_Type();
+
+ Purpose:
+  returns verbose name of current central processor, including vendor name
+  and model if determined.
+
+ fpu_Type
+ ~~~~~~~~
+ prototype:  Pascal                               C/C++
+    Static:  function fpu_Type : String;          char * fpu_Type();
+       DLL:  function fpu_Type : PChar;           char * fpu_Type();
+
+ Purpose:
+  returns verbose name of current numeric extension unit, including vendor
+  name and model if determined.
+
+ cpu_Speed
+ ~~~~~~~~~
+ prototype:  Pascal                               C/C++
+    Static:  function cpu_Speed : Word;           unsigned int cpu_Speed();
+       DLL:  function cpu_Speed : Integer;        int cpu_Speed();
+
+ Purpose:
+  returns integer value of raw current processor clock speed in MHz.
+
+ ncpu_Speed
+ ~~~~~~~~~
+ prototype:  Pascal                               C/C++
+    Static:  function ncpu_Speed : Word;          unsigned int ncpu_Speed();
+       DLL:  function ncpu_Speed : Integer;       int ncpu_Speed();
+
+ Purpose:
+  returns integer value of normalized processor clock speed in MHz. Speed
+  normalization uses internal tables of known official processor clock speeds
+  and selects value closest to raw speed. Since new clock speeds are
+  frequently announced by chip vendors, speed returned by this function may
+  be inappropriate (too low) for new high-frequency chips.
+
+ Note:
+  this function does NOT return PR-rating for non-Intel chips, but rather its
+  real (or close to real) speed.
+
+ fcpu_Speed
+ ~~~~~~~~~~
+ prototype:  Pascal                               C/C++
+    Static:  function fcpu_Speed : Real;          float fcpu_Speed();
+       DLL:  function fcpu_Speed : Double;        double fcpu_Speed();
+
+ Purpose:
+  returns raw floating point value of current processor clock speed in MHz.
+
+
+ getCacheSize
+ ~~~~~~~~~~~~
+ prototype:  Pascal                               C/C++
+    Static:  function getCacheSize : Word;        unsigned int getCacheSize();
+       DLL:  not available                        not available
+
+ Purpose:
+  returns integer size of L1 data cache in KBs (not reliable).
+
+ CxCPUIDEnable
+ ~~~~~~~~~~~~~
+ prototype:  Pascal                               C/C++
+    Static:  procedure CxCPUIDEnable;             void CxCPUIDEnable();
+       DLL:  the same                             the same
+
+ Purpose:
+  used internally. Enables CPUID instruction on Cyrix 5x86 and 6x86 CPUs by
+  setting CPUIDEN bit in CCR4 internal register.
+
+ getCPUID
+ ~~~~~~~~
+ prototype:  Pascal                               C/C++
+    Static:  procedure getCPUID(Level : LongInt,  void getCPUID(long Level,
+                                Result: Pointer);              void * Result);
+       DLL:  the same                             the same
+
+ Purpose:
+  returns CPUID response for given Level in structure pointed to by Result.
+  Layout of response structure can be found in interface sections of
+  corresponding source files.
+
+ getVersion
+ ~~~~~~~~~~
+ prototype:  Pascal                               C/C++
+    Static:  function getVersion : Word;          word getVersion( void );
+       DLL:  the same                             the same
+
+ Purpose:
+  returns BCD-encoded library version, major version in high byte, and
+  minor version in low byte. For example, version 2.15 will return 0x0215
+  ($0215 in Pascal notation), but not 0x020F.
+
+
+ 4.2 Variable Reference.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ cpu
+ ~~~
+    Size: Byte;
+ Purpose: contains numerical ID of current processor, of 0xFF if processor
+          was not yet detected.
+    Note: available from getCPU function in DLL.
+
+ fpu
+ ~~~
+    Size: Byte;
+ Purpose: contains numerical ID of current NPX, of 0xFF if NPX was not yet
+          detected.
+    Note: available from getFPU function in DLL.
+
+ extFlags
+ ~~~~~~~~
+    Size: Word;
+ Purpose: contains extra efXXX bit flags for current processor. For values
+          and meaning of efXXX flags refer to interface sections of
+          corresponding source files.
+    Note: available from getExtraFlags function in DLL.
+
+ cpuid0
+ ~~~~~~
+    Size: 12 bytes;
+ Purpose: contains vendor ID string returned by CPUID instruction, or all
+          zeros if CPUID is not supported by current processor.
+    Note: available as ASCIIZ string from getVendorString function in DLL.
+
+    Known vendor strings are:
+    "GenuineIntel"            - Intel
+    "NexGenDriven"            - NexGen (now part of AMD, doubtly can be seen)
+    "CyrixInstead"            - Cyrix
+    "AuthenticAMD"            - AMD ("AMD ISBETTER" in engineering samples)
+    "UMC UMC UMC "            - UMC
+    "CentaurHauls"            - Centaur/IDT Tech.
+    "RiseRiseRise"            - Rise Technology
+
+ cpuid1
+ ~~~~~~
+    Size: Double Word (4 Bytes);
+ Purpose: contains CPU family/model/stepping info as returned in EAX by
+          CPUID instruction.
+    Note: available from getSteppingInfo function in DLL.
+
+          This value is bitmapped as follows (with 31 being MSB and 0 - LSB):
+    [31 . . . 27 . . . 23 . . . 19 . . . 15 . . . 11 . . . 7 . . . 3 . . 0]
+     [reserved   ] D O [family=4,5,6,..] [  chip model   ] [chip stepping]
+
+    O (bit 24)= OverDrive processor
+    D (bit 25)= Dual-capable processor (secondary CPU on a dual-processor
+    system) (both bits cannot be set at the same time - reserved combination)
+
+    Refer to Intel's application note AP-485 for detailed description of
+    bitfields.
+
+ cpuFeatures
+ ~~~~~~~~~~~
+    Size: Double Word (4 Bytes, or 32 bitfields);
+ Purpose: contains CPU feature flags as returned in EDX by CPUID instruction.
+    Note: available from getCPUFeatures function in DLL.
+
+    For bitfields descriptions refer to P5InfoX.PAS or .C, or ask Intel and
+    others :)
+
+
+
+                                                                           ..7
+ 4.3 Tips On Using DLLs.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ Two DLLs (Windows Dynamic Link Libraries) are provided with this release of
+ TMi0SDGL to allow Windows/DOS Protected Mode programmers to use the library
+ with minimum effort required from them. Both 16-bit and 32-bit DLLs export
+ the same functions, though I provided both 16-bit and 32-bit header files
+ and import units for convenience. For descriptions of exported functions,
+ refer to paragraphs 4.1 and and 4.2 of this manual.
+
+ These DLLs can be freely included with your applications with no royalty
+ paid to the author (as with other parts of the library). You can even skip
+ "Portions copyright(c) B-coolWare" notice in your product's About box
+ if you use these DLLs, because they have the copyright information within,
+ though I prefer you to add this notice anyway (just to honor my pride,
+ y'know :).
+
+ * How to use these DLLs in Delphi/Pascal.
+
+ Simply add CPUDetXX (where XX is 16 or 32 for 16- and 32-bit version
+ respectively) into USES clause of your application. That should do it.
+ See CPU16D.DPR and CPU32D.DPR for examples. Note that there's no wrapper
+ classes/objects for Delphi/Pascal - it's trivial to implement them yourself
+ if you need them.
+
+ * How to use these DLLs in C/C++.
+
+ First thing to check before you can try the DLL, is the format of import
+ library. C/C++ programmers should keep in mind that Borland and Microsoft
+ (and some other vendors) use different object file formats, Intel OMF and
+ COFF respectively, which are not compatible. Microsoft linker automatically
+ converts standalone .OBJ object files from OMF to COFF, but this is not true
+ for .LIB library files. Thus, giving an OMF library to Microsoft linker will
+ produce error on invalid object file. To solve this problem, you must cast
+ the IMPLIB spell using IMPLIB.EXE provided with your compiler to generate
+ proper import library. The magic words are
+
+  IMPLIB <libname>.LIB <dllname>.DLL
+
+ This will produce libname.LIB static import library from dllname.DLL
+ dynamic link library. Then you can replace import libraries I provided,
+ which are in Intel OMF format, with the ones you created yourself. After
+ that, refer to CPU16C.CPP or CPU32C.CPP for example on using these DLLs.
+ I also provided two .HPPs with useful classes that will simplify your
+ life even further.
+
+ * How to use these DLLs in Visual Basic.
+
+ Add CPUDET32.BAS module to your project and put CPUDET32.DLL in
+ Windows\System directory or in directory where your application is - that
+ should do it.
+
+ * Other development systems.
+
+ Other development systems, like PowerBuilder or Visual FoxPro, are not
+ currently supported. But if you are experienced in these devsuits, you
+ can create import modules for them yourself, based on supplied import
+ modules in Pascal and C. If you do, please send me a copy of your modules
+ so that I'll be able to incorporate them in next releases. Your copyright
+ will be reserved.
+
+
+                                                                           ..8
+
+ 5. Credits.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ Too-Much-in-0ne-So-Don't-Get-Lost(tm) Revision 2 CPU/FPU Detection Library
+ is copyright(c) 1996-2000 by B-coolWare.
+ Accompanying documentation is also copyright(c) 1996-2000 by B-coolWare.
+ Portions copyright(c) 1997 by Vladimir S. Lokhov
+ Portions copyright(c) 1995 by Lautenaus
+ Portions copyright(c) 1992 by 2B Programmers
+ Portions copyright(c) 1994-99 by Christian Ludloff
+ Portions copyright(c) 1995 by NexGen Corporation
+ Portions donated to public domain by Compaq Computer Corporation
+ Portions copyright(c) 1995 by Cyrix Corporation
+ Portions copyright(c) 1996-98 by Intel Corporation
+
+ Runtime libraries are copyright(c) by their respective vendors.
+ Portions I forgot to mention are copyright(c) by those I don't remember.
+ (this last joke is copyright(c) 1996 by Bobby Z. :)
+
+ This is free copyrighted software! Use it free, give away to your friends and
+ colleagues, upload to your favorite BBSes and public FTP sites, but do not
+ sell or lease it! Please read the license agreement for details.
+
+ ...huh...Hope this will keep the lawyers happy...
+
+
+ 5.1 Hall Of Fame
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Thanks goes to Almighty God for inspiration and everything.
+ In the memory of my father Michael M. Zakharychev (1943-1997) who died
+ from cancer. Please read CHARITY.TXT.
+
+ This is a short list of contributors to this library, either with code or
+ with information. I cannot mention all people who took part in development
+ of this library for it will take too much space, only the notest of them.
+
+ 1. Christian Ludloff aka ludloff@sandpile.org
+    This guy is dedicated to x86 family research and maintains the Sandpile
+    site, the most comprehensive set of information regarding undocumented
+    and advanced features of x86 family of processors.
+    I retrieved lots of information that was used to produce TMi0SDGL from
+    Sandpile (and still do it!) Check it out at http://www.sandpile.org.
+ 2. Vladimir A. Prunsky aka VAPorizer
+    He was my boss and I'd like to thank him for his patience while I was
+    writing this library in its early days instead of sticking to my primary
+    job tasks.
+ 3. Sergey Frolov aka Lautenaus aka 2:5030/219.9@fidonet
+    who provided me with lots of useful code regarding Cyrix family of
+    processors and did much testing.
+ 4. Aleksandr Konosevich aka 2:5004/9.7@fidonet
+    who is the Cyrix guru. He knows almost everything about these chips and
+    he didn't charge me a penny for his knowledge!
+ 5. Vadim Selivanow aka 2:5015/17@fidonet
+    who provided a lot of NexGen-related information and code and also did
+    much testing.
+ 6. Alex Bachin aka bachin@garant.ru
+    who provided i386SL detection code and 80C88/C86 detection code
+    and kindly agreed to be TMi0SDGL beta-tester.
+ 7. Dmitry Orloff aka do@kpi.kharkov.ua aka 2:461/27.1@fidonet
+    who helped me a lot in my great hunt for bugs, especially with NEC Vx0
+    related ones (yeah, he still have access to a PC based on it...!).
+ 8. Alexander Alferowich aka 2:5031/7.3@fidonet
+    who really helped me alot with hunting bugs and discrepancies found in
+    final v2.00 release which was widely spread thru FidoNet network. Geez,
+    I didn't think I missed THAT much of 'em...
+ 9. Michael Radchenko aka 2:2025.25@fidonet
+    who helped me with adjusting new AMD K5 processor speed constant.
+10. Vladimir Lokhov aka vladimir@lokhov.lug.tsu.tula.ru aka 2:5022/18.14@fidonet
+    who suggested another method of detecting CPU speed and provided some
+    source code, which was gladly accepted.
+11. Vasiliy Sorokin aka vasiliys@hotmail.com
+    who reminded me of my old AMD detection code and checked it.
+12. Phil Randal aka philr@hwcces.demon.co.uk
+    BIG thanks for your very valuable comments on TMi0SDGL (and for magic
+    values for AMDs and P6)! Please come back anytime with more. :)
+13. Leave devil's for himself... :)
+14. Tomas Navratil aka navsoft@post.cz
+    who found and corrected numerous discrepancies in v2.03 and also reported
+    some bugs I missed in v2.06 and v2.08. Still he finds more!
+15. Jeff Miko
+    for his invaluable comments and bug reports.
+
+ Also among contributors are
+  Igor Dral                     2:50/321@fidonet
+  Alex B. Shamarokov            2:5020/205.8@fidonet
+  Janis Smits                   2:5100/25@fidonet
+  Ilya Tumanov                  2:5030/82.6@fidonet
+  Igor Krasikov                 2:463/59@fidonet
+  Roman Gasteff                 2:5020/177.8@fidonet
+  Levan Natroshvili             2:446/1@fidonet
+  Vsevolod Fedotov              2:5005/2@fidonet
+  Dmitry Dmitrienko             2:5020/375.8@fidonet
+
+ Thank you:
+
+ All the participants of v2.00 beta testing - your feedback helped me a lot
+ with cleaning this code of bugs.
+
+ And, of course, all of you, the users of TMi0SDGL, who wrote me back and
+ reported my faults or suggested some improvements or simply made use of this
+ product - thank you. Without you, this library would never be what it is.
+
+
+
+                                                                           ..9
+
+ 6. How To Contact The Author.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ In case you have spotted a bug or have some suggestions or code to donate,
+ please use form in file BUGREP.TXT (you can also submit bug reports from the
+ Web) and following addresses:
+
+ e-mail: bobby_z@cyberdude.com      (primary, hopefully won't change)
+         zak@dzbjaro.bertelsmann.de (my current business e-mail)
+    Web: http://come.to/b-coolware  (redirector to actual site)
+
+ Surface mail:
+  Vladimir M. Zakharychev
+  150031, 10-4-13,
+  Dobrynina Str.
+  Yaroslavl, Russia
+
+ Letters both in english and in russian are welcome. Please do not use any
+ other language if you want to be answered. Letter-bombs will be returned to
+ sender (shhh-boom-BANG!). When writing in Russian, please use Windows CP1251
+ or KOI-8R charset.
+
+
+ 6.1 Author's reward.
+ ~~~~~~~~~~~~~~~~~~~~
+ If you made use of this code and think it's worth something, please send
+ me a postcard with picture of country you live in or picture of yourself to
+ address above. OR purchase a gift certificate for me on Music Boulevard
+ (http://www.musicblvd.com) where I shop sometimes. It can be of any amount,
+ but not less that US $10 (that's Music Boulevard restriction, not mine).
+ Just drop in to the site, register and buy a gift certificate for Vladimir
+ Zakharychev with e-mail of bobby_z@cyberdude.com for any amount you wish and
+ I will redeem it someday. OR you may just drop me an e-mail with your
+ opinion on this library.
+ Anyway, my best reward is the fact that my work didn't go in vain and is
+ used by people around the globe (hopefully with gratitude).
+
+
+
+ ----
+
+ Appendix A. List Of Files In Original Distribution Archive.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ The original distribution SFX archive CPU215.EXE should contain (sorted in
+ several subdirectories):
+
+ .\             - root TMi0SDGL directory
+ README.        Read me file.
+ README.1ST     Important information that requires to be read first.
+ README.COM     README display engine. freeware by Bobby Z.
+ FILE_ID.DIZ    BBS archive description file - for easy archive handling.
+ VMZ.ASC        Author's PGP keys. (also at ldap://certserver.pgp.com)
+ TMi0SDGL.REG   Windows Registry file with version information for UpdateMe!
+ .\SOURCE\      - source code and makefiles
+ MAKEFILE._P    Pascal makefile.
+ MAKEFILE._C    C makefile.
+ MAKEFILE._CP   C++ makefile.
+ CPUTYPE.C      Main library module - C version.
+ CPUTYPE.PAS    Main library module - Pascal version.
+ REALCODE.ASM   Real mode low-level code.
+ DPMICODE.ASM   Protected mode DPMI-compliant low-level code.
+ CPUSPEED.ASM   CPU clock speed calculation code.
+ CPUSPD2.ASM    Alternate CPU clock speed calculation code.
+ CACHETST.ASM   L1 cache size detection code.
+ CPU.C          Demonstration program - C version.
+ CPUCPP.CPP     Demonstration program - C++ version.
+ CPU.PAS        Demonstration program - Pascal version.
+ P5INFO.C       Demonstration program - C version.
+ P5INFO.PAS     Demonstration program - Pascal version.
+ CPUDET*.PAS    DLL import units.
+ CPUDET32.BAS   Visual Basic 5.x 32-bit DLL import module.
+ MAKEALL.BAT    Quick make batch - makes all examples.
+ .\SOURCE\INCLUDE\ - include files
+   TMi0SDGL.H     C header file.
+   TMi0SDGL.HPP   C++ header file.
+   TMi0SDGL.INC   Assembler include file.
+   HEADER.ASH     Common assembler header file.
+   DPMI.ASH       Assembler header file for DPMI-compliant code.
+   CPUDET*.H*     C/C++ DLL import header files.
+ .\EXE\         - sample executables
+ CPU*.COM       compiled sample programs
+ CPU*.EXE       compiled sample programs
+ P5INFO*.EXE    compiled sample programs
+ GETDIRS.EXE    run it and mail results to help me add unlisted/undetected
+                Cyrix-like CPUs to library. Only do this if TMi0SDGL is unable
+                to detect your CPU correctly and names it a Cyrix/TI/SGS CPU.
+ .\LIB\         - compiled libraries
+ CPUTYPE*.LIB   compiled C/C++ static libraries
+ CPUTYPE.TP?    compiled Borland Pascal 7 units
+ CPUDET*.D??    16- and 32-bit dynamic link libraries
+ CPUDET*.LIB    16- and 32-bit DLL import libraries (OMF object format).
+ CPUDET*.DCU    Delphi import units.
+ CPUDET*.TP?    Borland Pascal import units, Windows and DPMI.
+ .\DOC\         - documentation files
+ TMi0SDGL.DOC   This file. The TMi0SDGL documentation and license.
+ BUGREP.TXT     Bug report/suggestion form. Please use it if you found a bug
+                or have something to suggest about TMi0SDGL.
+ WHATSNEW.215   What's New document for current TMi0SDGL release.
+ HELPME.PLS     A call for help - please read this file!
+ CHARITY.TXT    Simply read this file...
+ VDBASE55.TXT   Tips on using TMi0SDGL with Visual dBase 5.5a
+ TODO.TXT       To Do List.
+
+ This archive may also contain other files, like BBS or group addies. Simply
+ note that these files, if present, are not from B-coolWare and can be
+ deleted.
+
+ DLL source code is available in separate archive - CPUSP215.EXE.
+
+
+ Appendix B. Useful Resources On Internet/WWW.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ http://come.to/b-coolware
+  This is a redirector to my home page, where you can always obtain the
+  latest version of the TMi0SDGL (including unpublished alphas and betas), as
+  well as some other of my programming stuff. As I'm not sure about future
+  location of my site, it is the safest way to use this redirector to find
+  my homepage wherever it will go in the future.
+
+ http://www.x86.org
+  R. Collins' Intel Secrets(tm) (what intel doesn't want you to know...) Page.
+  Vast of information about x86 processor family, bugs, undocumented features,
+  source code and shareware/freeware tools for professionals and dummies. Just
+  drop in and see it all yourself.
+  A "must visit" site if you're interested in details on x86 family of CPUs.
+
+ http://www.sandpile.org
+  Christian Ludloff is back on the net and with lots of new information well
+  worth opening a new site, sandpile.org. Another "must visit" site, even more
+  "must" than Intel Secrets! No comparisons, no affiliations with any chips
+  vendors, no "my stuff is better than others'" crap - only plain technical
+  data, and that's what makes this site cool.
+
+ http://www.pobox.com/~ralf
+  Ralf Brown's Home page. Ralf Brown is most known as compiler and publisher of
+  the Interrupt List, the biggest and the most precise reference to IBM PC
+  Interrupts. IntList also includes lots of information on CPUs in file
+  OPCODES.LST, donated to IntList by Potemkin's Hackers Group.
+
+ http://www.intel.com
+  Guess who are these... :)
+
+ http://www.amd.com
+  ...and these...
+
+ http://www.cyrix.com
+  ...and these...
+
+ http://www.???.com - fill in ??? yourself, most vendors now appear on
+  the Web with their commercial blah-blah they call "customer services".
+  Though I suggest you'll have to squeeze the REAL information out of them,
+  drop by drop, slowly increasing pressure up to ten, for they often call it
+  trade secrets or propietary info or kinda like that and won't give it away...
+  When you give up, acquire the 4P and IntList and you'll find there the most
+  of it, all in one piece, from independent researchers that got nothing to
+  hide (almost) :).
+
+                       << end of TMi0SDGL.DOC >>

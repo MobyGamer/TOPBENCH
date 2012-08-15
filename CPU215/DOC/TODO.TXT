@@ -1,0 +1,16 @@
+ To Do List
+ ~~~~~~~~~~
+
+ 1. Correct timings for Nx586 and Nx686 as well as other new CPUs to ensure
+    correct clock speed detection for these CPUs.
+ 2. Add a _reliable_ method for detecting L1 cache size (CPU's internal cache).
+    Current method do not work properly under multitasking environments.
+    This only applies to CPUs prior to Pentium Pro (this and later CPUs report
+    cache size via CPUID).
+ 3. Add support for WATCOM C/C++.
+    Add a Rational DOS/4G-compatible 32-bit LIB/DLL for use with WATCOM C++.
+    (delayed for undetermined period)
+ 4. Adjust clock speed normalization algorithm.
+ 5. Sort out EMM386 on HX chipset problem (TSC-based speed detection crashes
+    with GPE on this combination)...
+ 6. You name it!

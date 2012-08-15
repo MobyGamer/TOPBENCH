@@ -1,0 +1,140 @@
+To: loki@cnit.uniyar.ac.ru
+Subject: TMi0SDGL Rev. 2 v2.15 bug report/suggestion
+
+Note: you can use online version of this form at
+       http://come.to/b-coolware
+      in TMi0SDGL section
+
+Please fill out this form:
+    (Switch your editor to overwrite mode for your and my convenience.
+     When asked to check a box, put an 'x' between the brackets against
+     the item you want to select.)
+
+-------------------
+
+PC Brand and Model: ___________________________________________________________
+  Operating System: _______________________________ Version ______ build ______
+     (if you run several different OSes, please use new form for each OS)
+       CPU runs in:   [ ] real mode   [ ] protected mode   [ ] I don't know
+                                     (please check one box)
+               CPU: _______________, ___ MHz
+               FPU: _______________
+
+Additional hardware/software that may affect results:
+
+ Weitek math unit: [ ] present
+     FPU Emulator: [ ] present ____________ version _____
+
+Execution Environment:
+                   [ ] DOS or Emulated DOS Session real mode 16-bit
+                   [ ] DOS or Emulated DOS Session Protected Mode 16-bit
+                   [ ] Windows 3.1x native 16-bit
+                   [ ] Windows 3.1x with Win32s Version ______ 32-bit
+                   [ ] Windows 95 16-bit
+                   [ ] Windows 95 native 32-bit
+                   [ ] WIN-OS/2 16-bit
+                   [ ] WIN-OS/2 with Win32s v_______ Emulation 32-bit
+
+DOS Memory Manager (if ran under DOS):
+                   [ ] QEMM           [ ] Microsoft EMM386 [ ] 386-Max
+                   [ ] Novell EMM386  [ ] Windows [95]     [ ] OS/2 DOS Box
+                   [ ] WinNT DOS Box  [ ] None             [ ] I don't know
+                   [ ] Other _______________________ (please specify)
+                                  (check one that apply)
+
+When running on Windows|WIN-OS/2 I used
+   [ ] 16 bit / [ ] 32 bit [ ] Static library / [ ] Dynamic Link Library
+
+Anything else you think I should know about your system:
+
+
+
+
+
+
+TMi0SDGL reports
+           Version: _______
+               CPU: _______________, ___ MHz
+               FPU: _______________
+
+If you have the source code and debugged it to find the origin of the problem,
+please specify if you were able to correct it and what you added/modified if
+so:
+
+
+
+
+
+
+
+
+
+
+
+
+
+Other notes/suggestions:
+
+
+
+
+
+
+
+------------------ following information is not necessary but appreciated -----
+Your contact info:
+
+e-mail: ___________________________________
+        (Internet address. If you're on CIS, MCI-Mail, etc., convert your
+         address to Internet id@host style (consult your MSP for details on
+         converting your address)).
+
+  Name: ___________________________________
+        (Full real name)
+
+Handle: ___________________________________
+        (Your alias if you have one)
+
+   URL: ___________________________________
+        (URL of your homepage if you have one)
+
+Please check boxes below that apply to you:
+
+For coders:
+  [ ] YES! I am experienced DOS/Windows programmer and can code in assembler.
+  [ ] YES! I am experienced OS/2 programmer and can code OS/2 device drivers.
+  [ ] YES! I am experienced Windows NT programmer and can code NT device
+           drivers.
+  [ ] YES! I am willing to contribute to TMi0SDGL. Please sign me up! I
+           read the license agreement and fully agreed with all its terms.
+  [ ] YES! I got some source code that may help you and I will send it to you
+           at no charge and allow you to publish it within TMi0SDGL.
+For informators:
+  [ ] YES! I have sources at companies and can provide you with info about
+           their CPUs' hidden details/features/unpublished info/etc.
+           *****
+           Nothing illegal please! If this information is protected, I don't
+           want it then! At least, I won't publish neither this info itself,
+           nor any code based on it...
+For testers and users:
+  [ ] YES! I have access to many different CPUs and want to be a tester.
+  [ ] YES! I agree to perform additional tests if needed. Contact me if you
+           want me to check something.
+For everybody:
+  [ ] YES! I like this piece of code. You should keep on developing it.
+  [ ] YES! I want you to put me on mailing list and send me announces of new
+           versions as they are developed.
+
+  [ ] NO! I don't like this code and I won't use it even being paid for it.
+  [ ] PHEW! This thing is LAME and you should stop bothering community with
+           your stupid code!
+  (Do you really think I will give a damn for these last two boxes? :)
+
+--------- cut here ------------------------------------------------------------
+
+Thank you for contacting B-coolWare. Without your support the TMi0SDGL would
+never be finished. We'll try to fix the problem as soon as possible and
+contact you back at given address with either fix or sorries if no can do.
+
+                                 Yours,    Vladimir M. Zakharychev
+                                           aka Bobby Z. of B-coolWare.

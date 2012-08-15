@@ -1,0 +1,22 @@
+For those curious, here's my build environment (tools & compilers versions):
+
+Borland Pascal with Objects 7.01 (16 bit Pascal)
+Borland Delphi 5.01 Ent. (32 bit Pascal)
+Borland C++ 5.02 (16 & 32 bit)
+Borland Turbo Assembler 5.2 (32 bit) and 4.1 (16 bit)
+Borland Turbo Link 5.1 (16 bit) and 2.5.0.0 (32 bit)
+Borland Turbo Incremental Link 5.0 (32 bit)
+Borland Make 3.6
+Borland ImpLib 3.0.1
+Borland TLib (Turbo Librarian) 4.5
+Borland RCC (Resource Compiler) 5.40
+
+As you can see, I use only authentic Borland tools since they are my favorites
+(some can say they have their weaknesses, but I still prefer them for their
+strengths). C/C++ code should also be compileable with MS Visual Studio 97,
+but I don't have enough space on disk to install another build environment in
+addition to those I already have to check this - they're all such hungry HD
+space eaters...
+
+Ah yes, Visual Basic DLL interface was tested with
+VB 5.0 SP3 Enterprise Edition :)

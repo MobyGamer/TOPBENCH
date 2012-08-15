@@ -1,0 +1,33 @@
+Die Detecting Unit fÅr PASCAL 1.19-· BETA
+
+Dies ist die 6. Beta Version der Detecting Unit fÅr Pascal.
+Was neu ist, steht in der Datei WHATSNEW.TXT. Wenn jemand
+Fehler in den bisher geschriebenen Routinen findet kann er
+mir ja eine Message Åber's Internet (Eike.Frost@ngosub5.ngo.
+ol.ni.schule.de) oder Fidonet (2:2426/2320.5) zukommen lassen.
+Wie man mich sonst noch erreichen kann, steht in der Datei
+DETECT.DOC, Kapitel [1.3].
+
+Wenn mir jemand noch Info's zu spezieller Hard/Software geben will, bitte
+erst vorher nachfragen, ob ich das nicht schon hab' ... Ich suche im
+Speziellen :
+
+  - Chipsatz-Informationen (neue UND alte), nicht die aus CTCHIPZ
+  - Informationen zu den Spea S3 Mercury/Mirage/... Karten
+  - Netzwerkkarten-Erkennung
+  - Modem-Ansprache/Erkennung
+  - PCI, VLB und MCA Spezifikationen
+  - Info's zu PnP
+  - CPU-Informationen (Intel, Cyrix, AMD, Next, TI, ...)
+  - OS/2 Api
+  - WIN95-Api
+
+  - .TPH Dateiformat fÅr die Borland Pascal Hilfe
+
+Die Haftungsbestimmungen etc. findet man in der Anleitung (DETECT.DOC),
+Kapitel [1.2].
+
+Mal sehen, wann die naechste Unit rauskommt ;)
+
+Greetings
+  EJF

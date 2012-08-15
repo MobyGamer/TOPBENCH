@@ -1,0 +1,1166 @@
+Unit Detect;
+  {
+                Die Detecting Unit fÅr Pascal Version 1.18g-· BETA
+
+                Dieser Unit mu· immer mindestens der Quelltext in den
+                verschiedenen Unterunits, die Hauptunit als Quelltext,
+                die Anleitung, das Beispielprogramm, die History Datei und
+                die Kurzbeschreibung beiliegen. Wenn die Unit nicht auf
+                Mailboxen gespeichert ist, kann man optional noch die
+                kompilierten Dateien hinzuziehen.
+
+                Dies sind die folgenden Dateien :
+
+                  FILE_ID.DIZ    - Kurzbeschreibung
+                  HISTORY.TXT    - Versions-History
+                  INFO.TXT       - öbersicht, was die Unit kann
+                  DETECT.DOC     - Anleitung und Referenz
+                  EXAMPLE.PAS    - Beispiel
+                  EXAMPLEG.PAS   - Globale Definitionen fÅr's Beispiel
+                  DETECT.INC     - Kompilierschalter
+                  DETECT.PAS     - Hauptunit
+                  DETECTTI.PAS   - Timer
+                  DETECTDI.PAS   - Routinen fÅr Disketten
+                  DETECTHD.PAS   - Spezielle HD-Routinen
+                  DETECTAT.PAS   - Unit zum Auslesen der IDE und EIDE Plat-
+                                   tendaten
+                  DETECTFX.PAS   - Routinen fÅr Soundkarten
+                  DETECTGR.PAS   - Routinen fÅr Grafikkarten
+                  DETECTGL.PAS   - Externe und hÑufige Routinen
+                  DETECTGL.ASM   - Assemblercode der Unit
+                  DETECTME.PAS   - Routinen fÅr Memory
+                  DETECTMO.PAS   - Routinen fÅr MÑuse
+                  DETECTSO.PAS   - Routinen fÅr Software
+                  DETECTMM.PAS   - Memory Manager
+                  DETECTSY.PAS   - Routinen fÅr System
+                  DETECTCH.PAS   - Routinen zum auslesen des Chipsets
+                  DETECTCA.PAS   - Cache-Routinen fÅr die System-Unit
+                  DETECTMU.PAS   - Routinen fÅr Multiplex-Interrupte
+                  DETECTCO.PAS   - Konstanten fÅr die Units
+                  DETECTBI.PAS   - Bios-Record und Funktion dazu
+                  DETECTBU.PAS   - Bus-Routinen ((E)ISA/MCA/VLB/PCI/...)
+                  DETECTPO.PAS   - Ports (COM, LPT, ...)
+                  DETECTPR.PAS   - Prozessoren-Unit (z.B. CPUId)
+                  BENCH.PAS      - Bencharks (siehe unten)
+                  DETECTWH.PAS   - WhetStone-Routinen fÅr BENCH.PAS
+                  DETECTDH.PAS   - DhryStone-Routinen fÅr BENCH.PAS
+                  DETECTLL.PAS   - LLL MFLOPS-Routinen fÅr BENCH.PAS
+                  DETECTTR.PAS   - Transformation MFLOPS-Routinen
+                  DETECTPE.PAS   - Peak MFLOPS-Routinen fÅr BENCH.PAS
+                  BENCHEX.PAS    - Benchmark-Beispiel (siehe unten)
+                  COMPIT.PAS     - Mit dieser Unit kann man alles komp.
+                  *.TPU, *.EXE   - Kompilierte Units und Testprogramme
+
+                Die Benchmarks (Dhrystones, Whetstones und MFLOPS) habe ich
+                in eine Extra-Datei gesetzt, da das Datensegment nicht fÅr
+                die Unit UND die Benchmarks ausreicht (die Whetstones be-
+                legen Åber 50k (!) Datensegment ...                         }
+
+{$IFDEF VIRTUALPASCAL}
+  Tut mir leid, aber die Unit ist nur unter Dos zu verwenden ;)
+{$ENDIF}
+
+
+Interface
+
+Uses DetectGlobal, { FÅr einige Typendeklarationen hier schon }
+     DetectBios,   { Das gleiche fÅr den Typ pBiosRecord      }
+     DetectBus;    { FÅr die PCI-Header                       }
+
+{ Routinen zum DOS }
+
+Function GetDosVersion         : String; { Gibt Die Dosversion zurÅck       }
+Function IsDosInHMA            : Boolean; { Ist DOS in der HMA ?            }
+Function IsDosInRom            : Boolean; { Kommt das DOS aus dem ROM ?     }
+Function GetDosOEMNumber       : Byte;   { OEM-Nummer des DOS               }
+Function GetDosSwitchChar      : Char;   { Switch-Char (/ oder -)           }
+Function IsDEVPrefix           : Boolean; { /DEV/ Prefix erforderlich ?     }
+Function GetDosBusyFlag        : Pointer; { Wo befindet sich das DOS-B-Fl.  }
+Function GetPrtScrStatus       : String; { PrintScreen-Status               }
+Function GetMemAllocMethod     : String; { Welche Methode wird verwendet ?  }
+Function DosBuffers            : Word;   { Ermittelt die aktiven BUFFERS    }
+Function DosFilesPointer       : Pointer; { Wo sind die File-Handles abg. ? }
+Function DosFilesCount         : Word;   { Wieviele File-Handles sind vorh.?}
+Function DosFilesUsed          : Word;   { Wieviele davon sind benutzt ?    }
+Function DosFCBCount           : Word;   { Wieviele FCB's sind vorhanden ?  }
+Function DosStacksCount        : Word;   { Ermittelt die Anzahl der STACKS  }
+Function DosStacksSize         : Word;   { Wie gross ist ein einzelner ?    }
+Function DosActiveGlobalCodePage  : Word; { Aktive globale Codepage         }
+Function DosDefaultGlobalCodePage : Word; { Default globale Codepage        }
+Function DosThousandSeparator  : Char;   { Tausendertrennzeichen            }
+Function DosDecimalSeparator   : Char;   { Dezimal-Zahlen Trennzeichen      }
+Function DosDatalistSeparator  : Char;   { Datenlisten Trennzeichen         }
+Function DosDateFormat         : String; { Datumsformat                     }
+Function DosTimeFormat         : String; { Zeitformat                       }
+Function DosTimeSeparator      : Char;   { Zeit-Trenner                     }
+Function DosCurrencyFormat     : String; { Waehrungs-Format                 }
+Function DosCaseMapCallAddress : Pointer; { Die Map-Call-Adresse            }
+Function NumberHandleTables    : Byte;   { Anzahl der Handle-Tabellen       }
+Function OpenHandlesTable (Number : Byte) : Pointer; { Adresse der Tabelle  }
+Function OpenHandleTableSize (Number : Byte) : Byte; { Anzahl d. F. i.d. T. }
+Function UsedTableEntrys (Number : Byte) : Byte; { Benutzte Handles i.d. T. }
+Function GetOpenFileStatus (TableNumber, FileNumber : Byte) : pOpenInfo; {  }
+
+{ Testroutinen fÅr installierte Programme }
+
+Function IsInstalled (SoftwareNumber : Byte) : Boolean; { Multiplex-Abfrage }
+Function WhichAddress (SoftwareNumber : Byte) : Pointer; {Adr.-Abfrage      }
+Function WhichVersion (SoftwareNumber : Byte) : String; { Versionsabfrage   }
+
+Function Version4Dos    : String;        { Gibt Version von 4Dos zurÅck     }
+Function Shell4Dos      : Byte;          { Gibt Shellnummer von 4Dos zurÅck }
+Function PSPSegment4Dos : Word;          { Gibt PSP-Segment von 4Dos zurÅck }
+
+Function VersionNDos    : String;        { Gibt Version von NDos zurÅck     }
+Function ShellNDos      : Byte;          { Gibt Shellnummer von NDos zurÅck }
+Function PSPSegmentNDos : Word;          { Gibt PSP-Segment von NDos zurÅck }
+
+Function Is386Max         : Boolean;     { Ist 386Max installiert           }
+Function _386MaxVersion   : String;      { Wenn ja, dann welche Version     }
+Function _386MaxSegment   : Word;        { ... welches Segment              }
+Function _386MaxEMSActive : Boolean;     { ... ist EMS aktiv ?              }
+Function _386MaxWin3Supp  : Boolean;     { ... Windows 3 Support ?          }
+
+Function IsMICEMM       : Boolean;       { Ist MICEMM aktiv ?               }
+Function MICEMMCS       : Word;          { Wenn ja, welches Code Segment ?  }
+
+Function IsEmm386     : Boolean;         { Ist Emm386 aktiv ?               }
+Function Emm386Api    : Pointer;         { Wenn ja, dann welches Programm-A.}
+Function Emm386Status : String;          { Status (An/Aus)                  }
+Function Emm386Weitek : String;          { Weitekstatus                     }
+
+Function IsQEMM             : Boolean;   { Ist QEMM installiert ?           }
+Function QEMMApi            : Pointer;   { Wenn ja, API Entry Point         }
+Function QEMMversion        : String;    { Version von QEMM                 }
+Function QEMMStatus         : String;    { Status von QEMM                  }
+Function QEMMIsHiRam        : Boolean;   { Ist HiRam unterstÅtzt            }
+Function QEMMHiRamMCB       : Word;      { Wenn ja, erster MCB              }
+Function QEMMStealthStatus  : String;    { Der Stealth-Status von QEMM      }
+Function QEMMStealthRom     : Word;      { Wieviele Stealthed Rom's         }
+Function QEMMInitConv       : LongInt;   { Initial Conventional             }
+Function QEMMInitExt        : LongInt;   { Initial Extended                 }
+Function QEMMInitExp        : LongInt;   { Initial Expanded                 }
+Function QEMMInitExtra      : LongInt;   { Initial Extra Shadow/Top         }
+Function QEMMInitTotal      : LongInt;   { Initial Total                    }
+Function QEMMCurrConv       : LongInt;   { Current Conventional             }
+Function QEMMCurrExt        : LongInt;   { Current Extended                 }
+Function QEMMCurrEMSXMS     : LongInt;   { Current EMS/XMS Pool             }
+Function QEMMCurrHiRam      : LongInt;   { Current HiRam                    }
+Function QEMMCurrMapped     : LongInt;   { Current Mapped Rom's             }
+Function QEMMCurrDMAB       : LongInt;   { Current DMA-Buffer               }
+Function QEMMCurrDMATasks   : LongInt;   { Current DMA-Tasks                }
+Function QEMMCurrDMAMap     : LongInt;   { Current DMA-Map                  }
+Function QEMMCurrCode       : LongInt;   { Current QEMM Code                }
+Function QEMMCurrData       : LongInt;   { Current QEMM Data                }
+Function QEMMCurrTotal      : LongInt;   { Current Total                    }
+Function QEMMUnAvailConv    : LongInt;   { Unavaiable Conventional          }
+Function QEMMUnAvailExt     : LongInt;   { Unavaiable Extended              }
+Function QEMMUnAvailExp     : LongInt;   { Unavaiable Expanded              }
+Function QEMMUnAvailShdwTop : LongInt;   { Unavaiable Shadow/Top            }
+Function QEMMMemType (Adr : Byte) : String; { Memory Typ bei Adresse        }
+Function QEMMAccess (Adr : Byte)  : String; { Benutzung bei Adresse         }
+Function QEMMStealth (Adr : Byte) : String; { Stealth bei Adresse           }
+Function IsQManifest        : Boolean;   { Ist Quarterdeck's Manifest inst.?}
+Function IsQVidRam          : Boolean;   { Ist Quarterdeck's VidRam inst. ? }
+Function VidRamCS           : Word;      { Wenn ja, welches CodeSegment     }
+
+Function TaskMaxVersion      : Word;     { Dr Dos Task Max Version          }
+Function TaskMaxMaxTasks     : Word;     { Dr Dos Task Max max. Anzahl Tasks}
+Function TaskMaxActTasks     : Word;     { Dr Dos Task Max akt. Anzahl Tasks}
+
+Function IsTBScanX           : Boolean;  { Ist Thunderbyte ScanX installiert}
+Function TBScanXVersion      : String;   { Wenn ja, welche Version ?        }
+Function TBScanXStatus       : String;   { Welcher Status ?                 }
+
+Function N_CacheStatus       : String;   { Norton NCache-F/S/V6+ Status     }
+Function N_DiskReetStatus    : String;   { Norton DiskReet Status           }
+Function N_DiskReetRes       : Word;     { Norton DiskReet Segment          }
+Function N_DiskMonStatus     : String;   { Norton DiskMon Status            }
+Function N_DiskMonRes        : Word;     { Norton DiskMon Segment           }
+Function N_FileSavRes        : Word;     { Norton FileSav Segment           }
+
+Function IsPcAnywhere        : Boolean;  { Ist PcAnywhere installiert ?     }
+Function PcAnywhereStatus    : String;   { Wenn ja, welcher Status ?        }
+Function PcAnywherePort      : Byte;     { Welcher Port ?                   }
+Function PcAnywhereBaud      : Word;     { Welche Baudrate ?                }
+
+Function IsPCAnyWhereIV      : Boolean;  { Ist PC Anywhere IV aktiv ?       }
+Function PCAnyWhereIVApi     : Pointer;  { Wenn ja, welche API-Adresse      }
+Function PCAnyWhereIVVer     : String;   { Version von PC Anywhere IV       }
+Function PCAnyWhereIVStat    : String;   { Status von PC Anywhere IV        }
+
+Function IsDiskSpoolII       : Boolean;  { Ist DiskSpool II installiert ?   }
+Function DiskSpoolSegment    : Word;     { Welches Segment ?                }
+Function DiskSpoolSpoolSt    : String;   { Status des Spoolers ?            }
+Function DiskSpoolDeSpSt     : String;   { Status des Despoolers ?          }
+
+Function IsPC_TCP         : Boolean;     { Ist PC_TCP Packet Driver inst. ? }
+Function PC_TCP_Interrupt : Byte;        { Wenn ja, welcher Interrupt ?     }
+
+Function IsFossil        : Boolean;      { Ist ein Fossil-Driver inst. ?    }
+Function FossilType      : String;       { Wenn ja, welcher Typ (BNU/X00)   }
+Function FossilSpecLevel : Byte;         { Specification Level              }
+Function FossilRevision  : Byte;         { Revision                         }
+Function FossilIDString  : String;       { ID-String                        }
+
+Function IsVidFossil  : Boolean;         { Ist ein Video-Fossil-Driver inst.}
+Function VidFossilVer : Word;            { Wenn ja, welche Version          }
+Function VidFossilRev : Word;            { Revision                         }
+Function VidFossilHFn : Word;            { Hîchste Funktion                 }
+
+Function IsNetWork    : Boolean;         { Ist ein Netzwerk geladen         }
+Function NetType      : String;          { Aufgabe des Rechners im Netz     }
+
+Function AppendStatus : String;          { Status und Opt. von Append       }
+Function AppendPath   : String;          { Path von Append                  }
+
+Function SetverList   : Pointer;         { Wo ist die Setver Liste gesp.    }
+Function SetverCount  : Word;            { Wieviele EintrÑge                }
+Function SetverText (TextNumber : Word) : String; { Eintrag zurÅckgeben     }
+
+Function AvaLevelSupp        : Word;     { AVATAR.SYS Level Support         }
+Function AvaDriverType       : String;   { AVATAR.SYS Driver Typ            }
+
+Function TesPort             : Word;     { Port von Interconnections Tes    }
+
+Function IsIBMYaleESIO (PortNumber : Word) : Boolean; { IBM/Yale Ext. SIO   }
+
+Function SRDiskSuppDrives    : Byte;     { SrDisk Anzahl der supp. SubUnits }
+Function SRDiskMemType       : String;   { SrDisk Memory Type               }
+Function SRDiskVersion       : String;   { SrDisk Version                   }
+Function SRDiskConfVersion   : Byte;     { SrDisk Configuration Version     }
+
+Function PCT5DeskHotkey (Key : Byte) : Word; { Hotkey-Abfrage               }
+Function PCT7DeskColorSheme   : String;  { Desktop Farbenschema             }
+Function PCT6DeskVersion      : String;  { Desktop Version                  }
+Function PCT5DeskIsResident   : Boolean; { Ist der Desktop resident ?       }
+Function PCT6CacheIsDrive (Drive : Char) : Boolean; { Ist Drive gecache't   }
+
+Function MDPIsForeGround     : Boolean;  { MultiDos Plus Im Vordergrund ?   }
+Function MDPIsMultiTasking   : Boolean;  { MultiDos Plus ist Multitskng. ?  }
+
+Function EnvSeg  : Word;                 { Envrionment Segment des Progr.   }
+Function EnvLen  : Word;                 { Environment Laenge des Progr.    }
+Function EnvUsed : Word;                 { Benutzte Eintraege des Environ.  }
+
+Function DevCount                      : Byte;    { Anzahl der Devices      }
+Function DevName (Number : Byte)       : String;  { Bezeichnung von Nr. x   }
+Function DevHeader (Number : Byte)     : Pointer; { Header-Pointer -> Nr. x }
+Function DevAttributes (Number : Byte) : Word;    { Attribute von Nr. x     }
+Function DevStrategy (Number : Byte)   : Pointer; { Strategy-Ptr von Nr. x  }
+Function DevInterrupt (Number : Byte)  : Pointer; { Interrupt-Ptr von Nr. x }
+
+{ Hardware-Erkennung }
+
+Function WhatCPU         : Byte;         { Welche CPU ist eingebaut (^P5)  *}
+Function CPUFreq         : Word;         { CPU-Frequenz in Mhz, +/- 2%      }
+Function WaitStates      : Real;         { effektive RAM-WaitStates         }
+Function BusWidth        : Byte;         { Bus-Breite                       }
+Function CPUReset        : Word;         { FÅhrt einen CPU-Reset durch !!!! }
+Function CPUResetStr     : String;       { Falls bekannt, hier Auswertung   }
+
+Function IsCPUId         : Boolean;      { Kann TestCPUId ausgefÅhrt werden?}
+Function TestCPUId       : pCPUId;       { Gibt den CPU-Id Record zurÅck.   }
+
+Function GetCyrixReg (Register : Byte) : Byte; { Cyrix-Registers auslesen   }
+Function CyrixId     : String;           { Id-String eines Cyrix-Proz. les. }
+
+Function WhatCoPro       : Byte;         { Welcher Koprozessor ?           *}
+Function CoProRounding   : String;       { Welche Rundungsart fÅr Kopro. ?  }
+Function CoProPrecision  : Byte;         { Welche PrÑzision (Bits) f. Kopro?}
+Function CoProFreq       : Real;         { Koprozessor-Frequenz in Mhz +- 2%}
+
+Function WhatWeitek      : Byte;         { Welcher Weitek-Prozessor        *}
+Function MashineType     : String;       { Welcher Maschinentyp (Firma/Mod.)}
+
+Function Is386PopAdBug   : Boolean;      { Gibt es den 386-Popad Bug im R. ?}
+Function Is386MulBug     : Boolean;      { Gibt es den 386-Mul Bug im R. ?  }
+Function IsP5FDivBug     : Boolean;      { Gibt es den P5-FDIV-bug im R. ?  }
+
+Function IsCPUCache         : Boolean;   { Ist ein CPU-Cache installiert ?  }
+Function CPUCacheLevel      : Byte;      { Wenn ja, welcher Level           }
+Function CPUCacheKBFirst    : Word;      { KB im First-Level Cache          }
+Function CPUCacheKBSecond   : Word;      { KB im Second Level Cache         }
+Function CPUCacheThruFirst  : Real;      { öbertragungsrate kb/s First-Lev. }
+Function CPUCacheThruSecond : Real;      { öbertragungsRate kb/s Second-Lev.}
+
+Function BusType            : Byte;      { Welcher Bus-Typ (ISA/EISA/MCA)   }
+
+Function EISAIsID (SlotNumber : Byte) : Byte; { Ist eine EISA-Id vorhanden ?}
+Function EISASlotType (SlotNumber : Byte) : String; { EISA Slot-Typ         }
+Function EISAConfigVersion (SlotNumber : Byte) : String; { Configuration Ver}
+Function EISAConfigCheckSum (SlotNumber : Byte) : Word; {Configuration ChkSm}
+Function EISANumDevFunc (SlotNumber : Byte) : Byte; { Anzahl der Device-Fn  }
+Function EISAId (SlotNumber : Byte) : String; { EISA 8 Char ID-String       }
+
+Function  IsPCIDevice (Device, Bus : Byte) : Boolean; { Ist vorhanden ?     }
+Procedure GetPCIConfig (Device, Bus : Byte; Var Data : PCIHeader); { Config }
+Function  GetPCIVendor (VendorId : Word) : String; { Herstellernamen dekod. }
+Function  IdentifyPCIDevice (VendorID, DeviceID : Word; Revision : Byte) : String;
+Function  IdentifyPCIClass (ClassId : Byte) : String;  { Class-Id ?         }
+Function  IdentifyPCISubClass (ClassId, SubClassId : Byte) : String; { Subc.}
+
+Function WhatMSW         : Word;         { Gibt Mashine Status Word zurÅck. }
+Function IsMSWProtMode   : Boolean;      { Ist Prot. Mode Bit (286^) ges. ? }
+Function IsMSWMonCoPro   : Boolean;      { Ist Mon. Kopr. Bit (286^) ges. ? }
+Function IsMSWEmuCoPro   : Boolean;      { Ist Koprozessor Emu. aktiv (286^)}
+
+Function WhatGDT         : Real;         { Gibt GDT in Form von LongInt zur.}
+Function WhatIDT         : Real;         { Gibt IDT in Form von LongInt zur.}
+
+Function IsRealClock     : Boolean;      { Ist Realtime-Clock aktiv ?       }
+Function IsDMAChannel3   : Boolean;
+Function IsSlave8259     : Boolean;
+Function IsWaitExtEvent  : Boolean;      { Wartet der C. auf extern. Ereig.?}
+Function IsOnBoardSCSI   : Boolean;      { Ist ein OnBoard-SCSI Adapter vorh}
+Function IsIML           : Boolean;      { Ist ein IML-System vorhanden     }
+Function IsIMLSCSISupp   : Boolean;      { UnterstÅtzt das IML-System SCSI ?}
+
+Function SerialCount   : Byte;           { Gibt serielle Schnittstellen zur.}
+Function ParrallelCount: Byte;           { Gibt Parralele Schnittste. zurÅck}
+
+Function HasCMOSPower  : Boolean;        { Hat CMOs noch Batterie-energie ? }
+
+Function DosMemory     : LongInt;        { Gibt Dos-Memory zurÅck           }
+Function FreeDOSMemory : LongInt;        { Gibt freien Dos-Memory zurÅck    }
+Function CountryCode   : Word;           { Gibt Landescode zurÅck           }
+Function CountryString : String;         { Gibt Landesstring (const) zurÅck }
+
+Function IsJetStream (PortNumber : Word) : Boolean; { Ist JetStream auf P.x }
+
+{ Chipset-Funktionen }
+
+Function WhichChipset  : Byte;           { Was fÅr ein Ch. wird benutzt ?  *}
+
+{ Grafikkarten Funktionen }
+
+Function WhatGCard       : String;         { Gibt Grafikkarte zurÅck        *}
+Function WhatGCardNumber : Byte;           { Gibt interne Nummer zurÅck      }
+
+Function VesaInf (InfoNumber : Byte) : String; { Erweiterte Informationen    }
+Function VESAIsVidMode (Mode : Word) : Boolean; { Wieviele Video-Modes ?     }
+Function VESAVidModeString (Mode : Word; Z : Byte) : String; { Gen. Info's   }
+Function GraInf (InfoNumber : Byte)  : String; { Erweiterte Informationen    }
+Function WhatRamDac        : String; { Ist ein spezieller RAMDAC vorhanden ? }
+
+Function ScanLinesChar   : Word;           { Gibt ScanLines / Zeichen zurÅck }
+Function ScanLinesCursor : String;         { Gibt ScanLines / Cursor zurÅck  }
+Function GetFontAddress (FontNumber : Byte) : Pointer; { Adresse von Font    }
+Function GetPaletteRegister (Color : Byte) : Byte; { Register der Farbe (DAC)}
+Function VideoWaits      : Word;           { Video-RAM Waitstates            }
+Function BiosSpeed       : Real;           { Chars / Second mit BIOS         }
+Function DosSpeed        : Real;           { Chars / Second mit DOS          }
+
+Function TestVertHz      : Word;           { Wieviele Vert. Herz in akt. Mode}
+Function TestHorizHz     : Real;           { Wieviele Horiz.Herz in akt. Mode}
+
+Function IsDGIS          : Boolean;        { Direct Graphics Interface ?     }
+
+{ Diskettenfunktionen }
+
+Function IsDevice (Drive : Char)     : Boolean;
+Function DeviceType (Drive : Char)   : Byte;
+Function DeviceRemove (Drive : Char) : Boolean;
+Function DeviceMethod (Drive : Char) : Byte;
+Function IsVerify      : Boolean;        { ISt das Verify-Flag gesetzt ?    }
+Function Firstfloppy   : Char;           { Gibt das erste Diskl. zurÅck     }
+Function DiskDevices   : Byte;           { Gibt Anzahl Diskdevices zurÅck   }
+Function Bootdrive     : Char;           { Gibt Bootlaufwerk zurÅck         }
+Function LastDrive     : Char;           { Gibt Letztes Laufwerk zurÅck     }
+Function NumberDrives  : Byte;           { Gibt Anzahl der Laufwerke zurÅck }
+
+{ HD Funktionen }
+
+Function HDCylinders (HD : Byte)   : Word;    { Anzahl der Zylinder         }
+Function HDHeads (HD : Byte)       : Word;    { Anzahl der R/W Kîpfe        }
+Function HDSectors (HD : Byte)     : Word;    { Anzahl der Sektoren         }
+Function HDCapacity (HD : Byte)    : LongInt; { kapazitÑt der Festplatte/B  }
+Function HDTrackSeek (HD : Byte)   : Real;    { Track To Track Seek Time/ms }
+Function HDAverageSeek (HD : Byte) : Real;    { Average Seek Time /ms       }
+Function HDMaximumSeek (HD : Byte) : Real;    { Maximum Seek Time /ms       }
+Function HDTransferRead (Block : Word; Times : Word; F : String) : Real;
+Function HDTransferWrite (Block : Word; Times : Word;  F : String) : Real;
+
+{ (E)IDE Funktionen }
+
+Function IDEType : Byte;                      { IDE (ATA) oder EIDE (ATAPI) }
+Function ATA_PIIsDrive (Drive : Char) : Boolean;
+Function ATA_PIStrings (Drive : Char; InfoNumber : Byte) : String;
+Function ATA_PIBools (Drive : Char; InfoNumber : Byte) : Boolean;
+Function ATA_PIWords (Drive : Char; InfoNumber : Byte) : Word;
+
+{ Memoryfunktionen }
+
+Function IsExistEms    : Boolean;        { Gibt zurÅck, ob EMS installiert  }
+Function GetEMSVersion : String;         { Gibt Version zurÅck              }
+Function AllEMSPages   : Word;           { Gibt Anzahl von EMS Seiten zurÅck}
+Function FreeEMSPages  : Word;           { Gibt Anzahl freier EMS S. zurÅck }
+Function GetEMSAddress : Pointer;        { Gibt Pointer zu EMS-Page Frame   }
+Function GetNumberHandles : Word;        { Wieviele benutzte Handles ?      }
+Function GetEMSHandleSize (Handle : Word) : LongInt; { Grî·e eines Handles  }
+Function GetEMSHandleName (Handle : Word) : String; { Name eines Handles    }
+
+Function IsVCPI        : Boolean;        { Wird VCPI unterstÅtzt ?          }
+Function VCPIVersion   : String;         { Welcher Version hat VCPI ?       }
+
+Function IsExtMemBIOS   : Boolean;       { Ist Ext Mem Åber BIOS erreichbar?}
+Function BiosFreeEXT    : LongInt;       { Wenn ja, wieviel                 }
+Function IsExtMemDriv   : Boolean;       { Ist Driver fÅr EXT ? (= IsHimem) }
+Function XMSVersion     : String;        { Welche Version hat der XMS       }
+Function XMMVersion     : String;        { Welche Version hat der Manager   }
+Function XMSMemory      : Word;          { K-Blîcke des XMS                 }
+Function XMSFreeMemory  : Word;          { Freie K-Blîcke XMS               }
+Function A20Status      : Byte;          { Der A20-Leitungsstatus          *}
+Function IsUMB          : Boolean;       { Sind UMB's verfÅgbar ?           }
+Function UMBLargestBl   : LongInt;       { Grî·ter freier Block in d. UMB's }
+
+Function IsHma          : Boolean;       { Ist Hma vorhanden ?              }
+Function HmaStatus      : String;        { Status des HMA (benutzt/frei)    }
+Function HmaUsedByDos5  : Boolean;       { Ab Dos 5 genutzt ?               }
+Function HmaFreeDos5    : Word;          { Wenn ja, Wieviel ist frei ?      }
+Function HmaAddressDos5 : Pointer;       { Wenn ja, welche Adresse ?        }
+
+Function IsDPMI         : Boolean;       { Ist DPMI vorhanden               }
+Function DPMIVersion    : String;        { Version von DPMI                 }
+Function DPMICPU        : String;        { Welcher Prozessor wurde erkannt ?}
+Function DPMIModeEntry  : Pointer;       { Switch Mode Entry von DPMI       }
+
+Function CMOSBaseMemory : Word;          { Base Memory laut CMOS            }
+Function CMOSExtMemory  : Word;          { Extended Memory laut CMOS        }
+Function CMOSTotalMem   : Word;          { Gesamter Memory laut CMOS        }
+
+Function MemThru        : Real;          { Maximaler Datendurchsatz kb/s    }
+Function BiosExtThru    : Real;          { Ext. Mem (Bios) Datendurchsatz   }
+Function EMSThru        : Real;          { EMS Datendurchsatz kb/s          }
+
+Function IsVDS              : Boolean;   { Ist die Virtual DMA Spec unterst.}
+Function VDSVersion         : String;    { Wenn ja, dann welche Version     }
+Function VDSProduct         : String;    { Welches Produkt                  }
+Function VDSMaxDMABSize     : Word;      { Maximale DMA Buffer Grî·e        }
+Function VDSTransfersOk     : String;    { Transfers Ok im 1Meg o. alle Adr.}
+Function VDSIsBuffer1Meg    : Boolean;   { Ist der Bufffer im 1. MB ?       }
+Function VDSIsAutoRemap     : Boolean;   { Ist Auto-Remap eingeschaltet ?   }
+Function VDSIsContiguousMem : Boolean;   { Ist Contiguous Memory eingesch.? }
+Function VDSIsBiosBit       : Boolean;   { Ist Das Bios-Bit fÅr VDS gesetzt }
+
+Function GetNumberMCBs             : Byte; { Wieviele MCB's sind vorhanden ?}
+Function GetMCBSeg (Number : Byte) : Word; { MCB-Signatur von Nummer ?.     }
+Function GetMCBPSP (Number : Byte) : Word; { PSP des MCB                    }
+Function GetMCBParent (Number : Byte) : Word; { Parent-MCB des MCB          }
+Function GetMCBSize (Number : Byte) : LongInt; { Groesse des Programms      }
+Function GetMCBOwner (Number : Byte) : String; { Name der Datei des Progr.  }
+Function GetMCBInterrupts (Number : Byte) : String; { Verwendete Interrupts }
+
+{ Mausfunktionen }
+
+Function IsMouse          : Boolean;     { Ist Maus installiert             }
+Function MouseVersion     : String;      { Gibt Mausversion zurÅck          }
+Function MouseVersionWord : Word;        { Gibt das VersionsWord zurÅck     }
+Function MouseVendor      : String;      { Von wem kommt die Maus ?         }
+Function MouseType        : String;      { Gibt Maustyp zurÅck              }
+Function MouseIRQ         : Byte;        { Gibt Maus-IRQ zurÅck             }
+Function MouseLanguage    : String;      { Gibt Sprache der Maus zurÅck     }
+Function MouseButtons     : Byte;        { Gibt Anzahl der Buttons zurÅck   }
+Function DoubleClickSpeed : Word;        { Gibt Geschw. des D.K. zurÅck     }
+Function MouseMickeysVert : Word;        { Gibt Mick./Vertikal zurÅck       }
+Function MouseMickeysHori : Word;        { Gibt Mick./Horizontal zurÅck     }
+Function MouseDisplayPage : Byte;        { Gibt aktuelle DisplayPage zurÅck }
+Function EGARegisterSupp  : Boolean;     { Ist EGA-Register-Support inst. ? }
+Function EGARegisterVers  : String;      { Wenn ja, welche Version ?        }
+Function SaveStateBuffer  : Word;        { Wie gro· ist der Save State Buf.?}
+
+Function IsMouseSystemsDrv : Boolean;    { Ist der MouseSystems Driver res.?}
+Function MouseSystemsVer   : String;     { Wenn ja, welche Version          }
+
+Function IsLogitechDrv     : Boolean;    { Ist der Logitech Driver inst. ?  }
+Function LogiCompPara      : String;     { Logitech Kompa·parameter         }
+Function LogiSerBaudRate   : Word;       { Baudrate (nur serielle M.)       }
+Function LogiSerReportRate : Word;       { Reportrate (nur serielle M.)     }
+Function LogiSerFirmRev    : Word;       { Firmware-Rev. (nur serielle M.)  }
+Function LogiSerPort       : Word;       { Adresse des seriellen Ports      }
+
+Function IsZNixMouseDrv    : Boolean;    { Ist der ZNix Maustreiber inst. ? }
+Function IsTrueDOXMouseDrv : Boolean;    { Ist der Truedox Maustreiber inst.}
+Function IsHPMouseDrv      : Boolean;    { Ist der HP Maustreiber inst. ?   }
+
+{ Folgende Funktionen sind ab Version 7.0 des Mouse-Drivers vorhanden.
+  Der Mouse Systems Maustreiber unterstÅtzt sie nicht. }
+
+Function MouseDriverType   : String;     { Driver Typ (Dev Driver oder TSR  }
+Function MouseCursorType   : String;     { MausCursor Typ                   }
+Function MouseIntrRate     : String;     { Interrupt Rate der Maus          }
+Function MouseAccellProf   : Word;       { Accelleration Profile der Maus   }
+
+{ Diese Funktion ist erst ab Version 7.4 ausfÅhrbar }
+
+Function MouseBallpoint      : Boolean;  { Ballpoint-Maus ?                 }
+
+{ Diese Funktion erst ab Version 8.0 }
+
+Function MouseIniPath        : String;  { Der MOUSE.INI-File Pfad           }
+
+{ Diese Funktion erst ab Version 8.10 }
+
+Function MousePointerStyle   : String;  { Aussehen des MAuszeigers          }
+Function MousePointerSize    : String;  { Grî·enordnung des Mauszeigers     }
+Function MousePointerSChange : Boolean; { Grî·enverÑnderung                 }
+
+{ Keyboardfunktionen }
+
+Function ExtKeyboardSupp : boolean;      { Ist Support fÅr Extended Keyb ?  }
+Function Keyboardtype    : Byte;         { Ist Exdended Keyboard vorhanden ?}
+Function KeyBufferLength : Byte;         { LÑnge des Buffers (Keystrokes)   }
+Function IsKeyb16_9      : Boolean;      { Ist Int16h/Fn 9 unterstÅtzt ?    }
+Function IsKeybIntercept : Boolean;      { Ist Keyboardintercept unterst. ? }
+Function KeyboardId      : Word;         { ID-Word des Keyboard's           }
+Function KeyboardController : String;    { Welcher Keyboard-Controller ?    }
+
+{ BIOS-Funktionen }
+
+Function BiosDate      : String;         { Gibt Biosdatum/Version zurÅck    }
+Function BiosRevision  : Byte;           { Bibt Revisionslevel des BIOS zur.}
+Function BiosSource    : String;         { Gibt Source-Informationen zur.   }
+Function BiosShort     : String;         { Gibt nur den Hersteller an       }
+Function BiosVersion   : String;         { Gibt Bios-Version zurÅck                                  }
+Function IsExtBiosSeg  : Word;           { Gibt Extended BiosDseg Adr. zur. }
+Procedure BiosExtensions (var P : pBiosCopyright); { Welche BiosExtensionen?}
+
+{ Funktionen fÅr die parallele und serielle Schnittstelle }
+
+Function GetParDevParams (Number : Byte) : Byte; { Ermittelt die Parameter  }
+Function GetParDevTimeOut (Number : Byte) : Byte; { Ermittelt den TimeOut   }
+
+Function GetSerDevUART (Number : Byte) : String; { Welcher UART auf COM1-4  }
+Function GetSerDevBaudRate (Number : Byte) : Word; { Baudrate con COM1-4    }
+Function GetSerDevDataBits (Number : Byte) : Byte; { Wieviele DATA-Bits ?   }
+Function GetSerDevParity (Number : Byte) : String; { Was fÅr eine ParitÑt ? }
+Function GetSerDevStopBits (Number : Byte) : Real; { Wieviele StopBits ?    }
+Function GetSerDevBreak (Number : Byte) : Boolean; { Break-Flag ?           }
+Function GetSerDevFlags (Number : Byte) : Byte; { Die ganzen Flags ...      }
+
+Function IsEPP (Port : Byte)    : Boolean; { Sind EPP-Ports vorhanden ?     }
+
+{ Funktionen fÅr Soundkarten }
+
+Function IsSB          : Boolean;        { Ist SB vorhanden ?               }
+Function WhatSb        : Byte;           { Wenn ja, welche ?                }
+Function WhatSBPort    : Word;           { Welcher Port ?                   }
+Function WhatSBVersion : String;         { Welche SB-Version ?              }
+
+Function IsAdlib       : Boolean;        { Ist Adlib eingebaut (auch SB) ?  }
+Function IsAdlibDriver : Boolean;        { Ist Driver geladen ?             }
+Function AdlibDrvVer   : String;         { Welche Version ?                 }
+Function AdlibDrvAdr   : Pointer;        { Adresse ?                        }
+
+Function IsMPU401      : Boolean;        { Ist der Roland MPU401 Chip vorh.?}
+
+Function IsGUS         : Boolean;        { Ist eine Gravis Ultrasound vorh.?}
+Function GUS_Port      : Word;           { Port der Gravis Ultrasound       }
+Function GUS_Memory    : Word;           { Wieviel Memory hat die GUS ?     }
+
+Function IsVBEAI       : Boolean;        { Vesa Audio Interface vorhanden ? }
+Function VBEAIVersion  : String;         { Wenn ja, welche Version ?        }
+Function VBEAILDevice (Device : Word) : Word; { Locate VBE-AI Device       *}
+Function VBEAIGetInfo (Handle : Word; Data : Byte; Var L : LongInt) : Pointer;
+
+{ DesqView Funktionen }
+
+Function IsDesqView         : Boolean;   { LÑuft das Programm unter DV ?    }
+
+Function DesqViewVersion    : String;    { Wenn ja, Version                 }
+Function DesqViewWnNo       : Byte;      { Desqview Fensternummer           }
+
+Function DesqViewTrueVid    : Byte;      { Wahre Video-Mode                 }
+Function DesqViewWidth      : Byte;      { Spalten                          }
+Function DesqViewHeight     : Byte;      { Zeilen                           }
+
+Function DesqViewCoMemAvail : Word;      { Common Memory Avaiable           }
+Function DesqViewCoMemLarge : Word;      { Common Memory Largest Block      }
+Function DesqViewCoMemTotal : Word;      { Common Memory Total              }
+
+Function DesqViewCnMemAvail : Word;      { Conventional Memory Avaiable     }
+Function DesqViewCnMemLarge : Word;      { Conventional Memory Largest Block}
+Function DesqViewCnMemTotal : Word;      { Conventional Memory Total        }
+
+Function DesqViewExMemAvail : Word;      { Expanded Memory Avaiable         }
+Function DesqViewExMemLarge : Word;      { Expanded Memory Largest Block    }
+Function DesqViewExMemTotal : Word;      { Expanded Memory Total            }
+
+{ Windows Funktionen }
+
+Function IsWindows         : Boolean;    { Ist Windows installiert ?        }
+Function WindowsMode       : Byte;       { Wenn ja, Welcher Modus ?         }
+Function WinEnhVersion     : String;     { Wenn Enhanced dann welche Ver. ? }
+Function WinEnhVirtMashID  : Word;       { Welche Virtual Mashine ID ?      }
+Function WinEnhOldAp       : Boolean;    { Windows OLDAP-Support ?          }
+Function WinEnhOldApVer    : String;     { Wenn ja, welche Version ?        }
+Function WinEnhDriverVer   : String;     { Driver Version ?                 }
+Function WinEnhDeviceType  : String;     { Device Type ?                    }
+Function WinEnhPixelWidth  : Word;       { Screen-Breite                    }
+Function WinEnhPixelHeight : Word;       { Screen-Hîhe                      }
+Function WinEnhColors      : Word;       { Anzahl der Farben                }
+Function WinEnhBits_Pixel  : Word;       { Bits pro Pixel                   }
+Function WinEnhBit_Planes  : Word;       { Wieviele Bit-Planes ?            }
+Function WinEnhXAspect     : Word;       { Welcher X Aspect Ratio ?         }
+Function WinEnhYAspect     : Word;       { Welcher Y Aspect Ratio ?         }
+Function WinEnhBrushes     : Word;       { Anzahl der Brushes ?             }
+Function WinEnhPens        : Word;       { Anzahl der Pens ?                }
+Function WinEnhMarkers     : Word;       { Anzahl der Markers ?             }
+Function WinEnhFonts       : Word;       { Anzahl der Fonts ?               }
+
+{ Smart Drive Funktionen }
+
+Function IsSmartDrive        : Byte;     { Ist SmartDrive installiert/Typ   }
+Function SMDeviceVer         : String;   { SM-Device Typ : Version          }
+Function SMDeviceSizeNow     : Word;     { SM-Device Typ : akt. Grî·e       }
+Function SMDeviceMinSize     : Word;     { SM-Device Typ : Min. Grî·e       }
+Function SMDeviceEleSize     : Word;     { SM-Device Typ : Elementar-Grî·e  }
+Function SMDeviceCacheHits   : Word;     { SM-Device Typ : Cache - Hits     }
+Function SMDeviceCacheMisses : Word;     { SM-Device Typ : Cache - Misses   }
+
+Function SMDeviceRCache (Drive : Char)    : Byte; { " : Read-Cache Laufw. X }
+Function SMDeviceWCache (Drive : Char)    : Byte; { " : Write-Cache Laufw. X}
+Function SMDeviceDblBuffer (Drive : Char) : Byte; { " : Double-Buffer L. X  }
+
+Function SMIOCTLVer           : String;  { SM-IOCTL-Typ : Version           }
+Function SMIOCTLSize          : Word;    { SM-IOCTL-Typ : Grî·e             }
+Function SMIOCTLMaxSize       : Word;    { SM-IOCTL-Typ : Max. Grî·e        }
+Function SMIOCTLMinSize       : Word;    { SM-IOCTL-Typ : Min. Grî·e        }
+Function SMIOCTLEnabled       : Boolean; { SM-IOCTL-Typ : Cache aktiv       }
+Function SMIOCTLLockedTracks  : Boolean; { SM-IOCTL-Typ : Locked-Tracks ?   }
+Function SMIOCTLWriteThrough  : Boolean; { SM-IOCTL-Typ : Write-Through     }
+Function SMIOCTLWriteBuffer   : Boolean; { SM-IOCTL-Typ : Write-Buffer      }
+Function SMIOCTLHitRate       : Word;    { SM-IOCTL-Typ : Cache-Hit-Rate %  }
+Function SMIOCTLDMABuffering  : String;  { SM-IOCTL-Typ : DMA-Buffering     }
+Function SMIOCTLMemoryType    : String;  { SM-IOCTL-Typ : Memory-Typ        }
+Function SMIOCTLFlushReboot   : Boolean; { SM-IOCTL-Typ : ZurÅcksch. bei RB }
+Function SMIOCTLTracksTotal   : Word;    { SM-IOCTL-Typ : Anz Tracks        }
+Function SMIOCTLTracksUsed    : Word;    { SM-IOCTL-Typ : Anz benutzte Tr.  }
+Function SMIOCTLTracksLocked  : Word;    { SM-IOCTL-Typ : Anz gesperrete Tr.}
+Function SMIOCTLTracksDirty   : Word;    { SM-IOCTL-Typ : Anz beschÑd. Tr.  }
+
+{ IBMCache Funktionen }
+
+Function IsIBMCache           : Boolean; { Ist IBMCACHE.SYS resident ?      }
+Function IBMCTotalRRequests (Drive : Char) : LongInt; { Total Read Requests }
+Function IBMCTotalHits (Drive : Char) : LongInt; { Total Cache Hits         }
+Function IBMCPhysicalDReads (Drive : Char) : LongInt; { Physical Disk Reads }
+Function IBMCTotalSecReqDR (Drive : Char) : LongInt;{ Total Sectors request.}
+Function IBMCIsExtUsed        : Boolean; { Wird Extended Mem genutzt ?      }
+Function IBMCVersion          : String;  { Version von IBMCache             }
+Function IBMCSize             : Word;    { Grî·e in kb des Cache            }
+Function IBMCSectorsPage      : Word;    { Sektoren pro Seite im Cache      }
+
+{ QuicCache II Funktionen }
+
+Function IsQuickCacheII  : Boolean;      { Ist QuickCache II im Speicher ?  }
+Function QuickCacheIIVer : String;       { Wenn ja, welche Version ?        }
+Function GetQuickCacheIIInfo (InfoNumber : Byte) : Pointer; { Records ...  *}
+
+{ Advanced Power Management Spezifikation - Funktionen }
+
+Function IsAPM              : Boolean;   { Wird die APM-Spez. unterst. ?    }
+Function APMVersion         : String;    { Version der APM Spez.            }
+Function APMIs16Prot        : Boolean;   { Ist 16-Bit Prot.Mode Interface ? }
+Function APMIs32Prot        : Boolean;   { Ist 32-Bit Prot.Mode Interface ? }
+Function APMIsBIOSPowMngmnt : Boolean;   { Ist BIOS Powwermanagement aktiv ?}
+Function APMACLineStatus    : String;    { AC-Line Status                   }
+Function APMBatteryStatus   : String;    { Aktueller Batteriestatus         }
+Function APMBatteryLife     : Byte;      { Verbleibende Lebensdauer in %    }
+
+{ Bios-Pointer }
+
+Function GetBiosRecord : pBiosRecord;
+
+Implementation
+
+{ Wenn diese Unit neu kompiliert wird, werden auch jegliche Unterunits neu
+  compiliert. Ausgeschlossen hiervon sind natÅrlich die Beispielprogramme. }
+
+Uses DetectSoftware, DetectDos, DetectMM, DetectMemory, DetectGraphics,
+     DetectDisks, DetectHD, DetectATA_PI, DetectMouse, DetectSystem,
+     DetectFX, DetectMultiplex, DetectConstants, DetectPorts,
+     DetectProcessors, DetectChipsets;
+
+{ Ab hier sind alle Funktionen in eine Reihe gereiht, da sie 1. : meistens
+  sowieso nicht mehr brauchen, 2. : Es unsinnig wÑre öberleiterroutinen voll
+  auszuschreiben und 3. es so sehr viel weniger Platz braucht.              }
+
+Function WhatGCard; Begin WhatGCard:=DetectGraphics.WhatGCard End;
+Function WhatGCardNumber; Begin WhatGCardNumber:=DetectGraphics.WhatGCardNumber End;
+Function VesaInf; Begin VesaInf := DetectGraphics.VesaInf (InfoNumber) End;
+Function VESAIsVidMode; Begin VESAIsVidMode := DetectGraphics.VESAIsVidMode (Mode) End;
+Function VESAVidModeString; Begin VESAVidModeString := DetectGraphics.VESAVidModeString (Mode,Z) End;
+Function GraInf; Begin GraInf := DetectGraphics.GraInf (InfoNumber) End;
+Function WhatRamDac; Begin WhatRamDac := DetectGraphics.WhatRamDac End;
+Function ScanLinesChar; Begin ScanLinesChar := DetectGraphics.ScanLinesChar End;
+Function ScanLinesCursor; Begin ScanLinesCursor := DetectGraphics.ScanLinesCursor End;
+Function GetFontAddress; Begin GetFontAddress := DetectGraphics.GetFontAddress (FontNumber) End;
+Function GetPaletteRegister; Begin GetPaletteRegister := DetectGraphics.GetPaletteRegister (Color) End;
+Function VideoWaits; Begin VideoWaits := DetectGraphics.VideoWaits End;
+Function BiosSpeed; Begin BiosSpeed := DetectGraphics.BiosSpeed End;
+Function DosSpeed; Begin DosSpeed := DetectGraphics.DosSpeed End;
+Function TestVertHz; Begin TestVertHz := DetectGraphics.TestVertHz End;
+Function TestHorizHz; Begin TestHorizHz := DetectGraphics.TestHorizHz End;
+Function IsDGIS; Begin IsDGIS := DetectGraphics.IsDGIS End;
+
+Function IsDevice; Begin IsDevice := DetectDisks.IsDevice (Drive) End;
+Function DeviceType; Begin DeviceType := DetectDisks.DeviceType (Drive) End;
+Function DeviceRemove; Begin DeviceRemove := DetectDisks.DeviceRemove (Drive) End;
+Function DeviceMethod; Begin DeviceMethod := DetectDisks.DeviceMethod (Drive) End;
+Function IsVerify; Begin IsVerify := DetectDisks.IsVerify End;
+Function Firstfloppy; Begin FirstFloppy := DetectDisks.Firstfloppy End;
+Function DiskDevices; Begin DiskDevices := DetectDisks.DiskDevices End;
+Function Bootdrive; Begin BootDrive := DetectDisks.Bootdrive End;
+Function LastDrive; Begin LastDrive := DetectDisks.LastDrive End;
+Function NumberDrives; Begin NumberDrives := DetectDisks.NumberDrives End;
+
+Function HDCylinders; Begin HDCylinders := DetectHD.HDCylinders (HD) End;
+Function HDHeads; Begin HDHeads := DetectHD.HDHeads (HD) End;
+Function HDSectors; Begin HDSectors := DetectHD.HDSectors (HD) End;
+Function HDCapacity; Begin HDCapacity := DetectHD.HDCapacity (HD) End;
+Function HDTrackSeek; Begin HDTrackSeek := DetectHD.HDTrackSeek (HD) End;
+Function HDAverageSeek; Begin HDAverageSeek := DetectHD.HDAverageSeek (HD) End;
+Function HDMaximumSeek; Begin HDMaximumSeek := DetectHD.HDMaximumSeek (HD) End;
+Function HDTransferRead; Begin HDTransferRead := DetectHD.HDTransferRead (Block, Times, F) End;
+Function HDTransferWrite; Begin HDTransferWrite := DetectHD.HDTransferWrite (Block, Times, F) End;
+
+Function IDEType; Begin IDEType := DetectATA_PI.IDEType End;
+Function ATA_PIIsDrive; Begin ATA_PIIsDrive := DetectATA_PI.ATA_PIIsDrive (Drive) End;
+Function ATA_PIStrings; Begin ATA_PIStrings := DetectATA_PI.ATA_PIStrings (Drive, InfoNumber) End;
+Function ATA_PIBools; Begin ATA_PIBools := DetectATA_PI.ATA_PIBools (Drive, InfoNumber) End;
+Function ATA_PIWords; Begin ATA_PIWords := DetectATA_PI.ATA_PIWords (Drive, InfoNumber) End;
+
+Function IsMouse; Begin IsMouse := DetectMouse.IsMouse End;
+Function MouseVersion; Begin MouseVersion := DetectMouse.MouseVersion End;
+Function MouseVersionWord; Begin MouseVersionWord := DetectMouse.MouseVersionWord End;
+Function MouseVendor; Begin MouseVendor := DetectMouse.MouseVendor End;
+Function MouseType; Begin MouseType := DetectMouse.MouseType End;
+Function MouseIRQ; Begin MouseIRQ := DetectMouse.MouseIRQ End;
+Function MouseLanguage; Begin MouseLanguage := DetectMouse.MouseLanguage End;
+Function MouseButtons; Begin MouseButtons := DetectMouse.MouseButtons End;
+Function DoubleClickSpeed; Begin DoubleClickSpeed := DetectMouse.DoubleClickSpeed End;
+Function MouseMickeysVert; Begin MouseMickeysVert := DetectMouse.MouseMickeysVert End;
+Function MouseMickeysHori; Begin MouseMickeysHori := DetectMouse.MouseMickeysHori End;
+Function MouseDisplayPage; Begin MouseDisplayPage := DetectMouse.MouseDisplayPage End;
+Function EGARegisterSupp; Begin EGARegisterSupp := DetectMouse.EGARegisterSupp End;
+Function EGARegisterVers; Begin EGARegisterVers := DetectMouse.EGARegisterVers End;
+Function SaveStateBuffer; Begin SaveStateBuffer := DetectMouse.SaveStateBuffer End;
+Function MouseDriverType; Begin MouseDriverType := DetectMouse.MouseDriverType End;
+Function MouseCursorType; Begin MouseCursorType := DetectMouse.MouseCursorType End;
+Function MouseIntrRate; Begin MouseIntrRate := DetectMouse.MouseIntrRate End;
+Function MouseAccellProf; Begin MouseAccellProf := DetectMouse.MouseAccellProf End;
+Function MouseBallpoint; Begin MouseBallpoint := DetectMouse.MouseBallpoint End;
+Function MouseIniPath; Begin MouseIniPath := DetectMouse.MouseIniPath End;
+Function MousePointerStyle; Begin MousePointerStyle := DetectMouse.MousePointerStyle End;
+Function MousePointerSize; Begin MousePointerSize := DetectMouse.MousePointerSize End;
+Function MousePointerSChange; Begin MousePointerSChange := DetectMouse.MousePointerSChange End;
+Function IsMouseSystemsDrv; Begin IsMouseSystemsDrv := DetectMouse.IsMouseSystemsDrv End;
+Function MouseSystemsVer; Begin MouseSystemsVer := DetectMouse.MouseSystemsVer End;
+Function IsLogitechDrv; Begin IsLogitechDrv := DetectMouse.IsLogitechDrv End;
+Function LogiCompPara; Begin LogiCompPara := DetectMouse.LogiCompPara End;
+Function LogiSerBaudRate; Begin LogiSerBaudRate := DetectMouse.LogiSerBaudRate End;
+Function LogiSerReportRate; Begin LogiSerReportRate := DetectMouse.LogiSerReportRate End;
+Function LogiSerFirmRev; Begin LogiSerFirmRev := DetectMouse.LogiSerFirmRev End;
+Function LogiSerPort; Begin LogiSerPort := DetectMouse.LogiSerPort End;
+Function IsZNixMouseDrv; Begin IsZNixMouseDrv := DetectMouse.IsZNixMouseDrv End;
+Function IsTrueDOXMouseDrv; Begin IsTrueDOXMouseDrv := DetectMouse.IsTrueDOXMouseDrv End;
+Function IsHPMouseDrv; Begin IsHPMouseDrv := DetectMouse.IsHPMouseDrv End;
+
+Function IsExistEms; Begin IsExistEMS := DetectMemory.IsExistEMS End;
+Function GetEMSVersion; Begin GetEMSVersion := DetectMemory.GetEMSVersion End;
+Function AllEMSPages; Begin AllEMSPages := DetectMemory.AllEMSPages End;
+Function FreeEMSPages; Begin FreeEMSPages := DetectMemory.FreeEMSPages End;
+Function GetEMSAddress; Begin GetEMSAddress := DetectMemory.GetEMSAddress End;
+Function GetNumberHandles; Begin GetNumberHandles := DetectMemory.GetNumberHandles End;
+Function GetEMSHandleSize; Begin GetEMSHandleSize := DetectMemory.GetEMSHandleSize (Handle) End;
+Function GetEMSHandleName; Begin GetEMSHandleName := DetectMemory.GetEMSHandleName (Handle) End;
+Function IsVCPI; Begin IsVCPI := DetectMemory.IsVCPI End;
+Function VCPIVersion; Begin VCPIVersion := DetectMemory.VCPIVersion End;
+Function IsExtMemBIOS; Begin IsExtMemBios := DetectMemory.IsExtMemBIOS End;
+Function BiosFreeEXT; Begin BiosFreeEXT := DetectMemory.BiosFreeEXT End;
+Function IsExtMemDriv; Begin IsExtMemDriv := DetectMemory.IsExtMemDriv End;
+Function XMSVersion; Begin XMSVersion := DetectMemory.XMSVersion End;
+Function XMMVersion; Begin XMMVersion := DetectMemory.XMMVersion End;
+Function XMSMemory; Begin XMSMemory := DetectMemory.XMSMemory End;
+Function XMSFreeMemory; Begin XMSFreeMemory := DetectMemory.XMSFreeMemory End;
+Function A20Status; Begin A20Status := DetectMemory.A20Status End;
+Function IsUMB; Begin IsUMB := DetectMemory.IsUMB End;
+Function UMBLargestBl; Begin UMBLargestBl := DetectMemory.UMBLargestBl End;
+Function IsHma; Begin IsHMA := DetectMemory.IsHMA End;
+Function HmaStatus; Begin HmaStatus := DetectMemory.HmaStatus End;
+Function HmaUsedByDos5; Begin HmaUsedByDos5 := DetectMemory.HmaUsedByDos5 End;
+Function HmaFreeDos5; Begin HmaFreeDos5 := DetectMemory.HmaFreeDos5 End;
+Function HmaAddressDos5; Begin HmaAddressDos5 := DetectMemory.HmaAddressDos5 End;
+Function IsDPMI; Begin IsDPMI := DetectMemory.IsDPMI End;
+Function DPMIVersion; Begin DPMIVersion := DetectMemory.DPMIVersion End;
+Function DPMICPU; Begin DPMICPU := DetectMemory.DPMICPU End;
+Function DPMIModeEntry; Begin DPMIModeEntry := DetectMemory.DPMIModeEntry End;
+Function CmosBaseMemory; Begin CmosBaseMemory := DetectMemory.CmosBaseMemory End;
+Function CmosExtMemory; Begin CmosExtMemory := DetectMemory.CmosExtMemory End;
+Function CmosTotalMem; Begin CmosTotalMem := DetectMemory.CmosTotalMem End;
+Function IsVDS; Begin IsVDS := DetectMemory.IsVDS End;
+Function VDSVersion; Begin VDSVersion := DetectMemory.VDSVersion End;
+Function VDSProduct; Begin VDSProduct := DetectMemory.VDSProduct End;
+Function VDSMaxDMABSize; Begin VDSMaxDMABSize := DetectMemory.VDSMaxDMABSize End;
+Function VDSTransfersOk; Begin VDSTransfersOk := DetectMemory.VDSTransfersOk End;
+Function VDSIsBuffer1Meg; Begin VDSIsBuffer1Meg := DetectMemory.VDSIsBuffer1Meg End;
+Function VDSIsAutoRemap; Begin VDSIsAutoRemap := DetectMemory.VDSIsAutoRemap End;
+Function VDSIsContiguousMem; Begin VDSIsContiguousMem := DetectMemory.VDSIsContiguousMem End;
+Function VDSIsBiosBit; Begin VDSIsBiosBit := DetectMemory.VDSIsBiosBit End;
+Function GetNumberMCBs; Begin GetNumberMCBs := DetectMemory.GetNumberMCBs End;
+Function GetMCBSeg; Begin GetMCBSeg := DetectMemory.GetMCBSeg (Number) End;
+Function GetMCBPSP; Begin GetMCBPSP := DetectMemory.GetMCBPSP (Number) End;
+Function GetMCBParent; Begin GetMCBParent := DetectMemory.GetMCBParent (Number) End;
+Function GetMCBSize; Begin GetMCBSize := DetectMemory.GetMCBSize (Number) End;
+Function GetMCBOwner; Begin GetMCBOwner := DetectMemory.GetMCBOwner (Number) End;
+Function GetMCBInterrupts; Begin GetMCBInterrupts := DetectMemory.GetMCBInterrupts (Number) End;
+
+Function GetDosVersion; Begin GetDosVersion := DetectDos.GetDosVersion End;
+Function DosMemory; Begin DosMemory := DetectDos.Dosmemory End;
+Function FreeDOSMemory; Begin FreeDosMemory := DetectDos.FreeDosmemory End;
+Function CountryCode; Begin CountryCode := DetectDos.CountryCode End;
+Function CountryString; Begin CountryString := DetectDos.CountryString End;
+Function IsDosInHMA; Begin IsDosInHMA := DetectDos.IsDosInHMA End;
+Function IsDosInRom; Begin IsDosInRom := DetectDos.IsDosInRom End;
+Function GetDosOEMNumber; Begin GetDosOEMNumber := DetectDos.GetDosOEMNumber End;
+Function GetDosSwitchChar; Begin GetDosSwitchChar := DetectDos.GetDosSwitchChar End;
+Function IsDEVPrefix; Begin IsDEVPrefix := DetectDos.IsDEVPrefix End;
+Function GetDosBusyFlag; Begin GetDosBusyFlag := DetectDos.GetDosBusyFlag End;
+Function GetPrtScrStatus; Begin GetPrtScrStatus := DetectDos.GetPrtScrStatus End;
+Function GetMemAllocMethod; Begin GetMemAllocMethod := DetectDos.GetMemAllocMethod End;
+Function DosBuffers; Begin DosBuffers := DetectDos.DosBuffers End;
+Function DosFilesPointer; Begin DosFilesPointer := DetectDos.DosFilesPointer End;
+Function DosFilesCount; Begin DosFilesCount := DetectDos.DosFilesCount End;
+Function DosFilesUsed; Begin DosFilesUsed := DetectDos.DosFilesUsed End;
+Function DosFCBCount; Begin DosFCBCount := DetectDos.DosFCBCount End;
+Function DosStacksCount; Begin DosStacksCount := DetectDos.DosStacksCount End;
+Function DosStacksSize; Begin DosStacksSize := DetectDos.DosStacksSize End;
+Function DosActiveGlobalCodePage; Begin DosActiveGlobalCodePage := DetectDos.DosActiveGlobalCodePage End;
+Function DosDefaultGlobalCodePage; Begin DosDefaultGlobalCodePage := DetectDos.DosDefaultGlobalCodePage End;
+Function DosThousandSeparator; Begin DosThousandSeparator := DetectDos.DosThousandSeparator End;
+Function DosDecimalSeparator; Begin DosDecimalSeparator := DetectDos.DosDecimalSeparator End;
+Function DosDatalistSeparator; Begin DosDatalistSeparator := DetectDos.DosDatalistSeparator End;
+Function DosDateFormat; Begin DosDateFormat := DetectDos.DosDateFormat End;
+Function DosTimeFormat; Begin DosTimeFormat := DetectDos.DosTimeFormat End;
+Function DosTimeSeparator; Begin DosTimeSeparator := DetectDos.DosTimeSeparator End;
+Function DosCurrencyFormat; Begin DosCurrencyFormat := DetectDos.DosCurrencyFormat End;
+Function DosCaseMapCallAddress; Begin DosCaseMapCallAddress := DetectDos.DosCaseMapCallAddress End;
+Function NumberHandleTables; Begin NumberHandleTables := DetectDos.NumberHandleTables End;
+Function OpenHandlesTable; Begin OpenHandlesTable := DetectDos.OpenHandlesTable (Number) End;
+Function OpenHandleTableSize; Begin OpenHandleTableSize := DetectDos.OpenHandleTableSize (Number) End;
+Function UsedTableEntrys; Begin UsedTableEntrys := DetectDos.UsedTableEntrys (Number) End;
+Function GetOpenFileStatus; Begin GetOpenFileStatus := DetectDos.GetOpenFileStatus (TableNumber, FileNumber) End;
+
+Function Version4Dos; Begin Version4Dos := DetectSoftware.Version4Dos End;
+Function Shell4Dos; Begin Shell4Dos := DetectSoftware.Shell4Dos End;
+Function PSPSegment4Dos; Begin PSPSegment4Dos := DetectSoftware.PSPSegment4Dos End;
+Function VersionNDos; Begin VersionNDos := DetectSoftware.VersionNDos End;
+Function ShellNDos; Begin ShellNDos := DetectSoftware.ShellNDos End;
+Function PSPSegmentNDos; Begin PSPSegmentNDos := DetectSoftware.PSPSegmentNDos End;
+Function IsDesqView; Begin IsDesqView := DetectSoftware.IsDesqView End;
+Function DesqViewVersion; Begin DesqViewVersion := DetectSoftware.DesqViewVersion End;
+Function DesqViewWnNo; Begin DesqViewWnNo := DetectSoftware.DesqViewWnNo End;
+Function DesqViewTrueVid; Begin DesqViewTrueVid := DetectSoftware.DesqViewTrueVid End;
+Function DesqViewWidth; Begin DesqViewWidth := DetectSoftware.DesqViewWidth End;
+Function DesqViewHeight; Begin DesqViewHeight := DetectSoftware.DesqViewHeight End;
+Function DesqViewCoMemAvail; Begin DesqViewCoMemAvail := DetectSoftware.DesqViewCoMemAvail End;
+Function DesqViewCoMemLarge; Begin DesqViewCoMemLarge := DetectSoftware.DesqViewCoMemLarge End;
+Function DesqViewCoMemTotal; Begin DesqViewCoMemTotal := DetectSoftware.DesqViewCoMemTotal End;
+Function DesqViewCnMemAvail; Begin DesqViewCnMemAvail := DetectSoftware.DesqViewCnMemAvail End;
+Function DesqViewCnMemLarge; Begin DesqViewCnMemLarge := DetectSoftware.DesqViewCnMemLarge End;
+Function DesqViewCnMemTotal; Begin DesqViewCnMemTotal := DetectSoftware.DesqViewCnMemTotal End;
+Function DesqViewExMemAvail; Begin DesqViewExMemAvail := DetectSoftware.DesqViewExMemAvail End;
+Function DesqViewExMemLarge; Begin DesqViewExMemLarge := DetectSoftware.DesqViewExMemLarge End;
+Function DesqViewExMemTotal; Begin DesqViewExMemTotal := DetectSoftware.DesqViewExMemTotal End;
+Function TaskMaxVersion; Begin TaskMaxVersion := DetectSoftware.TaskMaxVersion End;
+Function TaskMaxMaxTasks; Begin TaskMaxMaxTasks := DetectSoftware.TaskMaxMaxTasks End;
+Function TaskMaxActTasks; Begin TaskMaxActTasks := DetectSoftware.TaskMaxActTasks End;
+Function IsTBScanX; Begin IsTBScanX := DetectSoftware.IsTBScanX End;
+Function TBScanXVersion; Begin TBScanXVersion := DetectSoftware.TBScanXVersion End;
+Function TBScanXStatus; Begin TBScanXStatus := DetectSoftware.TBScanXStatus End;
+Function N_CacheStatus; Begin N_CacheStatus := DetectSoftware.N_CacheStatus End;
+Function N_DiskReetStatus; Begin N_DiskReetStatus := DetectSoftware.N_DiskReetStatus End;
+Function N_DiskReetRes; Begin N_DiskReetRes := DetectSoftware.N_DiskReetRes End;
+Function N_DiskMonStatus; Begin N_DiskMonStatus := DetectSoftware.N_DiskMonStatus End;
+Function N_DiskMonRes; Begin N_DiskMonRes := DetectSoftware.N_DiskMonRes End;
+Function N_FileSavRes; Begin N_FileSavRes := DetectSoftware.N_FileSavRes End;
+Function IsPcAnywhere; Begin IsPcAnywhere := DetectSoftware.IsPcAnywhere End;
+Function PcAnywhereStatus; Begin PcAnywhereStatus := DetectSoftware.PcAnywhereStatus End;
+Function PcAnywherePort; Begin PcAnywherePort := DetectSoftware.PcAnywherePort End;
+Function PcAnywhereBaud; Begin PcAnywhereBaud := DetectSoftware.PcAnywhereBaud End;
+Function IsDiskSpoolII; Begin IsDiskSpoolII := DetectSoftware.IsDiskSpoolII End;
+Function DiskSpoolSegment; Begin DiskSpoolSegment := DetectSoftware.DiskSpoolSegment End;
+Function DiskSpoolSpoolSt; Begin DiskSpoolSpoolSt := DetectSoftware.DiskSpoolSpoolSt End;
+Function DiskSpoolDeSpSt; Begin DiskSpoolDeSpSt := DetectSoftware.DiskSpoolDeSpSt End;
+Function IsWindows; Begin IsWindows := DetectSoftware.IsWindows End;
+Function WindowsMode; Begin WindowsMode := DetectSoftware.WindowsMode End;
+Function WinEnhVersion; Begin WinEnhVersion := DetectSoftware.WinEnhVersion End;
+Function WinEnhVirtMashID; Begin WinEnhVirtMashID := DetectSoftware.WinEnhVirtMashID End;
+Function WinEnhOldAp; Begin WinEnhOldAp := DetectSoftware.WinEnhOldAp End;
+Function WinEnhOldApVer; Begin WinEnhOldApVer := DetectSoftware.WinEnhOldApVer End;
+Function WinEnhDriverVer; Begin WinEnhDriverVer := DetectSoftware.WinEnhDriverVer End;
+Function WinEnhDeviceType; Begin WinEnhDeviceType := DetectSoftware.WinEnhDeviceType End;
+Function WinEnhPixelWidth; Begin WinEnhPixelWidth := DetectSoftware.WinEnhPixelWidth End;
+Function WinEnhPixelHeight; Begin WinEnhPixelHeight := DetectSoftware.WinEnhPixelHeight End;
+Function WinEnhColors; Begin WinEnhColors := DetectSoftware.WinEnhColors End;
+Function WinEnhBits_Pixel; Begin WinEnhBits_Pixel := DetectSoftware.WinEnhBits_Pixel End;
+Function WinEnhBit_Planes; Begin WinEnhBit_Planes := DetectSoftware.WinEnhBit_Planes End;
+Function WinEnhXAspect; Begin WinEnhXAspect := DetectSoftware.WinEnhXAspect End;
+Function WinEnhYAspect; Begin WinEnhYAspect := DetectSoftware.WinEnhYAspect End;
+Function WinEnhBrushes; Begin WinEnhBrushes := DetectSoftware.WinEnhBrushes End;
+Function WinEnhPens; Begin WinEnhPens := DetectSoftware.WinEnhPens End;
+Function WinEnhMarkers; Begin WinEnhMarkers := DetectSoftware.WinEnhMarkers End;
+Function WinEnhFonts; Begin WinEnhFonts := DetectSoftware.WinEnhFonts End;
+Function IsSmartDrive; Begin IsSmartDrive := DetectSoftware.IsSmartDrive End;
+Function SMDeviceVer; Begin SMDeviceVer := DetectSoftware.SMDeviceVer End;
+Function SMDeviceSizeNow; Begin SMDeviceSizeNow := DetectSoftware.SMDeviceSizeNow End;
+Function SMDeviceMinSize; Begin SMDeviceMinSize := DetectSoftware.SMDeviceMinSize End;
+Function SMDeviceEleSize; Begin SMDeviceEleSize := DetectSoftware.SMDeviceEleSize End;
+Function SMDeviceCacheHits; Begin SMDeviceCacheHits := DetectSoftware.SMDeviceCacheHits End;
+Function SMDeviceCacheMisses; Begin SMDeviceCacheMisses := DetectSoftware.SMDeviceCacheMisses End;
+Function SMDeviceRCache; Begin SMDeviceRCache := DetectSoftware.SMDeviceRCache (Drive) End;
+Function SMDeviceWCache; Begin SMDeviceWCache := DetectSoftware.SMDeviceWCache (Drive) End;
+Function SMDeviceDblBuffer; Begin SMDeviceDblBuffer := DetectSoftware.SMDeviceDblBuffer (Drive) End;
+Function SMIOCTLVer; Begin SMIOCTLVer := DetectSoftware.SMIOCTLVer End;
+Function SMIOCTLSize; Begin SMIOCTLSize := DetectSoftware.SMIOCTLSize End;
+Function SMIOCTLMaxSize; Begin SMIOCTLMaxSize := DetectSoftware.SMIOCTLMaxSize End;
+Function SMIOCTLMinSize; Begin SMIOCTLMinSize := DetectSoftware.SMIOCTLMinSize End;
+Function SMIOCTLEnabled; Begin SMIOCTLEnabled := DetectSoftware.SMIOCTLEnabled End;
+Function SMIOCTLLockedTracks; Begin SMIOCTLLockedTracks := DetectSoftware.SMIOCTLLockedTracks End;
+Function SMIOCTLWriteThrough; Begin SMIOCTLWriteThrough := DetectSoftware.SMIOCTLWriteThrough End;
+Function SMIOCTLWriteBuffer; Begin SMIOCTLWriteBuffer := DetectSoftware.SMIOCTLWriteBuffer End;
+Function SMIOCTLHitRate; Begin SMIOCTLHitRate := DetectSoftware.SMIOCTLHitRate End;
+Function SMIOCTLDMABuffering; Begin SMIOCTLDMABuffering := DetectSoftware.SMIOCTLDMABuffering End;
+Function SMIOCTLMemoryType; Begin SMIOCTLMemoryType := DetectSoftware.SMIOCTLMemoryType End;
+Function SMIOCTLFlushReboot; Begin SMIOCTLFlushReboot := DetectSoftware.SMIOCTLFlushReboot End;
+Function SMIOCTLTracksTotal; Begin SMIOCTLTracksTotal := DetectSoftware.SMIOCTLTracksTotal End;
+Function SMIOCTLTracksUsed; Begin SMIOCTLTracksUsed := DetectSoftware.SMIOCTLTracksUsed End;
+Function SMIOCTLTracksLocked; Begin SMIOCTLTracksLocked := DetectSoftware.SMIOCTLTracksLocked End;
+Function SMIOCTLTracksDirty; Begin SMIOCTLTracksDirty := DetectSoftware.SMIOCTLTracksDirty End;
+Function IsPC_TCP; Begin IsPC_TCP := DetectSoftware.IsPC_TCP End;
+Function PC_TCP_Interrupt; Begin PC_TCP_Interrupt := DetectSoftware.PC_TCP_Interrupt End;
+Function IsFossil; Begin IsFossil := DetectSoftware.IsFossil End;
+Function FossilType; Begin FossilType := DetectSoftware.FossilType End;
+Function FossilSpecLevel; Begin FossilSpecLevel := DetectSoftware.FossilSpecLevel End;
+Function FossilRevision; Begin FossilRevision := DetectSoftware.FossilRevision End;
+Function FossilIDString; Begin FossilIDString := DetectSoftware.FossilIDString End;
+Function IsVidFossil; Begin IsVidFossil := DetectSoftware.IsVidFossil End;
+Function VidFossilVer; Begin VidFossilVer := DetectSoftware.VidFossilVer End;
+Function VidFossilRev; Begin VidFossilRev := DetectSoftware.VidFossilRev End;
+Function VidFossilHFn; Begin VidFossilHFn := DetectSoftware.VidFossilHFn End;
+Function IsNetWork; Begin IsNetWork := DetectSoftware.IsNetWork End;
+Function NetType; Begin NetType := DetectSoftware.NetType End;
+Function AppendStatus; Begin AppendStatus := DetectSoftware.AppendStatus End;
+Function AppendPath; Begin AppendPath := DetectSoftware.AppendPath End;
+Function SetverList; Begin SetverList := DetectSoftware.SetverList End;
+Function SetverCount; Begin SetverCount := DetectSoftware.SetverCount End;
+Function SetverText; Begin SetverText := DetectSoftware.SetverText (TextNumber) End;
+Function IsIBMCache; Begin IsIBMCache := DetectSoftware.IsIBMCache  End;
+Function IBMCTotalRRequests; Begin IBMCTotalRRequests := DetectSoftware.IBMCTotalRRequests (Drive) End;
+Function IBMCTotalHits; Begin IBMCTotalHits := DetectSoftware.IBMCTotalHits (Drive) End;
+Function IBMCPhysicalDReads; Begin IBMCPhysicalDReads := DetectSoftware.IBMCPhysicalDReads (Drive) End;
+Function IBMCTotalSecReqDR; Begin IBMCTotalSecReqDR := DetectSoftware.IBMCTotalSecReqDR (Drive) End;
+Function IBMCIsExtUsed; Begin IBMCIsExtUsed := DetectSoftware.IBMCIsExtUsed  End;
+Function IBMCVersion; Begin IBMCVersion := DetectSoftware.IBMCVersion  End;
+Function IBMCSize; Begin IBMCSize := DetectSoftware.IBMCSize  End;
+Function IBMCSectorsPage; Begin IBMCSectorsPage := DetectSoftware.IBMCSectorsPage End;
+Function AvaLevelSupp; Begin AvaLevelSupp := DetectSoftware.AvaLevelSupp  End;
+Function AvaDriverType; Begin AvaDriverType := DetectSoftware.AvaDriverType  End;
+Function TesPort; Begin TesPort := DetectSoftware.TesPort  End;
+Function IsIBMYaleESIO; Begin IsIBMYaleESIO := DetectSoftware.IsIBMYaleESIO (PortNumber) End;
+Function SRDiskSuppDrives; Begin SRDiskSuppDrives := DetectSoftware.SRDiskSuppDrives  End;
+Function SRDiskMemType; Begin SRDiskMemType := DetectSoftware.SRDiskMemType  End;
+Function SRDiskVersion; Begin SRDiskVersion := DetectSoftware.SRDiskVersion  End;
+Function SRDiskConfVersion; Begin SRDiskConfVersion := DetectSoftware.SRDiskConfVersion  End;
+Function PCT5DeskHotkey; Begin PCT5DeskHotkey := DetectSoftware.PCT5DeskHotkey (Key) End;
+Function PCT7DeskColorSheme; Begin PCT7DeskColorSheme := DetectSoftware.PCT7DeskColorSheme  End;
+Function PCT6DeskVersion; Begin PCT6DeskVersion := DetectSoftware.PCT6DeskVersion  End;
+Function PCT5DeskIsResident; Begin PCT5DeskIsResident := DetectSoftware.PCT5DeskIsResident End;
+Function PCT6CacheIsDrive; Begin PCT6CacheIsDrive := DetectSoftware.PCT6CacheIsDrive (Drive) End;
+Function MDPIsForeGround; Begin MDPIsForeGround := DetectSoftware.MDPIsForeGround  End;
+Function MDPIsMultiTasking; Begin MDPIsMultiTasking := DetectSoftware.MDPIsMultiTasking  End;
+Function IsPCAnyWhereIV; Begin IsPCAnyWhereIV := DetectSoftware.IsPCAnyWhereIV End;
+Function PCAnyWhereIVApi; Begin PCAnyWhereIVApi := DetectSoftware.PCAnyWhereIVApi End;
+Function PCAnyWhereIVVer; Begin PCAnyWhereIVVer := DetectSoftware.PCAnyWhereIVVer End;
+Function PCAnyWhereIVStat; Begin PCAnyWhereIVStat := DetectSoftware.PCAnyWhereIVStat End;
+Function IsQuickCacheII; Begin IsQuickCacheII := DetectSoftware.IsQuickCacheII End;
+Function QuickCacheIIVer; Begin QuickCacheIIVer := DetectSoftware.QuickCacheIIVer End;
+Function GetQuickCacheIIInfo; Begin GetQuickCacheIIInfo := DetectSoftware.GetQuickCacheIIInfo (InfoNumber) End;
+Function EnvSeg; Begin EnvSeg := DetectSoftware.EnvSeg End;
+Function EnvLen; Begin EnvLen := DetectSoftware.EnvLen End;
+Function EnvUsed; Begin EnvUsed := DetectSoftware.EnvUsed End;
+
+Function Is386Max; Begin Is386Max := DetectMM.Is386Max End;
+Function _386MaxVersion; Begin _386MaxVersion := DetectMM._386MaxVersion End;
+Function _386MaxSegment; Begin _386MaxSegment := DetectMM._386MaxSegment End;
+Function _386MaxEMSActive; Begin _386MaxEMSActive := DetectMM._386MaxEMSActive End;
+Function _386MaxWin3Supp; Begin _386MaxWin3Supp := DetectMM._386MaxWin3Supp End;
+Function IsMICEMM; Begin IsMICEMM := DetectMM.IsMICEMM End;
+Function MICEMMCS; Begin MICEMMCS := DetectMM.MICEMMCS End;
+Function IsEmm386; Begin IsEmm386 := DetectMM.IsEmm386 End;
+Function Emm386Api; Begin Emm386Api := DetectMM.Emm386Api End;
+Function Emm386Status; Begin Emm386Status := DetectMM.Emm386Status End;
+Function Emm386Weitek; Begin Emm386Weitek := DetectMM.Emm386Weitek End;
+Function IsQEMM; Begin IsQEMM := DetectMM.IsQEMM End;
+Function QEMMApi; Begin QEMMApi := DetectMM.QEMMApi End;
+Function QEMMversion; Begin QEMMversion := DetectMM.QEMMversion End;
+Function QEMMStatus; Begin QEMMStatus := DetectMM.QEMMStatus End;
+Function QEMMIsHiRam; Begin QEMMIsHiRam := DetectMM.QEMMIsHiRam End;
+Function QEMMHiRamMCB; Begin QEMMHiRamMCB := DetectMM.QEMMHiRamMCB End;
+Function QEMMStealthStatus; Begin QEMMStealthStatus := DetectMM.QEMMStealthStatus End;
+Function QEMMStealthRom; Begin QEMMStealthRom := DetectMM.QEMMStealthRom End;
+Function QEMMInitConv; Begin QEMMInitConv := DetectMM.QEMMInitConv End;
+Function QEMMInitExt; Begin QEMMInitExt := DetectMM.QEMMInitExt End;
+Function QEMMInitExp; Begin QEMMInitExp := DetectMM.QEMMInitExp End;
+Function QEMMInitExtra; Begin QEMMInitExtra := DetectMM.QEMMInitExtra End;
+Function QEMMInitTotal; Begin QEMMInitTotal := DetectMM.QEMMInitTotal End;
+Function QEMMCurrConv; Begin QEMMCurrConv := DetectMM.QEMMCurrConv End;
+Function QEMMCurrExt; Begin QEMMCurrExt := DetectMM.QEMMCurrExt End;
+Function QEMMCurrEMSXMS; Begin QEMMCurrEMSXMS := DetectMM.QEMMCurrEMSXMS End;
+Function QEMMCurrHiRam; Begin QEMMCurrHiRam := DetectMM.QEMMCurrHiRam End;
+Function QEMMCurrMapped; Begin QEMMCurrMapped := DetectMM.QEMMCurrMapped End;
+Function QEMMCurrDMAB; Begin QEMMCurrDMAB := DetectMM.QEMMCurrDMAB End;
+Function QEMMCurrDMATasks; Begin QEMMCurrDMATasks := DetectMM.QEMMCurrDMATasks End;
+Function QEMMCurrDMAMap; Begin QEMMCurrDMAMap := DetectMM.QEMMCurrDMAMap End;
+Function QEMMCurrCode; Begin QEMMCurrCode := DetectMM.QEMMCurrCode End;
+Function QEMMCurrData; Begin QEMMCurrData := DetectMM.QEMMCurrData End;
+Function QEMMCurrTotal; Begin QEMMCurrTotal := DetectMM.QEMMCurrTotal End;
+Function QEMMUnAvailConv; Begin QEMMUnAvailConv := DetectMM.QEMMUnAvailConv End;
+Function QEMMUnAvailExt; Begin QEMMUnAvailExt := DetectMM.QEMMUnAvailExt End;
+Function QEMMUnAvailExp; Begin QEMMUnAvailExp := DetectMM.QEMMUnAvailExp End;
+Function QEMMUnAvailShdwTop; Begin QEMMUnAvailShdwTop := DetectMM.QEMMUnAvailShdwTop End;
+Function QEMMMemType; Begin QEMMMemType := DetectMM.QEMMMemType (Adr) End;
+Function QEMMAccess; Begin QEMMAccess := DetectMM.QEMMAccess (Adr) End;
+Function QEMMStealth; Begin QEMMStealth := DetectMM.QEMMStealth (Adr) End;
+Function IsQManifest; Begin IsQManifest := DetectMM.IsQManifest End;
+Function IsQVidRam; Begin IsQVidRam := DetectMM.IsQVidRam End;
+Function VidRamCS; Begin VidRamCS := DetectMM.VidRamCS End;
+
+Function IsInstalled; Begin IsInstalled := DetectMultiplex.IsInstalled (SoftwareNumber) End;
+Function WhichAddress; Begin WhichAddress := DetectMultiplex.WhichAddress (SoftwareNumber) End;
+Function WhichVersion; Begin WhichVersion := DetectMultiplex.WhichVersion (SoftwareNumber) End;
+
+Function WhatCPU; Begin WhatCPU := DetectSystem.WhatCPU End;
+Function CPUFreq; Begin CPUFreq := DetectSystem.CPUFreq End;
+Function CoProFreq; Begin CoProFreq := DetectSystem.CoProFreq End;
+Function WaitStates; Begin WaitStates := DetectSystem.WaitStates End;
+Function BusWidth; Begin BusWidth := DetectSystem.BusWidth End;
+Function WhatCoPro; Begin WhatCoPro := DetectSystem.WhatCoPro End;
+Function CoProRounding; Begin CoProRounding := DetectSystem.CoProRounding End;
+Function CoProPrecision; Begin CoProPrecision := DetectSystem.CoProPrecision End;
+Function WhatWeitek; Begin WhatWeitek := DetectSystem.WhatWeitek End;
+Function MashineType; Begin MashineType := DetectSystem.MashineType End;
+Function Is386PopAdBug; Begin Is386PopAdBug := DetectSystem.Is386PopAdBug End;
+Function Is386MulBug; Begin Is386MulBug := DetectSystem.Is386MulBug End;
+Function IsP5FDivBug; Begin IsP5FDivBug := DetectSystem.IsP5FDivBug End;
+Function IsCPUCache; Begin IsCPUCache := DetectSystem.IsCPUCache End;
+Function CPUCacheLevel; Begin CPUCacheLevel := DetectSystem.CPUCacheLevel End;
+Function CPUCacheKBFirst; Begin CPUCacheKBFirst := DetectSystem.CPUCacheKBFirst End;
+Function CPUCacheKBSecond; Begin CPUCacheKBSecond := DetectSystem.CPUCacheKBSecond End;
+Function CPUCacheThruFirst; Begin CPUCacheThruFirst := DetectSystem.CPUCacheThruFirst End;
+Function CPUCacheThruSecond; Begin CPUCacheThruSecond := DetectSystem.CPUCacheThruSecond End;
+Function MemThru; Begin MemThru := DetectSystem.MemThru End;
+Function BiosExtThru; Begin BiosExtThru := DetectSystem.BiosExtThru End;
+Function EMSThru; Begin EMSThru := DetectSystem.EMSThru End;
+Function WhatMSW; Begin WhatMSW := DetectSystem.WhatMSW End;
+Function IsMSWProtMode; Begin IsMSWProtMode := DetectSystem.IsMSWProtMode End;
+Function IsMSWMonCoPro; Begin IsMSWMonCoPro := DetectSystem.IsMSWMonCoPro End;
+Function IsMSWEmuCoPro; Begin IsMSWEmuCoPro := DetectSystem.IsMSWEmuCoPro End;
+Function WhatGDT; Begin WhatGDT := DetectSystem.WhatGDT End;
+Function WhatIDT; Begin WhatIDT := DetectSystem.WhatIDT End;
+Function IsDMAChannel3; Begin IsDMAChannel3 := DetectSystem.IsDMAChannel3 End;
+Function IsSlave8259; Begin IsSlave8259 := DetectSystem.IsSlave8259 End;
+Function IsRealClock; Begin IsRealClock := DetectSystem.IsRealClock End;
+Function IsWaitExtEvent; Begin IsWaitExtEvent := DetectSystem.IsWaitExtEvent End;
+Function IsOnBoardSCSI; Begin IsOnBoardSCSI := DetectSystem.IsOnBoardSCSI End;
+Function IsIML; Begin IsIML := DetectSystem.IsIML End;
+Function IsIMLSCSISupp; Begin IsIMLSCSISupp := DetectSystem.IsIMLSCSISupp End;
+Function SerialCount; Begin SerialCount := DetectSystem.SerialCount End;
+Function ParrallelCount; Begin ParrallelCount := DetectSystem.ParrallelCount End;
+Function BiosDate; Begin BiosDate := DetectSystem.BiosDate End;
+Function BiosRevision; Begin BiosRevision := DetectSystem.BiosRevision End;
+Function BiosSource; Begin BiosSource := DetectSystem.BiosSource End;
+Function BiosShort; Begin BiosShort := DetectSystem.BiosShort End;
+Function BiosVersion; Begin BiosVersion := DetectSystem.BiosVersion End;
+Function IsExtBiosSeg; Begin IsExtBiosSeg := DetectSystem.IsExtBiosSeg End;
+Procedure BiosExtensions; Begin DetectSystem.BiosExtensions (P) End;
+Function HasCMOSPower; Begin HasCmosPower := DetectSystem.HasCmosPower End;
+Function Keyboardtype; Begin KeyboardType := DetectSystem.KeyboardType End;
+Function ExtKeyboardSupp; Begin ExtKeyboardSupp := DetectSystem.ExtKeyboardSupp End;
+Function KeyBufferLength; Begin KeyBufferLength := DetectSystem.KeyBufferLength End;
+Function IsKeybIntercept; Begin IsKeybIntercept := DetectSystem.IsKeybIntercept End;
+Function IsKeyb16_9; Begin IsKeyb16_9 := DetectSystem.IsKeyb16_9 End;
+Function KeyboardId; Begin KeyboardId := DetectSystem.KeyboardId End;
+Function KeyboardController; Begin KeyboardController := DetectSystem.KeyboardController End;
+Function IsAPM; Begin IsAPM := DetectSystem.IsAPM End;
+Function APMVersion; Begin APMVersion := DetectSystem.APMVersion End;
+Function APMIs16Prot; Begin APMIs16Prot := DetectSystem.APMIs16Prot End;
+Function APMIs32Prot; Begin APMIs32Prot := DetectSystem.APMIs32Prot End;
+Function APMIsBIOSPowMngmnt; Begin APMIsBIOSPowMngmnt := DetectSystem.APMIsBIOSPowMngmnt End;
+Function APMACLineStatus; Begin APMACLineStatus := DetectSystem.APMACLineStatus End;
+Function APMBatteryStatus; Begin APMBatteryStatus := DetectSystem.APMBatteryStatus End;
+Function APMBatteryLife; Begin APMBatteryLife := DetectSystem.APMBatteryLife End;
+Function IsJetStream; Begin IsJetStream := DetectSystem.IsJetStream (PortNumber) End;
+Function DevCount; Begin DevCount := DetectSystem.DevCount End;
+Function DevName; Begin DevName := DetectSystem.DevName (Number) End;
+Function DevHeader; Begin DevHeader := DetectSystem.DevHeader (Number) End;
+Function DevAttributes; Begin DevAttributes := DetectSystem.DevAttributes (Number) End;
+Function DevStrategy; Begin DevStrategy := DetectSystem.DevStrategy (Number) End;
+Function DevInterrupt; Begin DevInterrupt := DetectSystem.DevInterrupt (Number) End;
+
+Function BusType; Begin BusType := DetectBus.BusType End;
+Function EISAIsID; Begin EISAIsID := DetectBus.EISAIsID (SlotNumber) End;
+Function EISASlotType; Begin EISASlotType := DetectBus.EISASlotType (SlotNumber) End;
+Function EISAConfigVersion; Begin EISAConfigVersion := DetectBus.EISAConfigVersion (SlotNumber) End;
+Function EISAConfigCheckSum; Begin EISAConfigCheckSum := DetectBus.EISAConfigCheckSum (SlotNumber) End;
+Function EISANumDevFunc; Begin EISANumDevFunc := DetectBus.EISANumDevFunc (SlotNumber) End;
+Function EISAId; Begin EISAId := DetectBus.EISAId (SlotNumber) End;
+Function IsPCIDevice; Begin IsPCIDevice := DetectBus.IsPCIDevice (Device, Bus) End;
+Procedure GetPCIConfig; Begin GetPCIConfig (Device, Bus, Data) End;
+Function GetPCIVendor; Begin GetPCIVendor := DetectBus.GetPCIVendor (VendorId) End;
+Function IdentifyPCIDevice; Begin IdentifyPCIDevice := DetectBus.IdentifyPCIDevice (VendorId, DeviceId, Revision) End;
+Function IdentifyPCIClass; Begin IdentifyPCIClass := DetectBus.IdentifyPCIClass (ClassId) End;
+Function IdentifyPCISubClass; Begin IdentifyPCISubClass := DetectBus.IdentifyPCISubClass (ClassId, SubClassId) End;
+
+Function IsSB; Begin IsSB := DetectFX.IsSB End;
+Function WhatSb; Begin WhatSB := DetectFX.WhatSBType End;
+Function WhatSBPort; Begin WhatSBPort := DetectFX.WhatSBPort End;
+Function WhatSBVersion; Begin WhatSBVersion := DetectFX.WhatSBVersion End;
+Function IsAdlib; Begin IsAdlib := DetectFX.IsAdlib End;
+Function IsAdlibDriver; Begin IsAdlibDriver := DetectFX.IsAdlibDriver End;
+Function AdlibDrvVer; Begin AdlibDrvVer := DetectFX.AdlibDrvVer End;
+Function AdlibDrvAdr; Begin AdlibDrvAdr := DetectFX.AdlibDrvAdr End;
+Function IsMPU401; Begin IsMPU401 := DetectFX.IsMPU401 End;
+Function IsGUS; Begin IsGUS := DetectFX.IsGUS End;
+Function GUS_Port; Begin GUS_Port := DetectFX.GUS_Port End;
+Function GUS_Memory; Begin GUS_Memory := DetectFX.GUS_Memory End;
+Function IsVBEAI; Begin IsVBEAI := DetectFX.IsVBEAI End;
+Function VBEAIVersion; Begin VBEAIVersion := DetectFX.VBEAIVersion End;
+Function VBEAILDevice; Begin VBEAILDevice := DetectFX.VBEAILDevice (Device) End;
+Function VBEAIGetInfo; Begin VBEAIGetInfo := DetectFX.VBEAIGetInfo (Handle, Data, L) End;
+
+Function GetBiosRecord; Begin GetBiosRecord := DetectBios.GetBiosRecord End;
+
+Function GetParDevParams; Begin GetParDevParams := DetectPorts.GetParDevParams (Number) End;
+Function GetParDevTimeOut; Begin GetParDevTimeOut := DetectPorts.GetParDevTimeOut (Number) End;
+Function GetSerDevUART; Begin GetSerDevUART := DetectPorts.GetSerDevUART (Number) End;
+Function GetSerDevBaudRate; Begin GetSerDevBaudRate := DetectPorts.GetSerDevBaudRate (Number) End;
+Function GetSerDevDataBits; Begin GetSerDevDataBits := DetectPorts.GetSerDevDataBits (Number) End;
+Function GetSerDevParity; Begin GetSerDevParity := DetectPorts.GetSerDevParity (Number) End;
+Function GetSerDevStopBits; Begin GetSerDevStopBits := DetectPorts.GetSerDevStopBits (Number) End;
+Function GetSerDevBreak; Begin GetSerDevBreak := DetectPorts.GetSerDevBreak (Number) End;
+Function GetSerDevFlags; Begin GetSerDevFlags := DetectPorts.GetSerDevFlags (Number) End;
+Function IsEPP; Begin IsEPP := DetectPorts.IsEPP (Port) End;
+
+Function IsCPUId; Begin IsCPUId := DetectProcessors.IsCPUId End;
+Function TestCPUId; Begin TestCPUId := DetectProcessors.TestCPUId End;
+Function CPUReset; Begin CPUReset := DetectProcessors.CPUReset End;
+Function CPUResetStr; Begin CPUResetStr := DetectProcessors.CPUResetStr End;
+Function GetCyrixReg; Begin GetCyrixReg := DetectProcessors.GetCyrixReg (Register) End;
+Function CyrixId; Begin CyrixId := DetectProcessors.CyrixId End;
+
+Function WhichChipset; Begin WhichChipSet := DetectChipsets.WhichChipSet End;
+
+Begin
+End.

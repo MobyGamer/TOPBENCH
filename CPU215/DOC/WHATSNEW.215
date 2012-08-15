@@ -1,0 +1,718 @@
+ ... WHATSNEW.215 ..................................... TMi0SDGL Revision 2 ...
+     June 25th, 2000                                         Companion Document
+                                                                   Version 2.15
+                                           Copyright(c) 1996-2000 by B-coolWare
+
+This file contains list of changes made to TMi0SDGL Rev.2 from version to
+version.
+
+Legend:
+
+  [!] = bugfix
+  [+] = added
+  [-] = removed
+  [*] = cosmetic change/optimization
+  [?] = miscellaneous/thoughts/doubts
+  *!* = important note
+
+
+Version 2.15 - June 25, 2000
+
+--- build 7
+[*] finalized changes for release, debug flags reset.
+--- build 6
+[+] added constants for Intel processor feature bits for easier handling.
+[*] renamed Rise mP6 to iDragon mP6 - it's their new brand.
+[+] added Intel Pentium III Xeon Model A detection as per AP-485 rev.15.
+[+] added AMD Athlon Thunderbird (model 4) detection as per 20734 appnote.
+[!] fixed AMD K7 "magic value" for speed determination.
+[+] added AMD Duron(tm) and AMD K6-III+ (0.18u technology) detection.
+[+] added new Intel Willamette (Pentium IV) feature bits descriptions as per
+    preliminary documentation (thanks to Tomas Navratil for links and data).
+--- build 5
+[!] restored ability to detect IIT 2C87 FPU on a 286-based systems.
+--- build 4
+[+] added a conditional define __Use_MSR_TSC__ in assembler code to allow
+    switching of TSC obtain method - default is RDTSC, but when this symbol
+    is defined, code will use RDMSR #10h (need to be recompiled of course).
+--- build 3
+[*] P5InfoX modified for VIA Cyrix III printouts (nothing different from M2,
+    just added CxIII to a list of CPUs that have extended CPUID levels).
+[+] added CxIII constant for VIA Cyrix III chips. All tables adjusted.
+[+] added VIA Cyrix III detection - Ti486DX detection had to go because
+    its DIRx values were overlapped by Cyrix III values.
+--- build 2
+[*] added a check for EMM386 to avoid using RDTSC under it (real mode only),
+    but commented it out as it signals EMM386 presence under QEMM97/Win98SE
+    also and QEMM causes no troubles to real-mode programs... Those wishing
+    to be really safe can uncomment the code and recompile to enable the
+    check.
+[+] added entries for CPU speeds up to 1GHz to speed normalization tables
+[*] renamed some later Cyrix chips to VIA Cyrix (their new official name)
+--- build 1
+[*] optimized Pascal version of the code to reduce stack consumption
+    as suggested by Vitaly Lysenko
+
+
+Version 2.14 - February 25, 2000
+
+--- build 6
+[*] release build, debug flags, output and comments reset.
+[*] EXE2BIN is no longer used in makefile to create COM version of C demo.
+    Turbo Link option is used instead.
+*!* COM version of CPUC behaves different from EXE version: it generates
+    GPF on RDTSC instruction while EXE version doesn't when ran under Win9x
+    in a DOS box. Investigation of this issue revealed no differences in the
+    code, still it executes normally within EXE and doesn't within COM. I had
+    reports on such RDTSC behavior recently, but it appeared to work for me
+    until now that I reinstalled the OS (Windows 98 SE) and didn't install
+    QEMM97. Looks like this is the problem of the VMM after all, since RDTSC
+    is documented as unprivileged instruction controlled solely by CR4.TSD
+    bit (as per Intel document #243191-01) and can be executed from any PL
+    unless this bit is set. Issuing CPUID before RDTSC to serialize execution
+    didn't help the cause. After all, I tend to treat this issue as Win9x
+    VMM bug. What's most misterious here is the fact that THE SAME code works
+    in EXE (large memory model) and doesn't in COM! RDTSC does not affect any
+    segment registers or memory locations, it just reads MSR #10h into
+    EDX:EAX and still a one-segment program crashes on it while multi-segment
+    one doesn't...
+    One final note: all programs run just fine in "Command Prompt only" mode
+    which is plain vanilla DOS 7.10 except for CPUPM.EXE - seems RTM's VMM
+    has similar problem...
+    And yes, QEMM97 fixes all these problems altogether, no matter is it
+    DOS box or plain DOS!! Whose bug(s)? Not mine definitely. ;)
+--- build 5
+[*] changed Coppermine codename to 'E' tag in Pentium III processor names
+    to conform with Intel's naming convention.
+[+] added Celeron to CPU brand-based distinguishing.
+--- build 4
+[*] UMC U5S given original name - U5S-Super33 - (another user of the lib
+    got hold on this rarity and took a look at its surface.)
+--- build 3
+[?] another total crash of my Win98 and another upgrade - Delphi version is
+    now 5 :) Things recompiled just to be sure everything's still ok.
+--- build 2
+[*] copied getCPUID parameters into actual function definition to be
+    compatible with FPC's parameter-dependent function overloading feature.
+[*] added some conditional directives for better FPC support (still haven't
+    find an assembler that can compile my sources to COFF, so FPC support is
+    actually a fiction).
+--- build 1
+[!] fixed Pascal version of NormFreq routine (thanks to Tomas once again,
+    he's invaluable to me :)
+[*] I mistyped Tomas's last name in WHATSNEW.213. This has been fixed in
+    WHATSNEW.214 :)
+
+
+Version 2.13 - December 25, 1999
+
+--- build 9
+[!] bugfixed post-release build (officially fixed in v2.14.001)
+--- build 8
+[?] release build. Debugging flag reset and everything is cleanly built.
+--- build 7
+[*] disabled internal call to CxCPUIDEnable to avoid possible problems with
+    chipsets that use the same registers for internal control. Call it
+    directly and on your own risk.
+--- build 6
+[+] and even more entries in speed normalization tables as Intel's about to
+    announce 750MHz and 800MHz PIII's.
+--- build 5
+[+] added yet more entries in speed normalization tables - Intel/AMD MHz
+    race don't seem to end soon...
+[+] added AMD Athlon model 2 (0.18u) detection.
+[!] fixed NormFreq algorithm to yeld more consistent results.
+--- build 4
+[!] fixed Pascal version of getCPUSerialNumber (thanks to Tomas Navratil)
+[+] added more processors (Pentium III model 8)
+[+] added Pentium III Xeon/normal distinguishing by brand ID.
+[+] added more feature bits descriptions for non-Intel chips.
+--- build 3
+[*] added some more entries in speed normalization tables.
+--- build 2
+[*] adjusted AMD Athlon magic value for computing clock speed based on
+    input from Tomas Navratil from his test run on 600MHz Athlon.
+--- build 1
+[!] corrected algorithm flaw in IIT FPUs detection (487DLC was never tried
+    if CPU was 486sx or better).
+[*] changed Merced name to official "Itanium".
+[+] added more values to CPU speed normalization tables for new Intel and
+    AMD processors.
+[!] fixed 32-bit DLL startup message under NT - it gave Type Conversion
+    exception instead of 'Sorry, not designed for NT...'.
+[!] fixed pre-B0 Pentium CPUID identification.
+
+Version 2.12 - September 25, 1999
+
+*!* Currently work to port TMi0SDGL to Windows NT is in progress. REALiX
+    (aka Martin Malik) written a simple WDM driver for me to get around
+    NT restictions and I'm trying to make use of it :) Expect a beta in
+    near future...
+[+] added cpudet32.def file needed to create import library for Visual C++.
+    Just cast "LIB /DEF:cpudet32.def" spell and you'll get .LIB and .EXP
+    files needed to link in cpudet32.dll into your VC++ program. Not sure
+    this will work though because Microsoft states that exported functions
+    must be cdecl and they're stdcall... :(
+[!] fixed incorrect order of high and low words of PSN parts in C code and
+    added temporary variable to hold word-sized parts of PSN or they got
+    erased.
+[?] total unrecoverable crash of my Windows 95 forced me to move to
+    Windows 98 SE and Delphi 4. Delphi-made executables gained some bytes
+    in size (again), but everything else is still the same (I hope).
+[!] fixed incorrect call distance of getL2CacheDesc in Pascal code (should
+    fix some crashes on PPro and up). Thanks to Martin Malik (developer of
+    HWiNFO, my most respected sysinfo tool).
+[*] embedded all compiler directives into CPUTYPE.PAS to be sure it's
+    compiled to the same binary everywhere (thanks to Tomas Navratil for
+    his verified settings that produce working executables).
+[+] improved Rise processors detection according to BIOS Writer's Guide
+    Ver. 1.0 - more models added.
+[!] fixed string manipulation bug in 32-bit DLL (Jesus, I didn't make a
+    single test run of new DLLs before releasing them!).
+[*] added _getcr4 macro to allow assembler code to be compiled with older
+    assemblers which do not support Pentium instruction set.
+[!] corrected WinChip 3 typo in CPUTYPE.PAS (string returned was WinChip 2,
+    not 3). Though that code shouldn't be reached under normal conditions,
+    still it was not correct...
+
+
+Version 2.11 - June 25, 1999
+
+[+] changed AMD K7 name to official Athlon(tm) and added its announced
+    frequencies to speed normalization table.
+[+] added SerialNumber field in C++ CPU classes (*.hpp)
+[+] code slightly optimized to remove unnecessary function duplicates.
+[+] made getCPUID function available on all target platforms.
+[+] added getCPUSerialNumber routine to all modules (Pascal, C, DLL).
+[+] added IDT WinChip 2A and WinChip 3 detection as per BIOS Writer's Guide
+    v0.91, added more WinChip clock speed entries to normalization table.
+[!] added check for pre-B0 Pentium CPUID output to fix hangup on such
+    processors (they give different output on CPUID level 0 and no
+    "GenuineIntel" signature)
+[*] detection methods order reorganized so that more safe are called first,
+    and if they didn't decide, then more tricky approach is taken. This
+    should hopefully eliminate some crashes and make code more reliable...
+[*] DPMI.ASH slightly updated to publish DPMI real mode call structure.
+[+] added some CPUs distinguishing via BIOS INT 15h call (IBM PS/2 and some
+    other BIOSes support this call). Added i376 distinguishing via this
+    method. Regretably this method doesn't work under Win32 (even in Win9x)
+    because Win32 doesn't provide any real mode interrupt translation
+    services.
+[!] added missing CPU identification constants to DLL import units (Pascal).
+[-] excluded SGS-Thompson ST486 from list of detected processors. It was
+    Cyrix anyway...
+[+] added Rise mP6 detection according to preliminary BIOS Writer's Guide
+    from Rise Technology.
+[+] added a check for CR4.TSD = 1 before trying to read TSC in speed
+    detection code. Since reading CR4 is a privileged instruction, this may
+    introduce another source of GPF...
+[*] added $X+ option to P5InfoP.Pas to allow it to be compiled with standard
+    TP/BP settings (suggested by Ralph Roth).
+[!] fixed Cyrix 486DX crash (thanks to Ralph Roth for debugging).
+
+
+Version 2.10 - March 30, 1999
+
+[*] Changed AMD K6-3 to K6-III (official name) as per AMD Application Note.
+[+] added getCPUSerialNumber routine to DLLs. Returns a string containing
+    processor serial number or empty string if this feature is not supported
+    by processor.
+[+] added Intel Pentium III Processor Serial Number and Streaming SIMD (MMX-2)
+    features report and serial number printout to P5InfoX.
+[+] added Intel Pentium III and Pentium III Xeon distinguishing. Added 500
+    and 550MHz entries in the normalization table for P6.
+[!] Fixed (finally!) the bug in DPMICODE.ASM - some public routines didn't
+    save registers used by Delphi internally which caused Access Violation
+    exceptions in 32-bit DLL and test programs in some cases.
+[?] no Rise mP6 and details yet available. This CPU is not detected in this
+    release though some code is added already.
+[+] added exception catching in 32-bit Pascal code (affects DLL also), to
+    avoid AV errors on RDTSC.
+[!] 32-bit DLL interface unit finally made fully compatible with Virtual
+    Pascal (big thanks to Dwayne Heaton - actually he's the one who made
+    this).
+[+] added an entry into HELPME.PLS and a test program CheckTSD (both are in
+    DOC directory) - please read and try if you have described problem.
+[+] added UpdateMe! Wizard for TMi0SDGL download at the home page - a tool
+    to automatically check and download latest TMi0SDGL releases wherever
+    they are. Will also update itself. Please consider this utility release
+    as BETA.
+[+] added .REG files to add version information into Windows Registry. These
+    are attempted to be imported automatically in installation scripts (no
+    check for Windows is performed, so this attempt may generate 'bad command
+    or file name'). Info is used by UpdateMe! Wizard.
+[!] installation scripts got fixed one small bug in final menu.
+[!] added a check for level 2 of CPUID info in getL2CacheDesc to avoid
+    calling CPUID with level 2 request on CPUs that don't support it.
+[+] added more entries for P5 clones and Cyrix chips in frequency
+    normalization tables.
+[*] increased Tolerance constant to loosen frequency deviation restrictions
+    (suggested by Andreas Lein based on 400MHz PII case).
+[+] added AMD K7 generic detection (no models as this info is not yet
+    available) and its clock speed normalization table (AMD promises K7 to
+    operate at 500+ MHz, but table includes lower frequencies for other P6
+    clones).
+[+] added Pentium IIe (Enhanced) (256k integrated L2 cache) distinguishing.
+    Since no official info was available, I'm not sure I'm using correct
+    method.
+
+
+Version 2.09 - December 10, 1998
+[?] anyone needs processor feature bits constants, something like pfFPUonChip,
+    pfMMX, etc. ? Can add them in the next release...
+[+] added vendor id string reporting on undistinguished 686s and 786s with
+    CPUID support (just in case...).
+[+] split cpu_Speed into two versions: original cpu_Speed and ncpu_Speed.
+    First returns raw integer CPU clock speed, and second returns normalized
+    clock speed (got rid of NormalizeFreq conditional define). Updated DLLs
+    and demos accordingly, except Delphi 1 demo executable - do not have
+    Delphi 1 installed anymore...
+[*] removed unnecessary first parameter from Compare12 function (it's always
+    cpuid0, why push unneeded pointer on the stack?)
+[+] added few IFDEFs in CPUTYPE.PAS to make it compatible with
+    Turbo Pascal 6.0 (far keyword and Compare12 function).
+[*] given Cyrix MediaGX and GXm their official names.
+[?] Cyrix recommends to distinguish 6x86 and 6x86L by CPUID feature flags
+    difference (8x86 have them = 0x0001 while 6x86L = 0x0105), but I still
+    use DIR1-based detection because CPUID can be disabled on Cyrix chips and
+    I'm not sure if my CxCPUIDEnable re-enables it...
+[!] fixed P5InfoC 3DNow! bit offset (thanks to Tomas Navratil).
+[+] added compatibility with Virtual Pascal (32-bit DLL interface unit only).
+[*] updated WinChip speed normalization table to contain only officially
+    claimed speeds.
+*!* added entry and generic code for upcoming Rise Technology's mP6(tm) CPU
+    (no true detection yet since no tech info was disclosed, hope to have it
+    working in the next release).
+[+] added detection for IDT/Centaur Technology's WinChip 2 CPU.
+[!] fixed a bug in DPMICODE.ASM introduced in v2.08 - uncommented RET
+    instruction unintentionally commented out in CxCPUIDEnable routine which
+    caused AV on Cyrix chips.
+[!] updated Celeron A (with L2 cache) detection from cache size to model id
+    (according to sandpile.org).
+[!] fixed CPUTYPE.PAS Pentium II detection part - forgot to exit after
+    distinguishing which caused them all to be detected as Pentium Pro
+    (thanks to Tomas Navratil for reporting this bug).
+[!] fixed getL2CacheDesc routine to correctly return L2 cache descriptor.
+[!] fixed getPentiumSpeed to work with 64-bit TSC values.
+
+
+Version 2.08 - September 10, 1998
+
+[+] I registered my web site at the V3-URL redirector. Now you can be sure
+    you will find the site even if I move it to another webserver. Use
+    http://come.to/b-coolware to reach my pages.
+[?] I'm currently think of leaving only real mode code and replace all
+    PM code with calls to RM code via DPMI services. Because RM code will
+    be executed in V86, everything should work - OS will emulate all needed
+    resources. I'm not sure about Win32 though...
+[+] added 440BX I/O port 22h problem workaround (440BX uses this port for
+    ACPI and Cyrix model detection conflicts with this) for real mode code.
+    No fix available in PM code yet. *** NOT TESTED! ***
+[+] added Xeon brand Pentium II detection (as per Intel's AP-485 rev. 10,
+    via L2 cache size descriptor (1M and 2M) and if L2 cache is 512k and
+    clock speed equals or is more than 400MHz). Too bad they're all model
+    5. Having Celeron with 128k L2 cache out will not add any confusion
+    though, because it will still not interfere with any other Pentium II
+    brands as Xeon 512k does already.
+[!] I had to severely reduce the library functionality when running under
+    Windows NT - this OS simply does not let me do almost anything I need
+    to do, so I inserted checks for this OS in many places. You have to
+    wait until I come up with the native loadable kernel-mode driver for
+    Windows NT, and this will take a while...
+[+] added another speed detection routine based on Time Stamp Counter -
+    not verified, needs adjustments, does not work under Windows NT.
+[*] given K6-2, K6-3 and 3DNow! instruction set their official names.
+[+] added more clock speed normalization entries for P5 clones (for new
+    AMD chips).
+
+
+Version 2.07 - 25 May 1998
+
+[+] added previously undocumented bit in CPUID feature bits for 36-bit Page
+    Size Extension (Intel).
+[+] added Cyrix 6x86/6x86L distinguishing (based on DIR1 value, as specified
+    in Cyrix appnote).
+[*] added another speed normalization table specifically for Cyrix M1 and M2
+    processors, that lists almost all *real* clock frequencies for them rather
+    than PR-ratings ("almost" means no rates like 137,5MHz are listed).
+*!* This may cause speeds to be incorrectly detected with this release because
+    magic constants may have to be adjusted for this change, and I don't have
+    any Cyrix-powered PCs at hand...
+*!* because no details were available on Intel's new Pentium II Xeon brand,
+    processors of this brand are not currently detected. Their identification
+    will be added in next release.
+[+] added WinChip-specific CPUID level check to ensure WinChip detection
+    even if vendor string was reprogrammed.
+[!] some little creeping bugs fixed, mostly where I forgot to reflect changes
+    made earlier.
+[+] added getVersion routine that returns word value identifying library
+    version (added on request).
+[+] added Intel Celeron(tm) processor identification (according to Intel's
+    AP-485-009 from April, 1998).
+[?] changed string buffer allocation in 32-bit DLL from static to dynamic -
+    I experienced big problems in another project when calling DLL functions
+    that return strings from VB5 application if the string buffer is defined
+    as const array (dynamic allocation causes processor exception on program
+    termination under Windows NT in VB5 apps, but TMi0SDGL is not Windows
+    NT-compatible anyway...).
+[*] slightly modified getCyrixModel routine to ensure that DIRx access is
+    enabled. Now Cyrix identification should work on any Cyrix-powered system
+    whatever its BIOS said to the CPU.
+[+] added x86SL detection routine by Robert Collins, added i486SL constant
+    to the list (in the end of it).
+    !!! NOT tested, but reportedly works fine.
+[+] added new speed normalization table entries for Intel Pentium II chips
+    with clock frequencies of 333MHz, 350MHz and 400MHz.
+[!] fixed WinChip speed detection (adjusted the magic value, thanks to
+    Mike Dichte).
+[*] fixed some discrepancies in the documentation.
+[!] fixed NEC V20 and V30 clock frequency magic values (a friend of mine
+    acquired an authentic XT with V20 and found corrent value for V20, then
+    extrapolated it for V30).
+
+
+Version 2.06 - 20 February 1998
+
+[+] added some more feature bits descriptions for Intel (FXSAVE/FXRSTOR,
+    Page Attribute Table) and non-Intel CPUs (Cyrix Extended MMX support,
+    AMD 3D support), thanks to Christian Ludloff.
+[!] fixed PC speaker waveform corruption in CPUSPEED.ASM (thanks to Pascal
+    Moulart for the report and code).
+[+] added Pentium II model 5 description (0.25 micron technology).
+[!] fixed string termination character to be word-sized in 32-bit DLL to
+    conform DBCS convention.
+[+] added Cyrix 6x86MX Extended CPUID info retrieval in P5InfoX (Embedded CPU
+    name, features), like for AMD K6.
+[+] added Visual Basic 5.0 DLL import module (cpudet32.bas), thanks to
+    Jeff Miko.
+[!] Cyrix MediaGX family distinguishing corrected.
+[+] added AMD K6-3D and K6Plus-3D descriptions rather than trivial "K6".
+[+] added IDT/Centaur Tech. WinChip C6 detection. Added WinChipC6 CPU
+    identifier and clock frequency table entry (needs adjustment).
+[!] finally convinced myself that the AMD/Intel distinguihing method is
+    flawed and commented it out. Incorrect Am386/RapidCAD detection on
+    Intel486 problem solved. Again, I'm looking for a slightest difference
+    that might help to distinguish Am486 from i486...
+
+
+Version 2.05 - 10 December 1997
+
+*!* please note that 32-bit .DCU libraries (Delphi) are in Delphi 3 format,
+    you should recompile .PAS files if you intend to use the library with
+    Delphi 2.x (again, format of Borland's libraries changes from version
+    to version rendering code from previous versions unusable...).
+[+] added CPU clock speed normalization (idea and values derived from Intel's
+    public domain code found in CPUINFO package).
+[+] added mobile Pentium-MMX model 8 to the list.
+[+] added AMD Elan SC400 Microcontroller (a 486 clone) detection, thanks to
+    Frederic W. Nitz.
+[!] fixed C++ .HPP DLL import files to get extFlags by getExtraFlags(), not
+    through direct reference (this just plain didn't compile of course,
+    because this variable is not defined in DLL version). Strange I didn't
+    notice this mistake before...
+[-] I continue to receive reports on incorrect Cyrix 6x86 clock speed
+    detection. Now it seems I did wrong to add a division by speedModifier
+    in cpu_Speed routine. This division is commented out. PLEASE check the
+    routine on all Cyrix chips you have access to and report me back with
+    results. I need exact model name, *REAL* clock speed, clock multiplier
+    value (x2, x3, etc.) and reported speed. DIRx contents is a plus (use
+    getDIRs program to acquire it). I don't want to add new CPU identifiers
+    to the list, but it may come out that I have to.
+[+] added AMD K6 models 7 and up, their CPUID feature flags are compatible
+    with those of Intel (SYSCALL/SYSRET extensions). P5InfoX also fixed.
+[!] attempt is made to fix incorrect clock speed detection on AMD K5 (it
+    seems that magic value for them is model-dependant, earlier models 0 and
+    1 are less productive that models 2 and 3). I'm not sure I'm right
+    though...
+[+] For this purpose I added another CPU identifier, amdK5_2, in the end of
+    the list.
+[+] some descriptive strings added to the documentation.
+[+] added clock speed normalization based on tables of known CPU frequencies
+    (idea derived from Intel's CPUINFO package). Undefine "NormalizeFreq" to
+    disable this feature (defined by default in CPUTYPE.[C|PAS]).
+[!] fixed some discrepancies between C and Pascal versions, also some
+    typos corrected.
+[!] fixed P6 magic speed value (thanks to Phil Randal)
+[!] attempted to fix AMD/Intel 486 distinguishing routine (thanks to Phil
+    Randal). I've no old Intel 486 CPUs (without CPUID) at hand, so I can't
+    check if it helped...
+[!] fixed C/C++ header file variable reference (thanks to Phil Randal)
+[?] I will possibly change my job soon. If it will happen, development of
+    the TMi0SDGL will be stalled for undetermined period. This means, new
+    releases will be significantly delayed.
+*!* due to lack of time, new versions will not come out on regular basis.
+    I'm still paying attention to the TMi0SDGL, but I can't spend much time
+    on it. If anyone wants to join the team and help me with this one, please
+    contact me via e-mail and we'll discuss details.
+
+
+Version 2.04 - 10 September 1997 (sorry for delay - look at this list and
+                                  you'll see why...)
+
+[?] Moved to Borland C++ 5.02 and Delphi 3, so .exe and .dll sizes grew a
+    bit... Strange, but every new version adds some extra bytes to the target
+    while source code is still the same... What are they adding in...?
+[!] fixed some errors in P5InfoX regarding to AMD K5/K6 extended info
+    retrieval, thanks to Tomas Navratil.
+*!* I finally tried to compile the C code with WATCOM C/C++ and found that
+    the library requires some modifications to compile with it. I didn't
+    implement them yet, so for now WATCOM C/C++ IS NOT SUPPORTED. Sorry...
+[+] added Cyrix Gx86 (all-in-one-chip PC) identification according to
+    Grzegorz Mazur.
+[!] fixed Intel 486SX distinguishing routine according to AP-485 and Phil
+    Randal.
+[+] added Weitek coprocessor report to C++ cFPU class << operator.
+[*] replaced cryptic P54C/P55C/P55CT/etc. Intel internal codenames with
+    public names (Pentium, etc.)
+[*] renamed CPUID-returned feature flags bit 2 description according to
+    Intel's AP-485 appnote (Debugging Extensions) in P5InfoX.
+[+] added feature flags bit 11 description (SYSENTER/SYSEXIT instructions)
+    to P5InfoX.
+[!] fixed AMD magic values for correct clock speed detection. Thanks to Phil
+    Randal for values.
+[!] fixed AMD K6 detection in C version (forgot a break;). Thanks to Phil
+    Randal for this fix.
+[!] fixed Intel Pentium family model identification according to Intel's
+    AP-485 Application Note (rev.007).
+[-] commented out check386sl routine - it reportedly crashes the system on
+    certain chipsets. The code is still there, but it's not compiled.
+[+] added "Win95" define to remove unneeded OS check code from 32-bit DLL
+    when compiling for Windows 95 only.
+[+] added IIT 4C87DLC math unit detection
+    !!! not tested, can cause problems with non-IIT FPUs, also may misidentify
+    non-DLC IIT FPUs as DLCs...
+[+] added 32-bit Console Windows C++ DLL demo program source (.IDE project
+    file provided for Borland C++, other compilers may require additional
+    handwork).
+[!] fixed 32-bit C++ code (__stdcall'ed where needed). Now it compiles and
+    works... cputype3.lib added - Win32 C static library. I managed to
+    compile cpucpp.cpp for Win32, but didn't include it in makefile, see
+    comments in .cpp for command line example.
+[!] all exports in 32-bit DLL are made 'stdcall', that is C-callable.
+[!] fixed NEC Vx0 speed constant (thanks to Vasiliy Sorokin)
+[!] added missing CPU constants to the DLL import units/header files.
+[+] you can now fill and submit bug reports from the Web at
+     http://cnit2.uniyar.ac.ru/user/BobbyZ/bugrep01.htm
+[+] added Am486DX constant (to the end of list, other constants didn't shift,
+    so your old code should keep working ok...)
+[+] added a method of detecting Am386/Am486 chips based on UMOV instruction
+    found only in AMD chips. I implemented this method in v1.1x, but dropped
+    it since then, and now I received a letter from Vasiliy Sorokin which
+    says that this code goes ok on all old AMDs...
+    !!! Note that this "new" code was not extensively tested.
+    !!! If you run into any troubles caused by this code, please let me
+    !!! know.
+[+] added a 32-bit static library Delphi demo program (makefile._p and cpu.pas
+    were modified).
+[*] IFDEFed new clock speed detection routine. To compile with new routine,
+    define NewSpeedCalc for Pascal source, and __NewSpeedCalc__ for C/C++
+    AND rename cpuspd2.asm to cpuspeed.asm before making the library (save
+    original cpuspeed.asm, of course).
+[!] cpu value is now properly set to CxM2 in CyrixModel.
+[!] attept was made to fix incorrect clock speed detection on Cyrix 6x86 in
+    clock multiplication modes (now detected clock speed is divided depending
+    on detected mode). This is done only for original 6x86, not for M2. I
+    didn't receive any reports on M2 detection yet, so I didn't change
+    anything with M2.
+
+
+Version 2.03 - 16 May 1997
+
+[*] documentation cleaned up to reflect recent changes.
+[!] added Delphi 32-bit demo program source code.
+[!] fixed Klamath and Deschutes detection (thought Klamath is a P7, but it's
+    P6...).
+[!] C version didn't detect P8, fixed.
+[+] added Cyrix M2 detection.
+[!] fixed CPU clock speed detection tables to reflect recent CPU additions.
+[!] fixed some errors in DLL makefile.
+
+
+Version 2.02 - 15 Apr 1997.
+
+[?] my wife delivered a daughter! Called her Maria...
+[+] added Intel P7 (Klamath or Pentium II) and P8 (Deschutes) detection.
+[+] added P55C (Pentium with MMX) distinguishing.
+[!] corrected Cyrix 6x86 printouts. Corrected P54C printouts.
+[!] rewritten CPU speed detection routine to work under Linux DOSemu and
+    overall algorithm improved.
+[+] added more Cyrix models.
+[!] corrected SGS-Thomson ST486DX2 detection.
+[*] adjusted Cyrix 6x86 timings for more precise clock speed detection. Don't
+    know if it helped though...
+[*] added INCLUDE subdirectory in SOURCE directory of the distribution for
+    better file organization.
+[!] Fixed check486sx routine - TASM played dirty trick on me: I had defined
+    fpuWord as local variable with LOCAL directive, but the symbol appeared
+    to be global so I got no warning when I used it outside the routine it
+    was defined in. Because stack was not properly set for it in check486sx,
+    writing to it could possibly damage the stack (and, I'm afraid, it did).
+[!] all assembler code fixed to allow 32-bit compilation (I didn't try it
+    before). FLAT memory model is used for 32-bit code. Cleaned out lot of
+    bugs in 32-bit code...
+[+] added quite a lot of IFDEFs to the code to allow compilation of 16-bit
+    and 32-bit DLLs from the same source code. Some parts of code were
+    rewritten to allow this. This shouldn't affect your applications using
+    TMi0SDGL v2.0x though...
+[*] Main documentation file updated to reflect recent additions.
+[+] added 16-bit and 32-bit DLLs for use in Windows applications written with
+    Delphi, C/C++, Visual Basic and whatever can link in DLLs. DLL code was
+    compiled using Borland Pascal 7.0 and Delphi 2.0. Import libraries for
+    Borland C/C++ and Delphi/Borland Pascal are provided. To create import
+    libraries for other compilers (MS VC++), you should use IMPLIB utility
+    provided with your compiler.
+    Refer to updated TMi0SDGL.DOC file for description of exported functions
+    and tips on using this DLL.
+*!* Due to restrictions applied by Windows NT to direct port I/O, 32-bit DLL
+    does not function properly under Windows NT (but works fine under Windows 95).
+    I will probably have to write a special device driver to port TMi0SDGL
+    to Windows NT... For now, I added a check for operating system and 32-bit
+    DLL does not load under NT.
+*!* Please consider added DLLs a beta test ones.
+*!* Source for the DLLs is available in separate archive as well as
+    compiled examples using these DLLs. Only binary DLLs and header files/
+    import libraries are provided in this package to reduce archive size.
+    Anyway, you will doubtly need the source...
+*!* For Delphi 1.0 users: do not cast W8LOSS spell on CPUDET16.DLL or it
+    will cease to function in DOS Protected Mode. Leave those extra bytes
+    as they are...
+
+
+Version 2.01 - 30 Oct 1996. bugfix release (yeah, some weird bugs slipped
+                            thru all beta testing efforts...anyway, I didn't
+                            perform really wide beta testing, so I can call
+                            v2.00 a final beta :)
+
+[+] added UMC U486DX2 and U486SX2 detection.
+[!] fixed some discrepancies with UMC 486s.
+[!] fixed i486SX detection code (jz changed to jnz), but the code will only
+    work on plain i486SX with no co-processor installed, otherwise that NPX
+    will presumably return valid control word...
+[*] changed some OverDrive-related code, now OverDrive detection takes place
+    after all known models are distinguished, not prior to.
+[+] added some more Intel Pentium & Pentium Pro models, including OverDrive.
+[*] fixed speed constants for AMD K5 processors, now cpu_Speed should return
+    valid clock speed on K5's (does it?).
+[!] some bugs in installer script fixed.
+[*] Nx586 timings corrected. Now should display more correct clock speed
+    (again, does it?).
+    Because I don't have an Nx586 at hand, I can't find out this value once
+    and for all, so expect some more changes as users will report back...
+[!] some typos corrected throughout the code and documentation.
+[!] fixed Cyrix Cx486 detection routine in REALCODE.ASM - somehow I put
+    SAHF and LAHF in improper sequence... Now Cx486's should be correctly
+    detected.
+[!] AMD SSA/5 and 5k86 are now properly reported in Pascal version (there
+    were discrepancy between Pascal and C/C++), also some dead code
+    eliminated.
+
+
+Version 2.00 - final release of Revision 2.
+
+[?] I had married on August 3rd, 1996! :)
+[*] documentation is cleaned up.
+[!] fixed AMD K6 extended CPUID info retrievers: used wrong levels for CPUID
+    (0xF000000x instead of 0x8000000x), thanks to Christian Ludloff for
+    banging my head for this mistake. :)
+[+] added 5k86 (AMD K5 Model 1) extended information retrieving.
+[+] added SS/A5 (AMD K5 Model 0) feature bits descriptions.
+[+] added missing Intel Pentium Model 7 description (new P54C parts).
+
+
+Version 1.95 BETA 6 - sixth beta test release.
+
+[+] AMD K6 detection via CPUID added.
+[+] Extended CPUID info for AMD K6 retrieved and displayed in P5Info.
+    (thanks to Christian Ludloff for info).
+[!] fixed RDMSR exception handler in DPMICODE.ASM to clear CF in both 16-bit
+    and 32-bit versions (32-bit version didn't).
+[!] finally fixed hangup on XT systems (8086) - the code was trying to check
+    for FPU emulator even on 8086...
+[!] finally fixed NEC Vx0 detection - simply interpreted check results wrong,
+    now jumps to correct labels. huh, what a relief... :)
+
+
+Version 1.94 BETA 5 - fifth beta test release.
+
+[*] slightly modified C++ version class names (added "c" before class name).
+[!] again rewritten NEC Vx0 detection routine - previous try in BETA 4 didn't
+    fix the problem... Don't know if this try will help...
+[+] added AMD K5 models (SSA5 and 5k86).
+[+] added MMX support bit description in CPUID feature flags (P5INFO).
+
+
+Version 1.93 BETA 4 - fourth beta test release.
+
+[!] fixed C&T 38700 detection - typo corrected ("fpu" was referenced instead of
+    "cpu").
+[*] reduced code overhead in checkIBMmsrs routine - got rid of one exception
+    handler, because it was just the same as another one.
+[!] rewritten checkNEC routine - previous version caused incorrect detection
+    and hangups on V20...
+[!] fixed 80x88/86 distinguishing - now correctly distinguishes 8/6.
+    Specified invalid default CPU types - x86 instead of x88. After completing
+    prefetch queue size test, id is incremented if queue is 6 bytes long, which
+    lead to incorrect results (for example, 8086 + 1 mean 80C88 while 8086 is
+    actually supposed).
+[+] Pascal demonstration program now returns errorlevel=cpu type just as C[++]
+    versions do.
+[+] now enabling CPUID on Cyrix 5x86 and 6x86 CPUs before checking for CPUID
+    support. This should do the trick for new 5x86s and all 6x86s. AFAIK Cyrix
+    disabled CPUID support by default in 5x86 starting with step 1 and in 6x86
+    right from the start (why?).
+
+
+Version 1.92 BETA 3 - third beta test release.
+ !!! WARNING !!! some CPU id constants added/changed! This version is
+                 incompatible with previous versions!
+
+[!] fixed bug caused NEC Vx0 being detected but not reported properly.
+[+] added 80C88 and 80C86 (CMOS technology 8088/86 chips) detection.
+[+] added i386SL detection (unchecked, may not work properly).
+[!] rewritten Cyrix chips detection routine - previous one crashed 5x86. Now
+    routine from CyrixId program is used.
+[+] added V86 mode check.
+[+] added floating point clock speed detection routine.
+[!] fixed bug that caused C&T 38600 detection on Intel/AMD 386s and vice versa.
+
+
+Version 1.91 BETA 2 - second beta test version.
+
+[!] Fixed incorrect speed detection in C version of code for 486+ CPUs. This
+    was due to RapidCAD detection code - it worked also on 486+. Now current
+    CPU is checked to be 386 only before RapidCAD test is performed.
+[+] added more models and steppings for PentiumPro, AMD X5 and Cyrix 5x86/6x86.
+[+] added another DIR0 value for Ti486DX4, this time it should be correctly
+    detected in all cases (at least if its data sheet don't lie).
+[+] added another method for detecting Ti486DX2 - looks like they have a bug
+    in it and it doesn't have DIR1 bit 7 = 1 as they said it should (not sure
+    it will help though...).
+[+] added some SGS-Thomson 486DX chips detection (not sure it will work ok).
+[+] added a supplement program GETDIRS.EXE to help me fight all those Cyrix/TI/
+    IBM/SGS 486DX clones. It is in \EXE subdirectory. This program retrieves
+    DIR0 and DIR1 registers from all these CPUs and puts them in a text file.
+    If you have a Cx/TI/ST/BL486 or CxM1/M1sc on your PC, please run this
+    program once and send me resulting DIRX.TXT file. Please find out _exact_
+    name (with all modifiers) of your CPU before running the program or it will
+    be useless. You can probably do it by opening the computer case and looking
+    what's written on the CPU (but this won't go if your CPU has cooling fan
+    attached to it...) Also, send me a copy of any cpuX.exe output so that I
+    can compare what is detected with what is really there and fix library if
+    needed.
+[!] rewritten getCyrixModel routine. Now it checks correct bit in CCR3 and
+    Cx486S_a model now also should be recognized. Also, the routine now takes
+    less space and is more reliable.
+[+] added MAKEALL.BAT batch in SOURCE directory - this batch remakes all demo
+    programs. It assumes that it is ran from SOURCE directory and ..\EXE and
+    ..\LIB directories exist (this is default TMi0SDGL directory tree).
+[!] corrected Cyrix 5x86/6x86 detection in C version of code (now proper
+    routine is called everywhere).
+[*] documentation typos fixed in some places, new CPUs added to list of
+    detected processors.
+[+] added Make id and Family/Model/Step printout to P5Info programs.
+[!] fixed distances for memory models in all source code. Now distance is
+    model-dependant everywhere. This is actual for C/C++ only, Borland Pascal
+    always use LARGE model, therefore all external routines are FAR.
+
+
+Version 1.90 BETA 1 - first version publicly released.

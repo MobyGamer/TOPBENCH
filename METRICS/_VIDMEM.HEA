@@ -1,0 +1,6 @@
+Function testVideoAdapterWrites:longint;
+
+begin
+  {getmem(buf1,screenarea);}
+  buf1:=@scratchspace;
+

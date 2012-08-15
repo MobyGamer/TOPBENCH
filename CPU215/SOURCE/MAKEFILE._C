@@ -1,0 +1,128 @@
+##############################################################################
+# TMi0SDGL Revision 2 makefile for Borland/Microsoft MAKE - C versions       #
+#                                                                            #
+# Copyright(c) 1996-2000 by B-coolWare.  Written by Bobby Z.                 #
+##############################################################################
+
+
+# Memory model specific variables definition
+
+!if !$d(MODEL)
+!error You must define a memory model.
+!endif
+
+!if $(MODEL) == __X16__
+MODEL_OK = ok
+# use default distance, no DIST defined
+!endif
+!if $(MODEL) == __X32__
+MODEL_OK = ok
+_32BIT = __32bit__
+_Case = -mx
+# use default distance, no DIST defined
+!endif
+!if $(MODEL) == __TINY__
+MODELLETTER = t
+MODEL_OK = ok
+DIST = near
+!endif
+!if $(MODEL) == __SMALL__
+MODELLETTER = s
+MODEL_OK = ok
+DIST = near
+!endif
+!if $(MODEL) == __COMPACT__
+MODELLETTER = c
+MODEL_OK = ok
+DIST = near
+!endif
+!if $(MODEL) == __MEDIUM__
+MODELLETTER = m
+MODEL_OK = ok
+DIST = far
+!endif
+!if $(MODEL) == __LARGE__
+MODELLETTER = l
+MODEL_OK = ok
+DIST = far
+!endif
+!if $(MODEL) == __HUGE__
+MODELLETTER = h
+MODEL_OK = ok
+DIST = far
+!endif
+!if !$d(MODEL_OK)
+ !error Invalid memory model specified.
+!endif
+
+# Targets
+
+all:     cpuc cpuc.com p5c clean
+cpuc:    cpuc.exe
+p5c:     p5infoc.exe
+cpucpm:  cpucpm.exe
+library: cputype$(MODELLETTER).lib
+
+clean:
+        del *.o??
+
+
+# variables
+
+#BETA=BetaBuild
+
+CC = bcc
+CC32 = bcc32
+LIB = tlib
+ASM = tasm
+INCLUDE = D:\BC5\INCLUDE;.\INCLUDE;
+ASMINC  = .\INCLUDE
+LIBPATH = D:\BC5\LIB
+CCOPTC = -c -O1 -pr -I$(INCLUDE) -m$(MODELLETTER) -d -u -D_dist=$(DIST) -RT- -P- -D$(BETA)
+# Following are compiler options for Microsoft C/C++ 7.0 (16-bit)
+#CCOPTC = -c -Ox -Gcr -M$(MODELLETTER) -D_dist=$(DIST) -D$(BETA)
+CCOPTL = -L$(LIBPATH) -m$(MODELLETTER)
+CCOPTLT = -L$(LIBPATH) -mt -lt
+CCOPTP = -L$(LIBPATH) -mx
+CCOPT32 = -I$(INCLUDE) -D__Win32__ -RT- -P- -d -u- -c -O1 -pr -Tt -Tm
+ASMOPTN = -zi -t -m -q -d$(MODEL) -i$(ASMINC)
+ASMOPTX = -zi -t -m -q -d$(MODEL) -d__DPMI__ -d$(_32BIT) $(_Case) -i$(ASMINC)
+ASMOPT32 = -zi -t -m -mx -q -d__Windows__ -d__32bit__ -i$(ASMINC)
+
+# implicit rules
+
+.c.obj:
+        $(CC) $(CCOPTC) $<
+.c.o32:
+        $(CC32) $(CCOPT32) -o$*.o32 $<
+.asm.obj:
+        $(ASM) $(ASMOPTN) $*
+.asm.obp:
+        $(ASM) $(ASMOPTX) $*, $*.obp
+.asm.o32:
+        $(ASM) $(ASMOPT32) $*, $*.o32
+
+# explicit rules
+
+cputype$(MODELLETTER).lib: realcode.obj cputype.obj cpuspeed.obj cachetst.obj p5speed.obj
+ $(LIB) cputype$(MODELLETTER).lib -+realcode.obj -+cputype.obj -+cpuspeed.obj -+cachetst.obj -+p5speed.obj
+
+# 16-bit protected mode library.
+cputypex.lib: dpmicode.obp cputype.obj cpuspeed.obj cachetst.obj p5speed.obj
+ $(LIB) cputypex.lib -+dpmicode.obp -+cputype.obj -+cpuspeed.obj -+cachetst.obj -+p5speed.obj
+
+# 32-bit Windows Library.
+cputype3.lib: dpmicode.o32 cputype.o32 cpuspeed.o32 cachetst.o32 p5speed.o32
+ $(LIB) cputype3.lib -+dpmicode.o32 -+cputype.o32 -+cpuspeed.o32 -+cachetst.o32 -+p5speed.o32
+
+cpuc.exe: cpu.obj cputype$(MODELLETTER).lib
+ $(CC) $(CCOPTL) -ecpuc.exe cpu.obj cputype$(MODELLETTER).lib
+
+cpuc.com: cpu.obj cputypet.lib
+ $(CC) $(CCOPTLT) -ecpuc.com cpu.obj cputypet.lib
+
+p5infoc.exe: p5info.obj cputype$(MODELLETTER).lib
+ $(CC) $(CCOPTL) -ep5infoc.exe p5info.obj cputype$(MODELLETTER).lib
+
+cpucpm.exe: cpu.obj cputypex.lib
+ $(CC) $(CCOPTP) -ecpucpm.exe cpu.obj cputypex.lib

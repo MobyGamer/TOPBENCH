@@ -1,0 +1,77 @@
+##############################################################################
+# TMi0SDGL Revision 2 makefile for Borland/Microsoft MAKE - Pascal versions  #
+#                                                                            #
+# Copyright(c) 1996-2000 by B-coolWare.  Written by Bobby Z.                 #
+##############################################################################
+
+# Targets
+
+#all:     cpupas p5infop cpupm cpupas32 clean
+all:     cpupas p5infop clean
+cpupas:  cpupas.exe
+p5infop: p5infop.exe
+cpupm:   cpupm.exe
+cpupas32: cpupas32.exe
+#cpufpc32: cpufpc32.exe
+
+clean:
+ @del *.o*  >nul
+ @del *.tp* >nul
+ @del *.dcu >nul
+ @del *.ppu >nul
+ @del *.s > nul
+
+# variables
+
+#BETA=BetaBuild
+
+INCLUDE = .\INCLUDE
+ASM = tasm
+ASM32 = tasm32
+ASMOPTN = -zi -t -m -q -d__LARGE__ -i$(INCLUDE)
+ASMOPTX =  -t -m -q -d__LARGE__ -d__DPMI__ -i$(INCLUDE)
+ASMOPT32 =  -t -m -mx -q -d__DPMI__ -d__32bit__ -d__Windows__ -i$(INCLUDE)
+CC16R = tpc -D$(BETA)
+CC16P = bpc -D$(BETA)
+CC32 = dcc32 -D$(BETA)
+PPC32 = d:\pp\bin\go32v2\ppc386
+CCOPT16R = -V -m
+CCOPT16P = -m -cp
+CCOPT32 = -m -cc
+PPCOPT32 = -Sd -Rintel -Atasm
+
+# implicit rules
+
+.asm.obj:
+        $(ASM) $(ASMOPTN) $*
+.asm.obp:
+        $(ASM) $(ASMOPTX) $*, $*.obp
+.asm.o32:
+        $(ASM32) $(ASMOPT32) $*, $*.o32
+
+# explicit rules
+
+cpupas.exe: realcode.obj cpuspeed.obj cachetst.obj p5speed.obj
+ $(CC16R) $(CCOPT16R) cpu
+ @command /c if exist cpupas.exe del cpupas.exe
+ @ren cpu.exe cpupas.exe
+
+p5infop.exe: realcode.obj cpuspeed.obj cachetst.obj p5speed.obj
+ $(CC16R) $(CCOPT16R) p5info
+ @command /c if exist p5infop.exe del p5infop.exe
+ @ren p5info.exe p5infop.exe
+
+cpupm.exe: dpmicode.obp cpuspeed.obj cachetst.obj p5speed.obj
+ $(CC16P) $(CCOPT16P) cpu
+ @command /c if exist cpupm.exe del cpupm.exe
+ @ren cpu.exe cpupm.exe
+
+cpupas32.exe: dpmicode.o32 cpuspeed.o32 p5speed.o32
+ $(CC32) $(CCOPT32) cpu
+ @command /c if exist cpupas32.exe del cpupas32.exe
+ @ren cpu.exe cpupas32.exe
+
+#cpufpc32.exe: dpmicode.o32 cpuspeed.o32 p5speed.o32
+# $(PPC32) $(PPCOPT32) cputype.pas
+# $(PPC32) $(PPCOPT32) cpu.pas
+# @ren cpu.exe cpufpc32.exe

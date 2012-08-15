@@ -1,0 +1,7 @@
+Function test3DGames:longint;
+begin
+  {point buf1 at the start of scratchspace}
+  buf1:=@scratchspace;
+  {make sure buf2 is one bufchunk past buf1, word-aligned}
+  buf2:=@scratchspace; inc(word(buf2),(bufsize AND $FFFFFFFE)+2);
+

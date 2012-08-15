@@ -1,0 +1,89 @@
+##############################################################################
+# TMi0SDGL Revision 2 makefile for Borland/Microsoft MAKE - C++ version      #
+#                                                                            #
+# Copyright(c) 1996-2000 by B-coolWare.  Written by Bobby Z.                 #
+##############################################################################
+
+# Memory model specific variables definition
+
+!if !$d(MODEL)
+!error You must define a memory model.
+!endif
+
+!if $(MODEL) == __X__
+MODEL_OK = ok
+# use default distance, no DIST defined
+!endif
+!if $(MODEL) == __TINY__
+MODELLETTER = t
+MODEL_OK = ok
+DIST = near
+!endif
+!if $(MODEL) == __SMALL__
+MODELLETTER = s
+MODEL_OK = ok
+DIST = near
+!endif
+!if $(MODEL) == __COMPACT__
+MODELLETTER = c
+MODEL_OK = ok
+DIST = near
+!endif
+!if $(MODEL) == __MEDIUM__
+MODELLETTER = m
+MODEL_OK = ok
+DIST = far
+!endif
+!if $(MODEL) == __LARGE__
+MODELLETTER = l
+MODEL_OK = ok
+DIST = far
+!endif
+!if $(MODEL) == __HUGE__
+MODELLETTER = h
+MODEL_OK = ok
+DIST = far
+!endif
+!if !$d(MODEL_OK)
+ !error Invalid memory model specified.
+!endif
+
+# Targets
+
+all:     cpucpp clean
+cpucpp:  cpucpp.exe
+library: cputype$(MODELLETTER).lib
+
+clean:
+        del *.ob?
+
+
+# variables
+
+#BETA = BetaBuild
+
+CC = bcc
+LIB = tlib
+ASM = tasm
+INCLUDE = D:\BC5\INCLUDE;.\INCLUDE;
+ASMINC  = .\INCLUDE
+LIBPATH = D:\BC5\LIB
+CCOPTC = -c -O1 -pr -I$(INCLUDE) -m$(MODELLETTER) -d -u -D_dist=$(DIST) -RT- -P- -x- -D$(BETA)
+CCOPTL = -L$(LIBPATH) -m$(MODELLETTER)
+ASMOPTN = -zi -t -m -q -d$(MODEL) -i$(ASMINC)
+
+# implicit rules
+
+.c.obj:
+        $(CC) $(CCOPTC) $<
+.asm.obj:
+        $(ASM) $(ASMOPTN) $*
+
+# explicit rules
+
+cputype$(MODELLETTER).lib: realcode.obj cputype.obj cpuspeed.obj cachetst.obj p5speed.obj
+ $(LIB) cputype$(MODELLETTER).lib -+realcode.obj -+cputype.obj -+cpuspeed.obj -+cachetst.obj -+p5speed.obj
+
+cpucpp.exe: cputype$(MODELLETTER).lib
+ $(CC) $(CCOPTC) cpucpp
+ $(CC) $(CCOPTL) -ecpucpp.exe cpucpp.obj cputype$(MODELLETTER).lib

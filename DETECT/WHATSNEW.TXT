@@ -1,0 +1,71 @@
+WhatsNew Beta 5 (1.18) --> Beta 6 (1.19)
+
+Diese Datei enthaelt alle Aenderungen gegebber der Vorg„ngerversion.
+Die gesamte History ist in HISTORY.TXT festgehalten.
+
+Neue Routinen :
+
+EnvSeg, EnvLen, EnvUsed, DevCount, DevName, DevHeader,
+DevAttributes, DevStrategy, DevInterrupt, IdentifyPCIDevice,
+IdentifyPCIClass, IdentifyPCISubClass, IsDosInHMA, IsDosInRom,
+GetDosOEMNumber, GetDosSwitchChar, IsDEVPrefix, GetDosBusyFlag,
+GetPrtScrStatus, GetMemAllocMethod, DosBuffers, DosFilesPointer,
+DosFilesCount, DosFilesUsed, DosFCBCount, DosStacksCount,
+DosStacksSize, DosActiveGlobalCodePage, DosDefaultGlobalCodePage,
+DosThousandSeparator, DosDecimalSeparator, DosDatalistSeparator,
+DosDateFormat, DosTimeFormat, DosTimeSeparator, DosCurrencyFormat,
+DosCaseMapCallAddress, NumberHandleTables, OpenHandlesTable,
+OpenHandleTabelSize, UsedTabelEntrys und GetOpenFileStatus neu.
+
+Bugfixes :
+ - WhatCPU erkennt jetzt auch unter OS/2 bzw. W'95 den Pentium korrekt.
+ - Bug in CountryCode behoben.
+ - Bugfixes aus Ingo B”ttchers Bugliste ...
+
+Erweiterungen des Source
+ - CyrixId erkennt jetzt 13 weitere Kennungen.
+ - Starke Erweiterung der CPUID-Routine
+   - neue Flags
+     - dcuAddressingExt
+   - neue AMD-Flags
+     - dcuAmIAMMXSupp
+     - dcuAmFloatCondMove
+     - dcuAmIntCondMove
+     - dcuExtGlobalPagExt
+     - dcuAmSysCallSysRet
+     - dcuAmCMPXCHG8B
+     - dcuAmMException
+     - dcuAmK86MSR
+     - dcuAmTSCSupp
+     - dcuAmPageExt
+     - dcuAmDebExt
+     - dcuAmVModeExt
+     - dcuAmFPU
+   - AMD-Details
+     - Prozessorkennung
+     - Cache-Auswertung
+     - AMD Stepping, Model und Familie/Generation
+   - Intel PentiumPro Cache-Erkennung
+ - CPUResetStr erkennt 11 weitere Prozessoren und 1 weitere Familie.
+ - VDSProduct erkennt jetzt auch OS/2 und Novell DOS EMM386.
+ - WhatGCard liest den Speicher jetzt auch aus dem VESA-Infoblock aus.
+ - GetPCIVendor erkennt 117 weitere Hersteller.
+ - DeviceType erkennt jetzt auch Interlink-, Mod- und Netzlaufwerke.
+ - Laufwerksroutinen von ASM -> Pascal uebersetzt
+ - WhichChipSet erkennt 13 weitere Chips„tze
+ - CountryString erkennt 2 weitere Laender (Island und Trkei).
+ - GetDosVersion erkennt die interne Revision.
+
+Ver„nderungen des Source
+ - Neue Unit DetectDos
+ - Funktionen DosVersion, DosMemory, FreeDosMemory, CountryCode und
+   CountryString wurden nach DetectDos verschoben.
+ - DosVersion in GetDosVersion umbenannt.
+
+Ver„nderungen der Referenz
+ - Neuer Eintrag : Beispiel
+ - Starke Erweiterung des Glossars
+ - Neue INet-Adresse
+
+Greetings
+  EJF

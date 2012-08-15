@@ -1,0 +1,18 @@
+LIBRARY     CPUDET32.DLL
+
+EXPORTS
+    CxCPUIDEnable                  @10
+    cpu_Speed                      @13
+    cpu_Type                       @15
+    fcpu_Speed                     @11
+    fpu_Type                       @14
+    getCPU                         @8
+    getCPUFeatures                 @4
+    getCPUID                       @9
+    getCPUSerialNumber             @2
+    getExtraFlags                  @3
+    getFPU                         @7
+    getSteppingInfo                @5
+    getVendorString                @6
+    getVersion                     @1
+    ncpu_Speed                     @12

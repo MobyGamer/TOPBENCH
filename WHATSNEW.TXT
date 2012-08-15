@@ -1,0 +1,48 @@
+Version 0.97b:
+
+  - Removed attempts to detect 80c8x processors because it is not
+    possible to differentiate between an 80c8x and a 1981-or-later 808x
+  - Removed attempts to differentiate between an AMD 386 and an Intel 386
+    because it is unknown when the UMOV instruction was added and removed
+    from various CPUs
+
+Version 0.97:
+
+  + Stub now appends to output file instead of overwriting it.
+  + Command-line options added to optinally skip dodgy detection routines,
+    add a system description, and change the output filename.
+
+Version 0.96:
+
+  * Added two compilation targets, one normal and one for debugging (dstub).
+    Either one can be run to gather output, although only dstub will produce
+    errors that the author can use to debug problems.
+  + Fixed bug with Cirrus Logic detection (was trying to write a word value
+    to a byte-sized port)
+
+Version 0.95:
+
+  - BIOS CRC routine was overzealous.  Now only the area from the BIOS
+    init vector to FFFFF is scanned.
+  + VirtualBox and PC Transporter added to detection library.
+
+Version 0.94:
+
+  + Added detection for AT&T PC 6300, Olivetti M24, and Compaq Portable III
+    extended CGA 640x400 adapters.
+  + Added machine model word to the output, to help expand the detection
+    database.
+  + Rewrote BIOS identification from HLL to assembler and brought the
+    execution time from ~24 seconds down to 0.5 on 8088 :-D
+  + Identified stack overflows and fixed them (whoops).  Compatibility
+    should rise because of this.
+  - Extra handling of floppy support added so the floppy access wouldn't
+    affect the CPU MHz calc.  RAM usage up 3K as a result.
+  * topbench source currently at 5700 lines.
+
+Version 0.93:
+
+  + Changed all text output to go through DOS for compatibility and a
+    slight size reduction.
+  - Removed attempts to detect 80C88 and 80C86 CPUs since they were causing
+    false positives.

@@ -1,0 +1,12 @@
+Detecting Unit fÅr Pascal BETA 1.19-·
+vom 24.08.1996. Diese Unit erkennt ca.
+1400 Komponenten des Computers u.a. 68
+Proz., 25 Koproz., 137 Grafikchips,
+ca. 190 Softwareprogr., CPUReset-Id
+(ca. 100 Proz.), 24 ChipsÑtze, Cache,
+Benchmarks, BIOS, Maus, Sound, Bus-
+systeme ISA/EISA/MCA/VL/PCI, CPUID (AMD,
+Intel, etc.), Computertyp (ca. 260), ...
+Insgesamt ca. 466 verschiedene Routinen
+Voller Pascal (926k) / ASM (91K) Source
+Mit 306K Referenz / Freeware / EJF

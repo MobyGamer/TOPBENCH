@@ -1,0 +1,1046 @@
+Q: Was kann Die Detecting Unit fÅr Pascal 1.19-· ?
+A: Vieles ;-)
+
+ - Den CPU-Typ ermitteln (NEC V20, NEC V30, Intel 8088, Intel 8086, Intel
+                          80C88 (CMOS-Version), Intel 80C86 (CMOS-Versiom),
+                          Intel 80188, Intel 80186, Intel 80286, Intel
+                          80386dx, Intel 80386sx, Chips & Technologies
+                          38600dx, Chips & Technologies 38600sx, 486DLC,
+                          486SLC, Intel RapidCad, Intel 80486dx, Intel
+                          80486sx, Cyrix Cx486SLC/e, Cx486DLC, Cx486SLC2,
+                          Cx486DLC2, Cx486SRx, Cx486DRx, Cx486SRx2,
+                          Cx486DRx2, Cx486SRu, Cx486DRu, Cx486SRu2,
+                          Cx486DRu2, Cx486S (B-Step), Cx486S2, Cx486S/e,
+                          Cx486S2/e, Cx486DX/IBM BL486DX, Cx5x86-S
+                          (1x, 2x, 3x, 4x Clock-Mode), Cx5x86-P (1x, 2x, 3x,
+                          4x Clock-Mode), Cx6x86-S (1x, 2x, 3x, 4x
+                          Clock-Mode, neue und alte Version), Cx6x86-P
+                          (1x, 2x, 3x, 4x Clock-Mode, neue und alte Version),
+                          Cx486DX2/IBM BL486DX2/ST486DX2/TI486DX2, Cx486DX4,
+                          TI486DX4, Cyrix Overdrive, TI Potomac's, Nexgen,
+                          Intel Pentium oder kompatible)
+
+ - Ermitteln, ob der 80386 POPAD-Bug vorhanden ist
+ - Ermitteln, ob der 80386 MUL-Bug vorhanden ist
+ - Ermitteln, ob der Pentium FDIV Bug vorhanden ist
+
+ - öber den CPUID Befehl bei neuen 486'ern und Pentium-Prozessoren
+   - Die genaue Baureihe herausfinden
+   - Stepping/Typ herausfinden
+   - Flags erkennen (CMPXCHG8B, Mashine Exception, Pentium MSR's, Addressing
+     Extensions (2MB Pages, 36Bit physikalische Adressen) TSC, Page-
+     Extensions, Enhanced V86 Mode, I/O Breakpoints, Local APic, Memory Type
+     Range Register, Page Global Enable, Mashine Check, CMOV unterstÅtzt und
+     MMX-Funktionen vorhanden)
+   - Firma erkennen (Intel, UMC, Cyrix, AMD, NexGen)
+   - Folgende Prozessoren werden automatisch erkannt : UMC U5D, U5S; AMD
+     Am486DX2, Am486DX2WB, Am486DX4, Am486 DX4WB, Am5x86WT, Am5x86WB,
+     5k86 SSA/5, 5k86, 6k86; Cyrix Cx5x86, Cx486DX4, Cx6x86; Texas
+     Instruments TI486DX4; Intel Pentium 60/66 Step A, Pentium 60/66 B1/C1
+     Pentium 75-166, B1/B3/B5/C2/cC0, P24T, OverDrive; NexGen 5x86 100, 5x86
+     120 (E2/C0), PentiumPro A; PentiumPro, P55XT, PPro 166-200 sA0, PPro
+     166-200 sA1;
+   - Fuer den PentiumPro (und hoeher) koennen zusÑtzlich die Cache-Settings
+     ausgelesen werden (9 verschiedene Charakteristika)
+   - Bei AMD-Prozessoren ab 5k86 koennen zusaetzlich folgende Informationen
+     ausgelesen werden :
+     - AMD erweiterte CPUID Register
+     - AMD-Extended-CPUID-Flags (FPU integriert, Virtual 86 Mode Extensions,
+       Debugging Extensions, Page Size Extensions, Time Stamp Counter, K86-
+       spezifische MSR's, Machine Check Exception, CMPXCHG8B, SysCall/SysRet
+       Extensions, Global Paging Extensions, Integer Conditional Move,
+       Floating Point Conditional Move, Multimedia Extensions/MMX)
+     - Genaue Bezeichnung des AMD-Prozessors (Fuer den 5k86 waere das
+       'AMD-K5 (TM) PROCESSOR')
+     - Stepping (AMD)
+     - Model (AMD)
+     - Familie (AMD)
+     - Caches (Data TLB, Instruction TLB, L1 Data, L1 Instruction)
+
+ - öber den internen Prozessorreset den Typ des Prozessors herausfinden (erst
+   ab 386) : Intel 80386SX A0, Intel 80386SX D0/AMD 386SX (L) A1, Intel
+             80386SX D1, C&T 38600/5 S/DX, Intel 80386DX B1, Intel 80386DX
+             D0/AMD 80386DX (L) A, Intel/AMD 80386DX D1, Intel RapidCad A,
+             Intel RapidCad B, Intel 80486 DX A1, Intel 80486 DX Bx, Intel
+             80486 DX C0, Intel 80486DX, Intel 80486DX D0, Intel 80486DX
+             cAX/Cyrix 486SLC/TI486DLC, Intel 80486DX cBX/TI486DLC B, Intel
+             80486DX, AMD 80486DX-40, Intel 80486SX A0/Cyrix 486DLC, Intel
+             80486SX, Intel/AMD 80486DX2/Overdrive, Intel 80486DX2, Intel
+             80386SL A0-A1, Intel 80386SL A2, Intel 80386SL A3, Intel 80386SL
+             B0-B1, IBM 386SLC, Cyrix M5, Cyrix M6, Cyrix M7, Cyrix 5x86,
+             NexGen Nx586-100, NexGen Nx100 E2/C0, NexGen Nx120 D1/B0, IBM
+             486SLC, IBM 486SLC2, IBM 486BLC3; Prozessorfamilien : 80386DX
+             Step A, 386DX, 486'er Familien (DX, DX2, SL, SX2, DX2WB, DX4,
+             DX4WB), Pentium, 386SX, 386SL, 386SLC (IBM), NexGen;
+
+ - Den Koprozessor ermitteln (Emuliert, Intel 8087, Intel 80C187, Intel 80287,
+                              Intel 80287XL, Intel 80387dx, Intel 80387sx,
+                              IIT 2C87, IIT 3C87, IIT 3C87sx, Cyrix 82S87 alt,
+                              Cyrix 83S87 alt, Cyrix 34D87, ULSI 83C87, ULSI
+                              83S87, Chips & Technologies 38700dx, Chips &
+                              Technologies 38700sx, Intel RapidCad, Intel 486
+                              FPU, Cyrix 82S87 neu, Cyrix 83S87 neu, Cyrix
+                              387+, Cyrix EMC87, Intel Pentium FPU)
+
+    - Den Rundungsmechanismus des Koprozessors feststellen (nÑchster oder
+      gleicher Wert/Abrundung/Aufrundung/Abschneiden)
+    - Die PrÑzision des Koprozessors ermitteln (24/53/64-Bit)
+
+
+ - Ermitteln, ob das Koprozessor-Flag des BIOS gesetzt ist
+
+ - Weitek-Typ ermitteln (normal und Weitek-Real)
+
+ - Die Frequenz der CPU in Mhz erkennen
+ - Die Frequenz des Koprozessors in Mhz erkennen
+
+ - Die effektiven RAM-WaitStates erkennen
+
+ - Erkennen, ob ein CPU-Cache vorhanden ist
+   - Level
+     - First
+       - KB
+       - öbertragungsrate
+     - Second
+       - KB
+       - öbertragungsrate
+
+ - Erkennt den Bustyp (ISA/EISA/MCA/VL/PCI)
+   - EISA Extrainformationen
+     - Ist eine Id vorhanden
+     - Typ des Slots
+     - Configuration Utility Version
+     - Configuration Checksumme
+     - Anzahl der Device Funktionen
+     - Hexadezimale Id.
+   - PCI Extrainformationen
+     - Welche Devices sind da ?
+     - Config-Records kînnen ausgelesen werden (hier das wichtigste) :
+       - Hersteller
+       - Device-Id
+       - Class 1/2/3
+         - Auswertung von Class 1 und Class 2 (Insgesamt ca. 30 Klassen)
+       - Mem-Belegungen
+       - Zugriffstypen
+       - ...
+     - ca. 450 Herstellernamen kînnen erkannt werden
+     - Es koennen einzelne Karten (ca. 450) erkannt werden
+
+ - Chipsatzinformationen
+   - Typ (Cyrix 486DLC/SLC, 486DX, 5x86/6x86; Intel Triton, Saturn,
+          Mercury 82434LX, Neptun 82434NX, PCISet 82420EX, TXC 82439HX; UMC
+          82C881, 82C481A, 82C391A, 82C8881 HB4, 82C891, 82C8891; SiS 501/
+          502/503, 5511/5522; LSI Logic Hydra, Aspen; NexGen VL82C500;
+          Acer ALI M1451, M1461; IMS Diamond 5026/5027/5028; VIA Apollo
+          VT82C570MV)
+
+ - Cyrix-Prozessorregister auslesen (CCR1-3, DIR0-1)
+
+ - Erkennt, ob eine JetStream-Karte aktiv ist.
+
+ - Die maximale öbertragungrate ermitteln
+   - RAM
+   - Bios Extended Memory
+   - EMS
+
+ - Die Bus-Breite erkennen
+
+ - Das Mashine Status Word (MSW) auslesen
+   - Protected Mode Bit
+   - Monitor Koprozessor Bit
+   - Koprozessoremulator Bit
+
+ - Die IDT und GDT auslesen
+
+ - Den Maschinen-Typ (Åber das Mashine Type Word, Åber 190 verschiedene
+   Modelle werden erkannt)
+
+ - Feststellen, wieviele Parallele und Serielle Schnittstellen vorhanden
+   sind
+
+ - Die Unit kann die Whet- und Dhry-Stones ermitteln. WhetStones sind ein Ma·
+   fÅr KoprozessorleistuingsfÑhigkeit, Dhrystones ein Ma· fÅr die Integer-
+   Rechengeschwindigkeit.
+
+ - Die Unit kann MFLOPS (LLL, Transform, Peak) ermitteln (Million Floating
+   Point Operations per Second bzw. Anzahl der Flie·kommarechnungen pro
+   Sekunde in Millionen)
+
+ - Die relative Geschwindigkeit der Whet-, Dhry-Stones und LLL MFLOPS
+   gegenÅber dem XT feststellen, wobei sich bei Whetstones und LLL MFLOPS die
+   Werte darauf beziehen, ob man einen Koprozessor hat oder nicht.
+
+ - öber CMOS und BIOS ermitteln, ob
+    - ein GameAdapter angeschlossen ist
+    - der DMA-Channel 3 benutzt wird
+    - Der Slave 8259-Baustein benutzt wird
+    - Eine Echtzeituhr eingebaut ist
+    - der Prozessor gerade auf ein externes Ereignis wartet
+    - das CMOS noch genug Energie hat
+    - ein OnBoard SCSI Adapter installiert ist
+    - ein IML-System vorhanden ist
+      - Hat das IML-System SCSI Support ?
+
+ - Bios Datensegment auslesen.
+
+ - Erkennt, ob der Rechner dio APM (Advanced Power Management Spez.)
+   unterstÅtzt.
+   - Version
+   - 16 Bit Protected Mode Support ?
+   - 32 Bit Protected Mode Support ?
+   - BIOS-Power-Management aktiv ?
+   - AC-Line-Status
+   - Batteriestatus
+   - Batterie-QualitÑt
+
+ - Die Grafikkarte ermitteln (HERCULES; CGA; MCGA; EGA Color; EGA Mono;
+                              IBM 8514; AT & T 400; VGA; XGA; Video 7
+                              VEGA VGA, VRAM, FASTWRITE, VGA Version 5,
+                              1024i; Ahead A, B; Genoa 5100, 5200, 5300,
+                              5400, 6100, 6200, 6400, 6600; Cirrus
+                              CL-GD5402, CL-GD5402 r1, CL-GD5420,
+                              CL-GD5420 r1, CL-GD5422, CL-GD5426, CL-GD5424,
+                              CL-GD5428, CL-GD543x, CL-GD6205, CL-GD6235,
+                              CL-GD6215, CL-GD6225, AVGA2 (5402), CL-GD6440,
+                              CL-GD6412, CL-GD5410, CL-GD6420, CL-GD6410,
+                              510/520, 610/620, Video7 OEM; Chips&Technolo-
+                              gies 82c450, 82c451, 82c452, 82c453, 82c455,
+                              82c456, 82c457, F65510, F65520, F65530;
+                              Trident 8800BR, 8800CS, TR8900, TR8900C,
+                              TR9000, TR8900CL/D, TR9000i, TR8900CXr,
+                              LCD9100B, LX8200, TVGA9200CXi, LCD9320,
+                              GUI9420, TVGA 8800BR (Everex ViewPoint,
+                              Ultragraphics II, VisionVGA, EVGA); Tseng ET
+                              3000, 4000/w32/w32i/w32p; ZyMOS; ATI 18800,
+                              18800-1, 28800-2, 28800-4, 28800-5, 28800-6,
+                              68800, VGAWonder, EGAWonder, EGAWonder 800+,
+                              Basic-16; S3 86c911, 86c911A/86c924, 86c928
+                              C/D/E, 86c801/805 A/B/C/D, 86c928 PCI,
+                              86c868/86c968 PCI, Avance Logic AL2101; Compaq
+                              IVGS, AVGA, QVision 1024, QVison 1280, AVPort;
+                              MXIC MX86010, MX86000; NCR VGA 77C22, 77C21,
+                              77C22E, 77C22E+; Oak OTI-087, OTI-083, OTI037C,
+                              OTI-067, OTI-077, OTI-057; Paradise/Western
+                              Digital PVGA1A, WD90C00, WD90C22, WD90C20A,
+                              WD90C20, WD90C24, WD90C26, WD90C30, WD90C31,
+                              WD90C33, WD90C10, WD90C11; Primus 2000;
+                              RealTek RT3103, RT3105, RT3106; UMC 85c408;
+                              Weitek; Yamaha 6388)
+
+ - Zusatzinformationen zu speziellen Grafikkarten
+   - IBM PC 3270 : X-Aspekt-Radius
+   - IBM PC 3270 : Y-Aspect Radius
+   - IBM PC 3270 : Monitor Typ
+   - IBM PC 3270 : Adapter Id
+   - IBM PC 3270 : UnterstÅtzte Modi
+   - IBM PC 3270 : GPI Grafiksupport
+   - IBM PC 3270 : Kontrollprogramm Typ und Version
+   - IBM PC 3270 : Kontrollprogramm Id-String
+
+   - EGA : Buffersicherung bei Mode Wechsel
+   - EGA : Ist aktiv ?
+   - EGA : Wartet auf Bildschirmzugriff
+   - EGA : CGA Cursor Emulation unterstÅtzt
+   - EGA : Save Area
+   - EGA : Video Parameter Tabelle
+   - EGA : Dynamic Save Area
+   - EGA : Auxiliary Character Generator
+   - EGA : Graphics Mode Auxiliary Table
+
+   - VGA : Color Page
+   - VGA : Paging Mode
+
+   - VGA/MCGA (PS) : Aktueller Video-Modus
+   - VGA/MCGA (PS) : LÑnge des Regenerate Buffer's
+   - VGA/MCGA (PS) : Start-Adresse des Regenerate Buffer's
+   - VGA/MCGA (PS) : Cursor Position auf Bildschirmseiten 0-7
+   - VGA/MCGA (PS) Cursor Typ
+   - VGA/MCGA (PS) Bytes pro Zeichen
+   - VGA/MCGA (PS) Display Kombinationscode
+   - VGA/MCGA (PS) Aktive Bildschirmseite
+   - VGA/MCGA (PS) Anzahl der Farben in der aktuellen Mode
+   - VGA/MCGA (PS) Anzahl der Seiten in der aktuellen Mode
+   - VGA/MCGA (PS) Aktuelle Anzahl der Scanlines
+   - VGA/MCGA (PS) Laden der Default-Farben abgeschaltet ?
+   - VGA/MCGA (PS) Cursor Emulation eingeschaltet ?
+   - VGA/MCGA (PS) PS/2 Plasma Display aktiv ?
+   - VGA/MCGA (PS) Welche Modi von 0-13h werden unterstÅtzt ?
+   - VGA/MCGA (PS) Wird die Char-Font Loading Function unterstÅtzt ?
+   - VGA/MCGA (PS) Abschalten der Default Loading der Palette unterstÅtzt ?
+   - VGA/MCGA (PS) Wird die Cursor Emulation Function unterstÅtzt ?
+   - VGA/MCGA (PS) Wird die Color Paging Function unterstÅtzt ?
+   - VGA/MCGA (PS) Wird ein Light Pen unterstÅtzt ?
+   - VGA/MCGA (PS) Wird das 512 Char-Set unterstÅtzt ?
+
+   - VIDEO 7 : Speicher
+   - VIDEO 7 : I/O-Schnittstelle mit 8 oder 16 Bit ?
+   - VIDEO 7 : 8 oder 16 bit BIOS
+   - VIDEO 7 : FastWrite 8 oder 16 Bit
+   - VIDEO 7 : Clock Select
+   - VIDEO 7 : Clock Source
+
+   - GENOA : BUS-Typ
+   - GENOA : Video-Bandbreite
+   - GENOA : 8 oder 16 Bit BIOS
+   - GENOA : Input/Output Grundportadresse
+   - GENOA : BIOS Grî·e (24K/30K/32K)
+   - GENOA : Monitor Typ
+   - GENOA : Chipset auf Motherboard oder Karte ?
+   - GENOA : Wird Fast Scroll unterstÅtzt ?
+   - GENOA : Wird Fast Address unterstÅtzt ?
+   - GENOA : Wird Fast Write unterstÅtzt ?
+   - GENOA : Gibt es einen vertikalen Retrace von 70 Hertz ?
+   - GENOA : Interlaced ?
+
+   - TRIDENT : 8 oder 16 Bit Bios
+   - TRIDENT : Interlaced ?
+
+   - TSENG ET ?000 : 8 oder 16 Bit Rom
+   - TSENG ET ?000 : 8 oder 16 Bit Video
+   - TSENG ET ?000 : 8 oder 16 Bit I/O-Schnittstelle
+   - TSENG ET ?000 : kompatibel mit EGA/VGA ?
+   - TSENG ET ?000 : Adresse des ROM's
+
+   - ATI : Ist ein Mausport in die Karte integriert ?
+   - ATI : Ist ein programmierbarer Video-Timer vorhanden ?
+   - ATI : Monitor
+   - ATI 18800^ : Schafft die Karte 70 Hertz non Interlaced
+   - ATI 18800^ : Ist ein koreanischer Zeichensatz auf der Karte integriert ?
+   - ATI 18800^ : Ist ein Memory-Timer vorhanden ?
+   - ATI 18800^ : UnterstÅtzt die Karte die Zero-Waitstate Technologie
+   - ATI 18800^ : Sind Paged ROM's vorhanden
+   - ATI 18800^ : Ist ein 8514A Support integriert ?
+   - ATI 28800^ : Ist ein True-Color DAC auf dem Board installiert ?
+
+   - S3 Check fÅr Diamond Stealth-Karten und deren DAC's
+   - S3 Ist MEMCS16 8 oder 16 Bit
+   - S3 Ist der Fast Write Buffer eingeschaltet
+   - S3 Zero Waitstate (EISA)
+
+   - AHEAD Befindet sich die Grafikkarte im Modus 8 Fonts
+   - AHEAD Ist der High Speed Sequencer eingeschaltet
+   - AHEAD Ist der 16-Bit Memory-Mode eingeshaltet
+   - AHEAD In welchem Emulationsmodus befindet sich die Grafikarte
+   - AHEAD Ist es ein 24KB oder ein 32 KB BIOS
+   - AHEAD Ist es ein 8- oder 16-Bit BIOS
+
+   - Avance Logic AL2101 Maximale Horizontalfrequenz
+   - Avance Logic AL2101 Emulationsmodus fÅr VGA/EGA/CGA/MDA
+
+   - Cirrus Ist ein Cirrus Logic BIOS installiert ?
+   - Cirrus Bios / Version
+   - Cirrus Bios / Memory
+   - Cirrus Bios / Monitortyp
+
+   - Compaq Monitortyp
+
+   - Everex BIOS Version
+
+   - Realtek Emulationsmodus
+
+   - Yamaha Clock Select
+
+ - Informationen Åber VESA
+   - Version
+   - OEM-Name
+   - Video Modes
+
+ - Typ des RAM DACS (Normal; SS24; Sierra SC11486, 16m, 32/64k; AT&T 20c490,
+                     20c491, 20c493; Acumos ADAC1; Cirrus 24 Bit DAC; Music
+                     MU9C4910; Diamond SS2410; Brooktree Bt484; Edsun CEG,
+                     Sierra SC1148x Hicolor DAC, Sierra Mark2 (15 Bit) oder
+                     Mark3 (15/16 Bit) DAC, ATT20c490/1/2 (15/16/24 Bit),
+                     Interner Cirrus 15/16/24 Bit DAC, Diamond SS2410
+                     (15/24 Bit), Hicolor DAC)
+
+
+ - Ab VGA
+   - Grî·e des Video-Buffers
+   - Displayport
+   - CRT-Mode Register
+   - Textzeilen
+   - TextSpalten
+   - aktuelle Video-Seite
+   - Scanlines/Buchstabe
+   - Scanlines/Cursor
+   - Adressen der ROM-Schriftarten
+   - Palettenregister der Farben im 16-Farben Modus
+   - Wird das Direct Graphics Interface (DGIS) unterstÅtzt ?
+
+ - Video RAM WaitStates
+ - BIOS Datendurchsatzrate in Bildschirmspeicher (cps)
+ - DOS Datendurchsatzrate im BildSchirmspeicher (cps)
+ - Vertikale Hertz-Frequenz im aktuellen Modus (hz)
+ - Horizontale Khz-Frequenz im aktuellen Modus (Khz
+
+ - Erkennen, ob das Verify-Flag gesetzt wurde
+ - Erstes Laufwerk
+ - Anzahl der Devices
+ - Anzahl der Floppys
+ - Bootlaufwerk
+ - Letztes Laufwerk
+ - FÅr jedes Laufwerk :
+   - Existiert es ?
+   - Typ (Subst/CDROM/Hd/Floppy/Mod/InterLink/Netz)
+   - Zugriffsmethode (Remote/Local/Shared)
+   - Entnehmbar ?
+
+ - Hard Disks
+   - Zylinder
+   - Lese/Schreib Kîpfe
+   - Sektoren
+   - KapazitÑt
+   - Track zu Track Zugriffszeit
+   - Mittlere Zugriffszeit
+   - Maximale Zugriffszeit
+   - Datentransferrate Lesen/Schreiben mit einstellbaren Blockgrî·en
+     und Wiederholungen.
+
+ - (Extended) IDE Plattendaten von C: oder D: direkt auslesen
+
+ - Ermitteln, ob EMS vorhanden ist
+   - EMS-Version
+   - Freie Seiten
+   - Seiten insgesamt
+   - Page-Frame Adresse
+   - Anzahl der benutzten Handles
+   - Grî·e der Handles
+   - Namen der Handles (ab EMS Ver. 4)
+   - VCPI-UnterstÅtzung
+   - VCPI-Version
+
+ - Ermitteln, ob Extended Memory Åber das BIOS zu erreichen ist
+   - freier Extended Memory laut BIOS
+
+ - Ermitteln, ob ein Extended Memory Manager (XMM) installiert ist
+   - XMS-Version
+   - XMM-Version
+   - XMS-Memory insgesamt
+   - XMS-Memory frei
+   - Status der A20-Leitung
+   - Sind UMB's vorhanden
+     - Wie gro· ist der grî·te Block des UMB
+   - Ist die HMA (High Memory Area) vorhanden ?
+     - Status der HMA
+     - Ist HMA von DOS 5+ benutzt ?
+       - freier HMA-Speicher unter DOS 5
+       - Adresse der HMA unter dos 5
+
+ - Ermitteln, ob DPMI installiert ist
+   - die DPMI Version
+   - die von DPMI ermittelte CPU (2/3/4/586)
+   - Der Protected Mode Entry Point des DPMI
+
+ - Wieviel Base Memory laut CMOS vorhanden ist
+ - Wieviel Extended Memory laut CMOS vorhanden ist
+ - Wieviel Memory laut CMOS vorhanden ist
+
+ - Die Anzahl der MCB's ermitteln
+   - Signatur eines einzelnen MCB
+   - PSP des Programms
+   - Parent-Prozess des Programms
+   - Groesse des Programms im Speicher
+   - Name der Datei
+   - Verwendete Interrupts des Programms
+
+ - Ist eine Maus angeschlossen (Treiber)
+   - Maustreiberversion
+   - Maushersteller
+   - Maustyp
+   - Maus IRQ
+   - Maussprache
+   - Anzahl der Buttons
+   - Doppelklickgeschwindigkeit
+   - Empfindlichkeit in X- und Y-Richtung
+   - Die Display-Page der Maus
+   - UnterstÅtzt der Maustreiber die EGA-Register
+     - Welche Version
+   - Wie gro· ist der Save State Buffer ?
+   - Ab Version 7.0
+     - Treiber-Typ (Device Driver oder TSR)
+     - Cursor-Typ
+     - Interrup Rate (30hz-200hz)
+     - Accelleration Profil
+   - Ab Version 7.4
+     - Ballpoint
+   - Ab Version 8.0
+     - INI-Pfad
+     - Zeigerform
+     - Zeigergrî·e
+     - Grî·enverÑnderung
+   - Erkennt den Logitech Treiber
+     - Kompa·parameter
+     - nur bei einer seriellen Maus :
+       - Baudrate
+       - Reportrate
+       - Firmware-Revision
+       - Port-Adresse
+   - Erkennt den MouseSystems Treiber
+     - Version
+   - Erkennt den Z-Nix Maustreiber
+   - Erkennt den TrueDOX Maustreiber
+   - Erkennt den HP Maustreiber
+
+ - Wird ein erweitertes Keyboard vom BIOS unterstÅtzt ?
+ - Keyboardtyp (XT/Erweitert)
+
+ - öberprÅfen, ob die Taste XXX gedrÅckt wurde
+   - Insert
+   - Caps Lock
+   - Num Lock
+   - Scroll Lock
+
+ - Start des Key-Buffers
+ - Ende des Key-Buffers
+ - LÑnge des Key-Buffers
+
+ - Wird Keyboard Funktion Int 16h/Funktion 9 unterstÅtzt ?
+ - Wird der Keyboard-Intercept unterstÅtzt
+ - Keyboard-ID ermitteln
+ - Keyboard Controller ermitteln
+
+ - Informationen Åber das BIOS
+   - Bios-Datum
+   - Bios-Revision
+   - Bios-Source
+   - Hersteller
+   - Bios-Version
+   - Bios erweitertes Datensegment ?
+   - Bios Extensionen (Grafikkarten, ...)
+     - Segment
+     - Grî·e
+     - Copyright
+
+ - Erkennt SB, SB PRO, SB 16ASP, Adlib, Roland MPU 401, Gravis Ultrasound
+   - GUS/SB Port
+   - SB Version
+   - Adlib-Driver
+     - Version
+     - Adresse
+   - GUS Memory
+
+ - Erkennt das Vesa Audio Interface (VBE/AI)
+   - Version
+   - Info-Blocks
+     - Wave
+     - Midi
+     - Volume
+
+ - Dos-Speicher insgesamt
+ - Freier Dos-Speicher
+
+ - VDS (Virtual DMA Specification)-Erkennung
+   - Version
+   - Produkt
+   - Maximale DMA Buffer Grî·e
+   - Wohin sind Transfere Ok (nur 1. MB/jede Adresse)
+   - Lieg der Buffer im 1. MB ?
+   - Ist die Auto-Remap Option aktiv
+   - Ist die Contiguous-Memory Option aktiv
+   - Ist das Bios-Bit fÅr VDS gesetzt ?
+
+ - Serielle und parallele Portdaten
+   - Parallel :
+     - Flags (Busy, Ack, Papier fehlt, Selected, IO Fehler, TimedOut)
+     - TimeOut-Zeit
+     - EPP ?
+   - Seriell :
+     - UART (8250/16450/16550/16550A)
+     - Baudrate
+     - Datenbits
+     - Parity-Typ
+     - Stopbits
+     - Break-Flag
+     - Allgemeine Flags (RLSD, dRLSD, RI, dRI, DSR, dDSR, CTS, dCTS)
+
+ - Erkennung Residenter Software
+   - Assign
+   - DriverSys
+   - Share
+   - Redifs
+   - Multidos Plus
+     - Multitasking-Betrieb ?
+     - Vordergrund ?
+   - NlsFunc
+   - Windows 386
+   - Dos-Shell
+   - Ansi.Sys
+   - Xma2Ems.Sys
+   - Himem.Sys
+   - Novel Netware IPX
+   - Display
+   - Dos Installable Command Extender
+   - IBM 3270
+   - Append
+     - Status
+     - Pfad
+   - LAN
+   - LAN RECEIVER.COM
+   - LAN REDIRIFS.EXE
+   - GrafTable
+     - 4.0-
+     - 5.0+
+   - MS CD Extensions
+     - Version
+   - 4Dos
+   - NDos
+   - KStack
+   - WildUnix
+   - Arnakey
+   - Task Switcher Dos 5
+     - Switch Entry Point
+   - Dr Dos Task Max
+     - Version
+     - Maximale Anzahl der Tasks
+     - Aktive Anzahl Tasks
+   - F-Prot F-Lock
+   - F-Prot F-XChk
+   - F-Prot F-PopUp
+   - F-Prot F-DLock
+   - FluShot+
+   - HyperDisk
+   - MS LanTastic
+   - Inset
+   - Dos/16M
+   - Phar Lap Dos Extender
+     - Typ
+   - Norton Utilities
+     - N-Cache-F, N-Cache-S
+       - Status
+     - N-DiskMon
+       - Status
+       - Segment
+     - N-DiskReet
+       - Segment
+       - Status
+     - N-FileSav
+       - Segment
+   - EGA.SYS
+   - Print
+   - NET-Bios Append
+   - NET-Bios Network
+   - ShellB
+   - GRAPHICS.COM
+   - MS-Dos Doskey
+   - Topware Net Operating System
+   - AUTOPARK.COM
+   - AutoBraille
+   - Jot-It
+   - RedView
+   - Explosiv Screen-Saver
+   - Intel Image Processing Interface
+   - SWELL.EXE
+     - Version
+   - ZWMouse
+     - Segment des residenten Codes
+   - HEART.COM
+   - GRIDLOC.EXE
+   - 4Map
+   - MinMem
+   - METZTSR.COM
+   - VidLock.COM
+   - BTrieve Multi User
+   - IBM PC 3270 Emulator v3
+   - Easy Net
+   - TurboNET Server
+     - Code Segment
+   - FaxBios Interface
+   - WHOA.COM
+   - Resident Aid
+   - Inner Mission
+     - Segment des residenten Codes
+   - PCTools
+     - 7.x+ Data Monitor
+       - Segment des residenten Codes
+     - 7.x+ CPShedule/Desktop
+       - Segment des residenten Teils
+     - 6.0+ PC Cache
+       - Welche Laufwerke werden beacht ?
+     - 6.0+ PC Run
+     - 5.1+ PC Shell
+       - Ist resident ?
+     - 5.1+ Desktop
+       - Segment des Residenten Teils
+       - Hotkeys
+         - vom Desktop
+         - Kopier-Taste
+         - Paste-Taste
+         - AutoDial-Taste
+       - Resident geladen ?
+       - genaue Version ab 6.00
+       - Name des Farbenschemas ab 7.00
+     - 5.1+ BackTalk
+       - Code Segment
+     - 5.x PC Cache
+   - SCRNSAV2.COM
+   - 3com BAPI serial I/O
+   - Automatic Screen Access Program (Asap)
+     - Segment des residenten Codes
+   - COURIERS.COM (PC Magazine)
+   - QCache
+   - SCROLOCK.COM
+   - FASTBUFF.COM
+     - Segment des residenten Codes
+   - ATI EGA/VGA Wonder Super Switch (SMS.COM)
+   - KingsWood Utilities
+     - TSR Windows
+       - Pointer zum Modul
+     - NoBusy
+       - Pointer zum Modul
+     - CD-Stack
+       - Pointer zum Modul
+     - DiskWatch
+       - Pointer zum Modul
+     - PushBP
+       - Pointer zum Modul
+     - Alias
+       - Pointer zum Modul
+     - KeyMacro
+       - Pointer zum Modul
+     - SlowDown
+       - Pointer zum Modul
+     - AnsiGrab
+       - Pointer zum Modul
+     - Tee
+       - Pointer zum Modul
+     - FastMouse
+       - Pointer zum Modul
+     - ExtWild
+       - Pointer zum Modul
+     - BreakOut
+       - Pointer zum Modul
+     - StopDisk
+       - Pointer zum Modul
+   - Tame
+     - Data Area
+   - Common Access Method - SCSI
+   - CMC International SCSI Driver
+   - TinyTalk
+   - VUImage Display Driver
+   - FAST!
+   - SWBios auf C/D
+   - Ergo OS 286/386 Dos Extender
+   - Ergo Huming Dos Extender
+   - DOS 3+
+     - Datensegment
+   - Back&Forth
+   - Tes
+     - Port
+   - AVATAR.SYS
+     - Support-Level
+     - Driver Typ
+   - Sound Blaster Speech Driver
+     - API Entry Point
+   - SRDisk
+     - Anzahl maximal unterstÅtzter Laufwerke
+     - Memory Type
+     - Version
+     - Version des Konfigurationsformats
+   - Stackey
+     - Version
+   - Elres
+     - Code Segment
+   - Concurrent Dos
+   - Diet Overlay Version
+   - DOSED.COM
+   - Rational Systems DOS/4G
+   - CUCKOO.COM
+   - DECnet DOS CTerm
+   - IBM Personal Communications/3270
+   - Alloys Netware Support Kit
+   - ZipKey
+     - Version
+   - Compaq Adapt.Com
+     - Version
+   - Unchain
+   - Blank-It
+   - Parker
+   - Stacker
+     - Version
+   - ScreenR
+   - ScanBoot
+     - Version
+   - B&W LPD
+   - B&W Com14
+   - TelAPI
+   - ObjectKernel for Dos
+     - Adresse
+   - Ultravision
+     - Version
+   - Ultrafont
+     - Version
+   - NWCDEX
+   - DoubleSpace
+   - SuperStor PRO
+   - K5
+   - Software Carousel
+   - FastFlip
+
+ - Erkennung, ob sich DesqView im Speicher befindet
+   - Version
+   - aktuelle Fensternummer
+   - Wahrer Video-Modus
+   - Zeilen
+   - Spalten
+   - Common Memory
+     - VerfÅgbar
+     - Grî·ter freier Block
+     - Total
+   - Conventional Memory
+     - VerfÅgbar
+     - Grî·ter freier Block
+     - Total
+   - Expanded Memory
+     - VerfÅgbar
+     - Grî·ter freier Block
+     - Total
+
+ - Erkennt, ob Thunderbyte ScanX sich im Speicher befindet
+   - Version
+   - Status
+
+ - Erkennt, ob PcAnywhere installiert ist
+   - Status
+   - Port
+   - Baudrate
+
+ - Erkennt, ob PC AnyWhere IV aktiv ist
+   - Api Einstiegspunkt
+   - Version
+   - Status
+
+ - Erkennt, ob DiskSpool II sich im Speicher befindet
+   - Segment
+   - Status
+     - Spooler
+     - Despooler
+
+ - Erkennt, ob Windows im Speicher aktiv ist
+   - Modus (2.X, Real/Standard & Enhanced)
+   - Bei Enhanced :
+     - Version
+     - Virtual Mashine Id
+     - OldAp-Support
+       - Version
+     - Driver Version
+     - Device Typ
+     - Screen-Hîhe
+     - Screen-Breite
+     - Farben
+     - Bits pro Pixel
+     - Bit Planes
+     - X Aspect Ratio
+     - Y Aspect Ratio
+     - Anzahl der Brushes
+     - Anzahl der Pens
+     - Anzahl der Markers
+     - Anzahl der Schriften
+
+ - Erkennt, ob SmartDrive sich im Speicher befindet
+   - Device-Typ
+     - Version
+     - aktuelle Grî·e
+     - Maximale Grî·e
+     - elementare Grî·e
+     - Cache-Erfolge
+     - Cache-Mi·erfolge
+     - fÅr jedes Laufwerk :
+       - WriteCache
+       - ReadCache
+       - Double Buffering
+   - IOCTL-Typ
+     - Version
+     - Grî·e
+     - Maximale Grî·e
+     - Minimale Grî·e
+     - Cache aktiv
+     - Sind gesperrte Tracks vorhanden
+     - Write-Through
+     - Write Buffer
+     - Cache-Hit-Rate %
+     - DMA Buffering (an/aus/dynamisch)
+     - Memory Typ (EMS/XMS)
+     - zurÅckschreiben bei Reboot ?
+     - Tracks :
+       - insgesamt
+       - benutzt
+       - gesperrt
+       - beschÑdigt/unbrauchbar
+
+ - Erkennt, ob sich QuickCache II im Speicher befindet
+   - Version
+   - Verschiedene Infos (z.B. Grî·e des Puffers, Hits, Misses, Sysinfo's,
+                         ...)
+
+ - Erkennt, ob der PC/TCP Packet Driver geladen ist
+   - Interrupt
+
+ - Erkennt, ob ein Fossil-Driver geladen ist
+   - Typ
+   - Spezifikationsniveau
+   - Revision
+   - ID
+
+ - Erkennt, ob ein Video-Fossil-Driver geladen ist
+   - Version
+   - Revision
+   - Hîchste Funktion
+
+ - Erkennt, ob MICEMM aktiv ist
+   - Code Segment
+
+ - Erkennt, ob 386^Max aktiv ist
+   - Version
+   - Segment
+   - EMS aktiv
+   - Windows 3 Support
+
+ - Erkennt, ob EMM386 aktiv ist
+   - API
+   - Status
+   - Weitek-Status
+
+ - Erkennt, ob QEMM geladen ist
+   - API
+   - Version
+   - Status
+   - Ist HiRam unterstÅtzt
+     - erster MCB
+   - sind Stealthed Rom's unterstÅtzt
+     - Anzahl
+   - Utilities
+     - Manifest
+     - VidRam
+       - Code Segment
+   - Memory Statistiken
+     - Initial Settings
+       - Conventional Memory
+       - Extended Memory
+       - Expanded Memory
+       - Extra Memory
+       - Total Memory
+     - Current Settings
+       - Conventional Memory
+       - Extended Memory
+       - EMS/XMS Pool
+       - Hi-Ram
+       - Mapped Rom's
+       - DMA
+         - Buffer
+         - Tasks
+         - Map
+       - Code
+       - Daten
+       - Total Memory
+     - UnAvaiable Settings
+       - Conventional Memory
+       - Extended Memory
+       - Expanded Memory
+       - Shadow/Top Memory
+   - Memory Typ jeder Page
+   - Benutzungs-Info jeder Page
+   - Stealth-Info jeder Page
+
+ - Ermittelt, ob ein Netzwerk geladen ist
+   - Aufgabe im Netz
+
+ - Erkennt, wo die Setver-Lister sich im Speicher befindet
+   - EintrÑge
+
+ - Erkennt IBMCACHE.SYS
+   - Version
+   - Grî·e
+   - Sektoren/Seite
+   - FÅr jedes Laufwerk
+     - Gesamte Anzahl von Lesebefehlen
+     - Gesamte Anzahl der Treffer
+     - Gesamte Anzahl physikalischer LesevorgÑnge
+     - Gesamte Anzahl von geforderten Sektoren
+
+ - Erkennt ob das IBM/Yale EBIOS Serial I/O auf einer der 4 Schnitt-
+   stellen vorhanden ist
+
+ - Dos
+   - Dos Version (IBM DOS, Compaq DOS, MS-DOS, AT&T DOS, Zenith DOS, HP-DOS,
+                  ZDS (Group Bull), Packard-Bell DOS, DEC DOS, Olivetti DOS,
+                  Toshiba DOS, Novell Netware, MS Multimedia Systems,
+                  RxDOS, PTS-DOS, GS Embedded DOS, DR DOS, Novell DOS, OS/2,
+                  Windows NT, Windows 95)
+   - Erkennen, ob DOS im HMA ist
+   - Erkennen, ob DOS im ROM ist
+   - OEM-Nummer des DOS
+   - Switch-Char fuer Parameter
+   - /DEV/-Prefix erforderlich ?
+   - Adresse des Dos-Busy-Flags
+   - PrintScreen-Status
+   - Memory Allocation Method
+   - BUFFERS aus CONFIG.SYS ermitteln
+   - FILES aus CONFIG.SYS ermitteln
+     - Pointer auf das erste Handle
+     - Benutzte Handles
+   - Anzahl der FCB's ermitteln
+   - STACKS aus CONFIG.SYS ermitteln
+     - Groesse eines einzelnen
+   - Internationale Informationen
+     - Country-Code
+     - Country-String (25 LÑnder)
+     - Aktive Codepage
+     - Default Codepage
+     - Tausendertrenner
+     - Dezimalzahlentrenner
+     - Datenlistentrenner
+     - Datumsformat
+     - Zeitformat
+     - Zeit-Trenner
+     - Waehrungsformat
+   - Case-Map Aufrufsadresse
+   - Offene Datei-Handles
+     - Wieviele Tabellen
+     - Adresse der Tavellen
+     - Benutzbare EintrÑge pro Tabelle
+     - Benutzte EintrÑge
+     - DateiInfos
+       - Name
+       - Modus
+       - Sharing-Modus
+       - Inherit
+       - Attribute
+       - Remote ?
+       - Datum
+       - Zeit
+       - Grî·e
+       - Typ
+       - PSP des EigentÅmers
+
+ - Das Envrionment des Programms ermitteln
+   - Segment
+   - Laenge
+   - Benutzte EintrÑge
+
+ - Anzahl logischer DOS-Devices ermitteln und dann fÅr jedes einzelne
+   - Name
+   - Header-Adresse
+   - Attribute
+   - Strategy-Adresse
+   - Interrupt-Adresse
+
+
+Das alles mit vollem Pascal/ASM Source-Code und einer vollstÑndigen
+Referenz fÅr alle Funktionen.
+
+FÅr die Funktionsnamen und deren Anwendung sollte man einfach mal in die
+Dateien EXAMPLE.PAS oder DETECT.DOC schauen ...
+
+Copyright (C) 1995, 1996 by EJF
+
+'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.
+
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:::::::::::::::::::::::::::::/----:::::::|::::/----::::::::::::::::::::::::::
+:::::::::::::::::::::::::::::|:::::::::::|::::|::::::::::::::::::::::::::::::
+:::::::::::::::::::::::::::::|---::::::::|::::|---:::::::::::::::::::::::::::
+:::::::::::::::::::::::::::::|:::::::::::|::::|::::::::::::::::::::::::::::::
+:::::::::::::::::::::::::::::\----:::\__/:::::|::::::::::::::::::::::::::::::
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.,:;'~';:,.

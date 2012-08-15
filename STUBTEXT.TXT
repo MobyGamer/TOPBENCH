@@ -1,0 +1,9 @@
+This is the benchmarking and system detection stub of TOPBENCH.  This stub was
+created so that 128KB systems without the ability to run the complete benchmark
+tool could still identified and benchmarked.  This stub will attempt to
+identify your system and video adapter, benchmark various aspects of your
+system, and then write the information to an output file which can then be
+imported into the full benchmark tool, or emailed to trixter@oldskool.org to
+help seed TOPBENCH's internal database.
+
+Run with "-?" for additional command-line options.$

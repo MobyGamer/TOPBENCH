@@ -1,0 +1,90 @@
+ ... README .................................... TMi0SDGL Revision 2 ReadMe ...
+     June 25th, 2000                           Document no.: R-0020.96.00M02.15
+                                                                   Version 2.15
+                                           Copyright(c) 1996-2000 by B-coolWare
+
+ Please read this file if you're new to the library.
+
+ TMi0SDGL stands for Too-Much-in-0ne-So-Don't-Get-Lost and it's a comprehensive
+ library for CPU and FPU detection on Intel-based PCs that comes in source code
+ and free of charge. Please read the TMi0SDGL.DOC for license agreement and
+ contact info as well as detailed information on the library.
+
+ This file addresses some questions that may arise during first encounter with
+ the library. You can skip it and proceed with the rest of the docs now, if
+ you are already familiar with TMi0SDGL.
+
+
+ 1. What is TMi0SDGL?
+
+ It is the most comprehensive CPU and FPU detection library I've seen to date
+ (and I've seen many), it outperforms even commercial system information tools
+ like TouchStone's CheckûIt, Quarterdeck's Manifest, Norton SysInfo and
+ similar. It correctly detects CPUs and FPUs that others don't, correctly
+ detects their clock speed and advanced features and more. Another benefit of
+ TMi0SDGL is that it's completely free for noncommercial use and is free for
+ commercial use in some specific cases.
+
+ 2. Why TMi0SDGL?
+
+ Well, why not? :) When I released the very first version over 4 years ago, I
+ tried to find a good name for it, unlike those anonymous "cputype" things that
+ were many in number and all alike. And when I assured that my version detects
+ much more CPUs than any other I thought this is a bit "too much". Then came
+ the name. The library detects much CPUs, too much, all in one package, so
+ don't get lost in them. Now I don't think this is that good name for the
+ library, but it spread wide since then and I decided not to change it.
+ It's a bit hard to pronounce, but who cares spelling it if it's not a
+ commercial product that have to have easy-spelling and mind-stamping name?
+
+ 3. What's in TMi0SDGL?
+
+ Routines to detect over 40 different CPUs (over 60 with all the models and
+ subtypes) and over 15 FPUs (see TMi0SDGL.DOC for complete list);
+ Routine to detect all those CPUs' clock speed;
+ Routine to detect L1 cache size for CPUs with internal cache;
+ Routine to detect advanced features of Intel Pentium(tm), newer i486s and
+ their clones from independent vendors (Cyrix, AMD, etc.).
+ Routine to detect current mode of operation (real or V86) for real mode
+ programs.
+ Supports real and protected mode for Pascal and C[++] compilers from Borland
+ Intl. C version written in Borland C, but should compile with (almost) any
+ other compiler (but you'll have to change command line options in
+ makefiles...). The only exclusion is WATCOM C/C++ (is uses #pragma aux for
+ assembler code, not asm{} statement).
+ Provides DLLs (dynamic link libraries) for 16-bit Protected Mode DOS,
+ 16-bit Windows and Win32, which allow to use library with virtually any
+ modern compiler.
+ Full source code included:
+  Lots of good clean assembler with meaningful comments wherever possible;
+  Functionally identical C and Pascal frontends to the assembler code;
+  Example programs. Source for the DLLs is available in separate archive.
+
+ Not enough? - write me back and I'll add new features on your request!
+
+ 4. Is it supported?
+
+ No. Because this is not a commercial product, I do not provide any technical
+ support for this library. But I always process letters from users and respond
+ to all of them if reply is expected. Bugs are fixed ASAP, and all suggestions
+ are taken in mind. But don't expect me to react quickly as I usually got a
+ lot of things to do on my primary job...
+
+ 5. What's good in it for me?
+
+ It depends on you. If you're system programmer for x86 - you know what's good
+ in it for you. If you're writing programs for x86 - you can add the TMi0SDGL
+ functionality in your programs and show the users that you're tough one ;).
+ You can enable/disable some features of your software depending on what type
+ of CPU it's running on. You can simply stun the users telling them which CPU
+ they have when other programs can't!
+ Well, if none of above apply to you - you name what's good in it for you. If
+ there's nothing good - it doesn't take much effort to delete the archive and
+ all files you extracted from it...
+
+ 6. Thanks for reading this blah-blah and proceed to the rest of the docs.
+    And I'm going to get me some coffee and burgers and listen to Acoustic
+    Alchemy's refreshing guitar sound and Jean-Jacques Goldman's sweet
+    songs. 8-)
+
+ ... end of README ............................................................

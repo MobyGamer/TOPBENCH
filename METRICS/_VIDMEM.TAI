@@ -1,0 +1,4 @@
+  {freemem(buf1,screenarea);}
+  testVideoAdapterWrites:=_PZTimerCount;
+end;
+
