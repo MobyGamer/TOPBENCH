@@ -1,0 +1,492 @@
+program codesize;
+{quick'n'dirty program to take a turbo pascal .MAP file and spit out the
+size of every major chunk of code in decimal.  Sizes of 0 are not printed.}
+
+uses
+  support;
+
+const
+  headerskip=3;
+  lengthcol=16;
+  codenamecol=23;
+  codenamelen=19;
+  maxsegs=256;
+
+type
+  segrec=record
+    segname:string[codenamelen];
+    segsize:word;
+  end;
+
+var
+  f:text;
+  s:string;
+  w:word;
+  b:byte;
+  cs:word;
+  lenstr,namestr:string;
+  totalsize:longint;
+  segsizes:array[0..maxsegs-1] of segrec;
+  tempseg:segrec;
+  numsegs:byte;
+
+begin
+  numsegs:=0;
+  assign(f,paramstr(1));
+  reset(f);
+  for w:=0 to headerskip-1 do readln(f,s);
+  while not eof(f) do begin
+    readln(f,s);
+    {blank line?  We're done with the code section}
+    if s='' then break;
+    lenstr:=copy(s,lengthcol,5);
+    delete(lenstr,1,1); {trim leading 0 since code segments can't be > $FFFF}
+    cs:=hexStrToLong(lenstr);
+    if cs<>0 then begin
+      namestr:=copy(s,codenamecol,codenamelen);
+      writeln(namestr,': ',cs);
+      segsizes[numsegs].segname:=namestr;
+      segsizes[numsegs].segsize:=cs;
+      inc(numsegs);
+      inc(totalsize,cs);
+    end;
+  end;
+
+  writeln('segments ordered by size: ');
+  {do bubblesort}
+  for b:=numsegs-2 downto 0 do
+    for w:=0 to b do 
+      if segsizes[w].segsize > segsizes[w+1].segsize then begin
+        tempseg:=segsizes[w];
+        segsizes[w]:=segsizes[w+1];
+        segsizes[w+1]:=tempseg;
+      end;
+  for w:=0 to numsegs-1 do writeln(segsizes[w].segname,': ',segsizes[w].segsize);
+
+  close(f);
+  writeln('Total memory size of code + data: ',totalsize);
+end.
+
+(*
+ Start  Stop   Length Name               Class
+
+ 00000H 00F7FH 00F80H topbench           CODE
+ 00F80H 0130FH 00390H inifiles           CODE
+ 01310H 01310H 00000H CmdLin             CODE
+ 01310H 0133BH 0002CH btsuites           CODE
+ 01340H 01340H 00000H TInterrupts        CODE
+ 01340H 01340H 00000H ZTimer             CODE
+ 01340H 013A2H 00063H topb_detect        CODE
+ 013B0H 013E0H 00031H Crc16              CODE
+ 013F0H 017F9H 0040AH vadapter           CODE
+ 01800H 01800H 00000H CPUType            CODE
+ 01800H 01AAAH 002ABH support            CODE
+ 01AB0H 01AB0H 00000H DetectGraphics     CODE
+ 01AB0H 01AC9H 0001AH DetectTime         CODE
+ 01AD0H 01AD0H 00000H DetectBios         CODE
+ 01AD0H 01AD0H 00000H DetectConstants    CODE
+ 01AD0H 01AD0H 00000H DetectGlobal       CODE
+ 01AD0H 02018H 00549H topb_datastructures CODE
+ 02020H 02020H 00000H topb_constants     CODE
+ 02020H 02041H 00022H m6845ctl           CODE
+ 02050H 0428BH 0223CH totMENU            CODE
+ 04290H 05B4CH 018BDH totDIR             CODE
+ 05B50H 06FA3H 01454H totIO2             CODE
+ 06FB0H 07514H 00565H totDATE            CODE
+ 07520H 090FEH 01BDFH totLINK            CODE
+ 09100H 09900H 00801H totMSG             CODE
+ 09910H 0BC6FH 02360H totIO1             CODE
+ 0BC70H 0D2ACH 0163DH totWIN             CODE
+ 0D2B0H 0D39AH 000EBH totMISC            CODE
+ 0D3A0H 0DCFFH 00960H totSTR             CODE
+ 0DD00H 0DD0DH 0000EH totReal            CODE
+ 0DD10H 10BF1H 02EE2H totFAST            CODE
+ 10C00H 11BE4H 00FE5H totINPUT           CODE
+ 11BF0H 11ED2H 002E3H totLOOK            CODE
+ 11EE0H 121FBH 0031CH totSYS             CODE
+ 12200H 1281EH 0061FH Crt                CODE
+ 12820H 12A23H 00204H Dos                CODE
+ 12A30H 13007H 005D8H Objects            CODE
+ 13010H 13031H 00022H Strings            CODE
+ 13040H 13040H 00000H Memory             CODE
+ 13040H 1494FH 01910H System             CODE
+ 14950H 15DCBH 0147CH DATA               DATA
+ 15DD0H 19DCFH 04000H STACK              STACK
+ 19DD0H 19DD0H 00000H HEAP               HEAP
+
+  Address         Publics by Value
+
+ 0000:0113       Message
+ 0000:01F5       CommitSystem
+ 0000:0294       MakeNewSystem
+ 0000:047A       ImportSystemFile
+ 0000:0B61       initTOPB
+ 0000:0D56       doTOPB
+ 0000:0E83       doneTOPB
+ 0000:0F03       @
+ 0131:0000       @
+ 0134:0042       @
+ 013B:0000       CRC16buf
+ 0180:0000       upstring
+ 0180:0025       FileExists
+ 0180:0086       IntToStr
+ 0180:00BC       StrToInt
+ 0180:010B       StrToReal
+ 0180:017D       HexStrToLong
+ 01AB:0000       @
+ 0202:0000       m6845_GetModeTable
+ 0202:000B       @
+ 0205:222E       menuINIT
+ 0205:2233       @
+ 0429:188F       DIRInit
+ 0429:18B4       @
+ 05B5:1438       IO2Init
+ 05B5:144B       @
+ 06FB:0544       DateInit
+ 06FB:055C       @
+ 0752:0000       Subdirectory
+ 0752:0023       FileAttribs
+ 0752:00DC       LongName
+ 0752:1BD1       LINKInit
+ 0752:1BD6       @
+ 0910:07F3       MsgInit
+ 0910:07F8       @
+ 0991:0000       NoCharHook
+ 0991:0013       NoEnterHook
+ 0991:0026       NoLeaveHook
+ 0991:0039       NoHelpHook
+ 0991:0045       AssignColors
+ 0991:233F       IO1Init
+ 0991:2357       @
+ 0BC7:162F       WinInit
+ 0BC7:1634       @
+ 0D2B:0002       SlashedDirectory
+ 0D2B:0080       Beep
+ 0D2B:00AE       MiscInit
+ 0D2B:00E2       @
+ 0D3A:0000       TruncFormat
+ 0D3A:00C2       PadLeft
+ 0D3A:0150       PadRight
+ 0D3A:01F3       AdjCase
+ 0D3A:02A1       SetUpper
+ 0D3A:031C       SetLower
+ 0D3A:0397       SetProper
+ 0D3A:0475       Strip
+ 0D3A:069D       WordCnt
+ 0D3A:0743       ExtractWords
+ 0D3A:080E       IntToStr
+ 0D3A:0958       @
+ 0DD0:0000       RealInit
+ 0DD0:0005       @
+ 0DD1:0135       CAttr
+ 0DD1:015A       BAttr
+ 0DD1:0178       Replicate
+ 0DD1:2D13       fastINIT
+ 0DD1:2D6B       @
+ 10C0:0000       NoInputIdleHook
+ 10C0:0005       NoInputPressedHook
+ 10C0:0F9E       inputINIT
+ 10C0:0FDC       @
+ 11BF:0000       DING
+ 11BF:02C2       LOOKinit
+ 11BF:02DA       @
+ 11EE:02FB       sysINIT
+ 11EE:0313       @
+ 1220:000D       @
+ 1220:0177       TextMode
+ 1220:018C       Window
+ 1220:01CC       ClrScr
+ 1220:01E6       ClrEol
+ 1220:01FA       InsLine
+ 1220:01FF       DelLine
+ 1220:021F       GotoXY
+ 1220:024B       WhereX
+ 1220:0257       WhereY
+ 1220:0263       TextColor
+ 1220:027D       TextBackground
+ 1220:0295       LowVideo
+ 1220:029B       HighVideo
+ 1220:02A1       NormVideo
+ 1220:02A8       Delay
+ 1220:02D4       Sound
+ 1220:0301       NoSound
+ 1220:0308       KeyPressed
+ 1220:031A       ReadKey
+ 1220:033C       AssignCrt
+ 1282:0000       DiskFree
+ 1282:001C       DiskSize
+ 1282:0038       FindFirst
+ 1282:0076       FindNext
+ 1282:00B8       UnpackTime
+ 1282:00FC       PackTime
+ 1282:0134       FSplit
+ 1282:019C       MsDos
+ 1282:01A7       Intr
+ 12A3:055B       NewStr
+ 12A3:05B4       DisposeStr
+ 1301:0000       StrPas
+ 1495:001A       screenseg
+ 1495:036C       HexNybble
+ 1495:03BC       menuLookup
+ 1495:0604       VidSysLabels
+ 1495:065E       ReadMessage
+ 1495:0674       SortMessage
+ 1495:07BA       NoFiles
+ 1495:09CA       OvrCodeList
+ 1495:09CC       OvrHeapSize
+ 1495:09CE       OvrDebugPtr
+ 1495:09D2       OvrHeapOrg
+ 1495:09D4       OvrHeapPtr
+ 1495:09D6       OvrHeapEnd
+ 1495:09D8       OvrLoadList
+ 1495:09DA       OvrDosHandle
+ 1495:09DC       OvrEmsHandle
+ 1495:09DE       HeapOrg
+ 1495:09E2       HeapPtr
+ 1495:09E6       HeapEnd
+ 1495:09EA       FreeList
+ 1495:09EE       FreeZero
+ 1495:09F2       HeapError
+ 1495:09F6       ExitProc
+ 1495:09FA       ExitCode
+ 1495:09FC       ErrorAddr
+ 1495:0A00       PrefixSeg
+ 1495:0A02       StackLimit
+ 1495:0A04       InOutRes
+ 1495:0A06       RandSeed
+ 1495:0A0A       SelectorInc
+ 1495:0A0C       Seg0040
+ 1495:0A0E       SegA000
+ 1495:0A10       SegB000
+ 1495:0A12       SegB800
+ 1495:0A14       Test8086
+ 1495:0A15       Test8087
+ 1495:0A16       FileMode
+ 1495:0A1A       Systems
+ 1495:0A1E       Log
+ 1495:0A22       mematstart
+ 1495:0A26       MainMenu
+ 1495:0A50       WhatBIOSCRC16
+ 1495:115A       Int1D_mode_table
+ 1495:1160       FmtNumberTOT
+ 1495:1174       DateTOT
+ 1495:1178       IOTOT
+ 1495:117E       LPTport
+ 1495:1184       Screen
+ 1495:1198       ScrollTOT
+ 1495:119C       ShadowTOT
+ 1495:11A0       SnowProne
+ 1495:11A2       AlphabetTOT
+ 1495:11A6       Mouse
+ 1495:11B0       Key
+ 1495:1210       LookTOT
+ 1495:1214       Monitor
+ 1495:1218       CheckBreak
+ 1495:1219       CheckEOF
+ 1495:121A       DirectVideo
+ 1495:121B       CheckSnow
+ 1495:121C       LastMode
+ 1495:121E       TextAttr
+ 1495:1220       WindMin
+ 1495:1222       WindMax
+ 1495:122C       DosError
+ 1495:122E       Input
+ 1495:132E       Output
+ 1495:142E       SaveInt00
+ 1495:1432       SaveInt02
+ 1495:1436       SaveInt1B
+ 1495:143A       SaveInt21
+ 1495:143E       SaveInt23
+ 1495:1442       SaveInt24
+ 1495:1446       SaveInt34
+ 1495:144A       SaveInt35
+ 1495:144E       SaveInt36
+ 1495:1452       SaveInt37
+ 1495:1456       SaveInt38
+ 1495:145A       SaveInt39
+ 1495:145E       SaveInt3A
+ 1495:1462       SaveInt3B
+ 1495:1466       SaveInt3C
+ 1495:146A       SaveInt3D
+ 1495:146E       SaveInt3E
+ 1495:1472       SaveInt3F
+ 1495:1476       SaveInt75
+
+Line numbers for topbench(TOPBENCH.PAS) segment topbench
+
+    44 0000:0000    45 0000:0027    47 0000:0034    48 0000:0048
+    49 0000:005B    50 0000:006E    53 0000:0079    56 0000:007C
+    57 0000:0089    60 0000:0094    61 0000:00B2    62 0000:00C5
+    63 0000:00E6    64 0000:00F9    68 0000:0113    69 0000:0131
+    70 0000:0134    71 0000:0164    73 0000:0192    75 0000:01A2
+    83 0000:01F5    84 0000:01FC    85 0000:0208    86 0000:0213
+    88 0000:0215    90 0000:0220    92 0000:0236    93 0000:0250
+    94 0000:0277    96 0000:0288   100 0000:0294   101 0000:0297
+   102 0000:02FD   135 0000:0336   136 0000:033D   137 0000:0348
+   139 0000:0353   140 0000:0386   142 0000:0399   143 0000:03A2
+   145 0000:047A   146 0000:0498   147 0000:04B6   148 0000:04C0
+   149 0000:04E1   153 0000:04E4   154 0000:04ED   157 0000:04F2
+   158 0000:0505   160 0000:0516   162 0000:0530   163 0000:053D
+   165 0000:0550   167 0000:055D   168 0000:056C   170 0000:058D
+   172 0000:0591   174 0000:059A   176 0000:05AB   179 0000:05B6
+   180 0000:05C4   188 0000:05D0   189 0000:05FC   190 0000:0613
+   192 0000:061D   193 0000:0649   194 0000:0660   196 0000:066A
+   197 0000:0696   198 0000:06AD   200 0000:06B7   201 0000:06E3
+   202 0000:06FA   204 0000:0704   205 0000:0730   206 0000:0747
+   208 0000:0751   209 0000:077D   210 0000:0794   212 0000:079E
+   213 0000:07CA   214 0000:07E5   216 0000:07EF   217 0000:081B
+   218 0000:0830   220 0000:083A   221 0000:0866   222 0000:087B
+   223 0000:08A7   225 0000:08C0   226 0000:08E3   228 0000:08FE
+   229 0000:092A   230 0000:0935   231 0000:0966   232 0000:0979
+   233 0000:09A5   234 0000:09BA   235 0000:09E6   236 0000:09FB
+   237 0000:0A27   238 0000:0A42   239 0000:0A6E   240 0000:0A83
+   241 0000:0AAF   244 0000:0AC4   246 0000:0AC7   248 0000:0ACB
+   249 0000:0ADA   271 0000:0B61   273 0000:0B68   275 0000:0B80
+   277 0000:0B8C   279 0000:0BA8   280 0000:0BBC   281 0000:0BDD
+   282 0000:0BEC   283 0000:0C19   286 0000:0C22   287 0000:0C30
+   288 0000:0C42   289 0000:0C52   290 0000:0C5D   293 0000:0CC7
+   294 0000:0CCC   295 0000:0CDC   296 0000:0CF8   409 0000:0D56
+   411 0000:0D5D   412 0000:0D6B   413 0000:0D79   415 0000:0D83
+   416 0000:0D86   417 0000:0D8D   420 0000:0D91   421 0000:0DA0
+   422 0000:0DAF   425 0000:0DCA   427 0000:0DDB   430 0000:0DDD
+   431 0000:0DF4   432 0000:0E04   433 0000:0E14   434 0000:0E24
+   435 0000:0E2F   439 0000:0E3F   440 0000:0E49   441 0000:0E56
+   442 0000:0E5F   481 0000:0E83   482 0000:0E8A   484 0000:0E99
+   485 0000:0EAA   486 0000:0EF0   487 0000:0EFF   489 0000:0F03
+   490 0000:0F6F   491 0000:0F72   492 0000:0F75   493 0000:0F78
+
+Line numbers for inifiles(INIFILES.PAS) segment inifiles
+
+   103 00F8:0008   104 00F8:003A   106 00F8:0047   107 00F8:004D
+   108 00F8:005C   110 00F8:0060   111 00F8:0066   112 00F8:0075
+   114 00F8:0078   115 00F8:008D   116 00F8:009E   117 00F8:00B9
+   118 00F8:00C1   119 00F8:00D2   120 00F8:00E6   123 00F8:00F8
+   124 00F8:0101   125 00F8:0107   126 00F8:010D   127 00F8:0113
+   130 00F8:0127   131 00F8:0131   132 00F8:013D   133 00F8:0148
+   135 00F8:0156   136 00F8:0163   159 00F8:0172   162 00F8:0181
+   163 00F8:018C   164 00F8:0199   168 00F8:019C   169 00F8:01AE
+   170 00F8:01B6   175 00F8:01B9   177 00F8:01D9   181 00F8:0221
+   183 00F8:022A   184 00F8:0232   188 00F8:0235   189 00F8:0240
+   190 00F8:028A   191 00F8:0293   192 00F8:0299   193 00F8:029F
+   194 00F8:02A2   195 00F8:02EB   198 00F8:033B   199 00F8:034B
+   210 00F8:0357   211 00F8:0365   212 00F8:0370   215 00F8:0379
+   216 00F8:0383   217 00F8:038C
+
+Line numbers for btsuites(BTSUITES.PAS) segment btsuites
+
+   267 0131:0000   270 0131:0003   271 0131:0010   272 0131:001E
+   273 0131:002A
+
+Line numbers for topb_detect(TOPB_DETECT.PAS) segment topb_detect
+
+   746 0134:0000   747 0134:000E   748 0134:003B   767 0134:0042
+   769 0134:004C   771 0134:005A   772 0134:0061
+
+Line numbers for Crc16(CRC16.PAS) segment Crc16
+
+    94 013B:0000    95 013B:000A    96 013B:000D    97 013B:000F
+    98 013B:0011    99 013B:0015   100 013B:0018   101 013B:0019
+   105 013B:001C   106 013B:001E   107 013B:001F   108 013B:0021
+   109 013B:0023   110 013B:0025   111 013B:0028   112 013B:002A
+   113 013B:002C   115 013B:002D
+
+Line numbers for vadapter(VADAPTER.PAS) segment vadapter
+
+    57 013F:0014    58 013F:002F    59 013F:0037    62 013F:003C
+    64 013F:0044    65 013F:007E    67 013F:0087    68 013F:008F
+    69 013F:00A6    70 013F:00E2    71 013F:00E4    72 013F:011E
+    75 013F:0158    76 013F:0162    77 013F:0169    78 013F:01A3
+    80 013F:01AC    81 013F:01B4    82 013F:01CB    83 013F:0207
+    84 013F:0209    85 013F:0243    87 013F:027D    90 013F:0288
+    91 013F:0292    92 013F:029F
+
+Line numbers for vadapter(D:\TOPBENCH\VIDEOID.ASM) segment vadapter
+
+    80 013F:02AA    81 013F:02AB    82 013F:02AD    83 013F:02AE
+    87 013F:02AF    89 013F:02B2    90 013F:02B6    96 013F:02BB
+    97 013F:02C0    98 013F:02C5   100 013F:02CA   101 013F:02CD
+   103 013F:02D0   104 013F:02D1   105 013F:02D3   106 013F:02D4
+   108 013F:02D6   109 013F:02D7   110 013F:02D8   111 013F:02DA
+   112 013F:02DB   114 013F:02DC   118 013F:02DE   120 013F:02E1
+   121 013F:02E2   122 013F:02E3   123 013F:02E5   124 013F:02E6
+   138 013F:02E7   139 013F:02EA   141 013F:02EC   142 013F:02EE
+   147 013F:02F0   148 013F:02F2   150 013F:02F4   151 013F:02F6
+   153 013F:02F8   154 013F:02FA   155 013F:02FC   157 013F:0300
+   159 013F:0303   160 013F:0305   162 013F:0307   163 013F:0309
+   165 013F:030D   169 013F:030F   170 013F:0314   171 013F:0319
+   173 013F:031E   174 013F:0320   175 013F:0323   177 013F:0325
+   178 013F:0328   179 013F:032B   181 013F:032D   182 013F:0331
+   184 013F:0336   200 013F:0337   201 013F:0339   202 013F:033B
+   206 013F:033D   207 013F:0340   209 013F:0342   210 013F:0344
+   211 013F:0346   212 013F:0349   213 013F:034A   214 013F:034C
+   215 013F:034E   217 013F:0351   218 013F:0354   220 013F:0356
+   221 013F:035B   223 013F:035D   225 013F:0362   238 013F:0363
+   239 013F:0366   240 013F:0369   242 013F:036B   243 013F:036D
+   244 013F:036F   246 013F:0372   269 013F:0373   270 013F:0376
+   271 013F:0379   273 013F:037B   274 013F:037D   275 013F:037E
+   276 013F:0380   278 013F:0382   279 013F:0385   280 013F:0386
+   281 013F:0388   282 013F:038A   284 013F:038C   286 013F:038E
+   287 013F:0390   288 013F:0392   289 013F:0395   291 013F:0397
+   292 013F:0398   294 013F:039A   296 013F:039C   297 013F:039E
+   298 013F:03A1   300 013F:03A3   301 013F:03A5   302 013F:03A8
+   304 013F:03AA   305 013F:03AC   307 013F:03AE   309 013F:03B1
+   325 013F:03B2   326 013F:03B4   327 013F:03B5   328 013F:03B6
+   329 013F:03B7   330 013F:03B9   331 013F:03BB   333 013F:03BC
+   334 013F:03BF   336 013F:03C1   337 013F:03C2   339 013F:03C4
+   341 013F:03C5   342 013F:03C8   344 013F:03CA   346 013F:03CB
+   360 013F:03CC   361 013F:03D0   363 013F:03D2   364 013F:03D5
+   365 013F:03D7   366 013F:03DB   368 013F:03DD   369 013F:03DF
+   371 013F:03E1   372 013F:03E3   373 013F:03E5   375 013F:03E7
+   376 013F:03EB   377 013F:03ED   379 013F:03EF   380 013F:03F3
+   382 013F:03F5   383 013F:03F7   384 013F:03FA   386 013F:03FC
+   400 013F:03FD   401 013F:03FF   402 013F:0402   404 013F:0404
+   406 013F:0407   407 013F:0409
+
+Line numbers for support(SUPPORT.PAS) segment support
+
+   167 0180:0000   168 0180:0003   169 0180:0004   170 0180:0005
+   171 0180:0008   172 0180:000B   173 0180:000C   174 0180:000D
+   175 0180:000F   176 0180:0010   179 0180:0012   180 0180:0013
+   181 0180:0015   182 0180:0017   183 0180:0019   184 0180:001B
+   186 0180:001D   187 0180:001E   190 0180:0020   191 0180:0021
+   204 0180:0025   205 0180:0043   207 0180:0054   208 0180:0063
+   210 0180:006E   211 0180:007D   230 0180:0086   231 0180:008C
+   232 0180:00A3   233 0180:00B6   239 0180:00BC   240 0180:00DE
+   241 0180:00F3   242 0180:00FF   267 0180:010B   268 0180:012D
+   269 0180:0145   270 0180:014B   271 0180:015F   272 0180:016E
+   684 0180:017D   686 0180:019B   687 0180:01B5   688 0180:01CF
+   689 0180:01D9   690 0180:01F6   691 0180:0200   692 0180:0232
+   693 0180:0240   694 0180:024C   696 0180:024E   697 0180:0284
+   698 0180:0291   699 0180:029F
+
+Line numbers for DetectTime(DETECTTIME.PAS) segment DetectTime
+
+    75 01AB:0000    76 01AB:000A    77 01AB:000B    78 01AB:000F
+    79 01AB:0013    80 01AB:0017    81 01AB:0018
+
+Line numbers for topb_datastructures(TOPB_DATASTRUCTURES.PAS) segment topb_datastructures
+
+    96 01AD:0008    97 01AD:008E    99 01AD:009B   100 01AD:00AA
+   101 01AD:00B4   102 01AD:00BB   103 01AD:00C2   104 01AD:00C9
+   105 01AD:00D0   106 01AD:00DE   107 01AD:00ED   108 01AD:00FC
+   109 01AD:0114   110 01AD:0128   111 01AD:0137   112 01AD:0146
+   113 01AD:0157   114 01AD:015E   115 01AD:016D   116 01AD:017C
+   119 01AD:0187   121 01AD:0191   122 01AD:01A1   123 01AD:01B1
+   124 01AD:01C1   125 01AD:01D1   126 01AD:01E1   127 01AD:01F1
+   129 01AD:0201   130 01AD:020E   134 01AD:0219   135 01AD:023F
+   136 01AD:024E   137 01AD:0263   140 01AD:0269   143 01AD:02AD
+   146 01AD:02F1   149 01AD:0335   152 01AD:0379   155 01AD:03BD
+   158 01AD:0401   215 01AD:0445   216 01AD:0453   217 01AD:0456
+   219 01AD:046D   221 01AD:0476   225 01AD:0484   226 01AD:04A0
+   227 01AD:04A8   228 01AD:04C4   230 01AD:04CB   231 01AD:04E5
+   232 01AD:04EC   233 01AD:0506   235 01AD:050D   236 01AD:051D
+   237 01AD:0524   238 01AD:0534   239 01AD:053B   240 01AD:0540
+
+Line numbers for m6845ctl(M6845CTL.PAS) segment m6845ctl
+
+   234 0202:0000   235 0202:0002   236 0202:0004   237 0202:0006
+   238 0202:0008   239 0202:000A   343 0202:000B   345 0202:0015
+   346 0202:0020
+
+Program entry point at 0000:0F03
+*)
