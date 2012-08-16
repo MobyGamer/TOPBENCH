@@ -127,7 +127,7 @@ const
   StubVersion='0.97b';
   StubBanner='TOPBENCH | Benchmark and detection stub | Version '+StubVersion;
 
-  FullVersion='0.31';
+  FullVersion='0.32';
   FullBanner='TOPBENCH | 16-bit x86 Benchmarking Suite | Version '+StubVersion;
 
   DefaultDate=19810801; {birth of IBM PC, roughly}
@@ -136,7 +136,7 @@ const
   AboutText:array[0..15] of pChar=(
     '',
     ' The Oldskool PC Benchmark ',
-    ' Version '+FullVersion+', 20120812',
+    ' Version '+FullVersion+', 20120816',
     ' Written by Jim Leonard (trixter@oldskool.org)',
     ' ',
     ' Portions of this program written or inspired by:',

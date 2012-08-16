@@ -258,16 +258,15 @@ var
   loop:byte;
 begin
   with foomsg do begin
-    (*init(2,'About This Program'{strpas(mainmenuLookup[mAbout].title)});*)
     init(2,strpas(mainmenuLookup[mAbout].blurb));
     for loop:=0 to 15 do AddLine(strpas(AboutText[loop]));
-    addline(' Systems loaded: '+inttostr(Systems^.Count)
-      +' (RAM holds roughly ~'+inttostr(Systems^.Count+(memavail div (Systems^.getsize div Systems^.Count)))+')');
+    if Systems^.Count>0
+      then addline(' Systems loaded: '+inttostr(Systems^.Count)
+             +' (RAM holds roughly ~'+inttostr(Systems^.Count+(memavail div (Systems^.getsize div Systems^.Count)))+')');
     addline('    Memory free: '+inttostr(memavail div 1024)+' KB (largest: '+inttostr(maxavail div 1024)+' KB)');
     addline(' ');
     show;
     done;
-    {MsgConsole^.LogMsg(fatal,'User attempted to learn more about the program!');}
   end;
 end;
 
@@ -374,6 +373,8 @@ begin
   if oldcount=Systems^.Count then begin
     MsgConsole^.LogMsg(warning,NewSystem^.UID^+' rejected as a duplicate or redundant entry.');
     dispose(NewSystem,done);
+    {some evidence of this not happening, so we will ensure it:}
+    NewSystem:=nil;
   end else begin
     {Commit was successful; mark database as dirty}
     DBDirty:=true;
@@ -1615,7 +1616,7 @@ begin
   fname:=DBFilename;
   MsgConsole^.LogMsg(info,'Attempting to import: '+fname);
   if not fileexists(fname)
-    then MsgConsole^.LogMsg(fatal,'Database file '+fname+' not found.')
+    then MsgConsole^.LogMsg(error,'Database file '+fname+' not found.')
     else ImportSystemFile(fname);
 end;
 
