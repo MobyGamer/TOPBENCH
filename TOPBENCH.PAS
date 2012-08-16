@@ -1,7 +1,7 @@
 program topbench;
 
 {{$DEFINE DEBUG}
-{$DEFINE USEOVERLAYS}
+{{$DEFINE USEOVERLAYS}
 
 uses
   objects,
@@ -95,7 +95,6 @@ type
 const
   DBdirty:boolean=false; {if dirty, DB needs to be written to disk}
   INIBufSize=18*512*2; {enough to hold an entire 1.44MB track}
-
   {default colors that work with both MDA and CGA}
   cnormal:byte=$07;
   creverse:byte=$70;
@@ -105,6 +104,7 @@ const
   {user preferences flags:}
   _sound:boolean=true;
   _skiptests:boolean=false;
+  _searchdistance:byte=2; {fine-tune results n-_sd to n+_sd}
 
 var
   Systems:PSystems;
@@ -321,6 +321,7 @@ begin
   with PromptWin do begin
     Init(1,'');
     AddLine(msg);
+    AddLine(' ');
     SetOption(1,'  ~Y~es  ',89,Finished);
     SetOption(2,'  ~N~o  ',78,Escaped);
     Result := Show;
@@ -1173,7 +1174,9 @@ end;
 
 Procedure RealtimeCompare;
 {
-Performs a realtime TOPScore and shows the
+Performs a realtime topscore and compares the result to what's in the
+database.  A binary search is done to get "close", then a distance calc
+is performed to get closer.  No smoothing is performed.
 }
 const
   {windows heights and sizes}
@@ -1185,14 +1188,62 @@ const
 
 var
   closest:integer;
-  tmpsys:PSystem;
+  tmpsys,trysys:PSystem;
   found:boolean;
+  mindist,oldmindist:longint;
+  startidx,endidx,idx,minidx:integer;
+
+  function SysDistance(sys1,sys2:PSystem):longint;
+  {
+  Very simple euclidean distance function (I never took statistics, hope
+  that's right!) that outputs the "distance" in microsecond timings
+  between two systems.  This function is simple, but it does the job.
+  Consider the following scenario:
+
+  sys1:          sys2:          target sys:
+  memtest=5000   memtest=2000   memtest=1998
+    memea=1250     memea=2000     memea=2002
+  opcodes=1250   opcodes=2000   opcodes=1998
+   vidmem=1250    vidmem=2000    vidmem=2002
+       3d=1250        3d=2000        3d=2000
+
+  Using just addition as a distance function, both sys1 and sys2 would
+  be equal distance from the target which is clearly screwed up.
+  Using the below function, the distance from sys1 would be 6002 and
+  from sys2 would be 8.
+  }
+  var
+    a,b:integer; {change to :word and the bug described below also surfaces}
+    l:longint;
+    {these variables and inefficient process below is because I discovered
+    a bug in Turbo Pascal developing this program, where TP was incorrectly
+    typcasting a signed longint result into various places.  Uncomment
+    the last block of this function if you want to see the bug in action.}
+  begin
+    l:=0;
+    a:=sys1^.usecMemTest; b:=sys2^.usecMemTest; inc(l,abs(a-b));
+    a:=sys1^.usecMemEA;   b:=sys2^.usecMemEA;   inc(l,abs(a-b));
+    a:=sys1^.usecOpcodes; b:=sys2^.usecOpcodes; inc(l,abs(a-b));
+    a:=sys1^.usecVidMem;  b:=sys2^.usecVidMem;  inc(l,abs(a-b));
+    a:=sys1^.usec3DGames; b:=sys2^.usec3DGames; inc(l,abs(a-b));
+    SysDistance:=l;
+
+    (*SysDistance:=(
+      abs(sys1^.usecMemTest - sys2^.usecMemTest)+
+      abs(sys1^.usecMemEA   - sys2^.usecMemEA)+
+      abs(sys1^.usecOpcodes - sys2^.usecOpcodes)+
+      abs(sys1^.usecVidMem  - sys2^.usecVidMem)+
+      abs(sys1^.usec3DGames - sys2^.usec3DGames)
+    );*)
+  end;
 
   Procedure RepaintBoth;
   begin
     repaintSysList(1,bstart,80,bheight,1,true,'Your machine is functioning closest to the following system:',Systems,closest);
     repaintSysInfo(1,istart-1,80,istart+iheight,2,Systems,closest);
+    {$IFNDEF DEBUG}
     Screen.WriteAT(1,monitor^.depth,chigh,'Adjust your machine or emulator to see the results change realtime.  ESC exits.');
+    {$ENDIF}
   end;
 
 begin
@@ -1211,14 +1262,41 @@ begin
     if _sound then nosound;
     tmpsys^.score:=topscore;
     tmpsys^.BIOSCRC16:=WhatBIOSCRC16;
+    {Perform binary search to see if we have an exact match in the database}
     found:=Systems^.search(tmpsys,closest);
     {$IFDEF DEBUG}
-    if found then screen.writeat(1,1,$07,'Exact match found!');
+    if closest<Systems^.Count
+      then screen.writeat(36,25,$07,'Bins. at idx '+inttostr(closest)
+        +' score '+inttostr(PSystem(Systems^.at(closest))^.Score)
+        +' (this: '+inttostr(tmpsys^.Score)+'   ');
     {$ENDIF}
-    if not found
-      then if closest > 0
-        then dec(closest);
+    {If we didn't find it, we'll use the closest system to fine-tune the
+    results.  Euclidean distance is used against each metric component.}
+    if not found then begin
+      {set up search range and vars}
+      startidx:=closest-_searchdistance; if startidx<1 then startidx:=1;
+      endidx:=closest+_searchdistance; if endidx>=Systems^.Count then endidx:=Systems^.Count-1;
+      oldmindist:=$ffff*5; minidx:=closest;
+      {for each system in the range, find the minimum distance}
+      for idx:=startidx to endidx do begin
+        trysys:=Systems^.at(idx);
+        mindist:=SysDistance(tmpsys,trysys);
+        if mindist<oldmindist then begin
+          minidx:=idx;
+          oldmindist:=mindist;
+        end;
+      end;
+      {reset list index to closest one}
+      closest:=minidx;
+    end;
     repaintBoth;
+    {$IFDEF DEBUG}
+    if found
+      then screen.writeat(1,25,$07,'Exact match at idx '+inttostr(closest)
+             +' score '+inttostr(PSystem(Systems^.at(closest))^.Score)+'  ')
+      else screen.writeat(1,25,$07,'Dist. match at idx '+inttostr(closest)
+             +' score '+inttostr(PSystem(Systems^.at(closest))^.Score)+'  ');
+    {$ENDIF}
     if support.keypressed then ch:=readkeychar;
   until ch=#27;
   ch:=#0;
@@ -1252,8 +1330,8 @@ begin
     end
     else begin
       MsgConsole^.LogMsg(error,tmpsys^.UID^+' not found in ByName?');
-      {mark database as "clean" so that user isn't tricked into writing
-      mangled data back to disk}
+      {forcably mark database as "clean" so that user isn't tricked into
+      writing mangled data back to disk}
       DBDirty:=false;
       exit; {get out of here, we already had a fatal error}
     end;
@@ -1435,6 +1513,26 @@ begin
   until Key.Lastkey=27;
 end;
 
+Procedure StarBench;
+{A silly idea I had two decades ago that would make a nice easter egg.}
+begin
+  if WhatVideoSubsystem='MDA' then begin
+    writeln('Sorry, but StarBench requires CGA or higher.');
+    halt(2);
+  end;
+  asm
+    mov ax,0006
+    int 10h
+  end;
+  {Determine maximum # of stars a system can produce}
+  asm
+    mov ax,0003
+    int 10h
+  end;
+  writeln('StarBench!');
+  halt(3);
+end;
+
 Procedure initTOPB;
 var
   fname:string128;
@@ -1442,6 +1540,8 @@ var
   w:word;
 
 begin
+  {StarBench!}
+  if upstring(paramstr(1))='STARBENCH' then StarBench;
   if is_param('?') or is_param('h') then begin
     clrscr;
     writeln('Command-line options:');
@@ -1449,6 +1549,7 @@ begin
     writeln('  -c       Attempt setting "condensed" mode on VGA and EGA systems');
     writeln('  -q       Turn off sound in the realtime benchmarking section');
     writeln('  -s       Skip some of the more volatile detection tests');
+    writeln('  -dN      Specify realtime benchmark search distance (default: '+inttostr(_searchdistance)+')');
     halt(10);
   end;
   if is_param('c') then begin
@@ -1459,6 +1560,7 @@ begin
   end;
   if is_param('q') then _sound:=false;
   if is_param('s') then _skiptests:=true;
+  if param_int('d')<>0 then _searchdistance:=param_int('d');
 
   {I don't want any mouse support for majority of program -- it's slightly
   buggy and adds nothing}
@@ -1506,7 +1608,6 @@ begin
   end;
 
   Screen.Clear(tWhite,'°'); {paint the screen}
-  {Screen.Clear(bblack+tdarkgray,'°');}
   Screen.PartClear(1,Monitor^.Depth,80,Monitor^.Depth,TWhite,' '); {prepare status line}
 
   Systems:=New(PSystems, Init(256, 16));
@@ -1522,15 +1623,14 @@ Procedure doTOPB;
 var
   MenuChoice:byte;
   SaveScreen:PScreenOBJ;
-  Msg:MessageObj;
   menuaction,loop:userActions;
   Result:tAction;
-  {DirWin:DirWinObj;}
   temps:string;
   lastslash:byte;
   DirInfo:SearchRec;
   dir:string128;
   tmpsys:PSystem;
+  oldDBDirty:boolean;
 
   Procedure BuildAlternateSorts;
   var
@@ -1560,21 +1660,29 @@ begin
     case userActions(MenuChoice) of
       mnull:begin end; {user hit escape or something}
       mBrowseName:begin
-        BuildAlternateSorts;
-        SystemBrowser(SystemsByName);
-        DestroyAlternateSorts;
+        if Systems^.Count>0 then begin
+          BuildAlternateSorts;
+          SystemBrowser(SystemsByName);
+          DestroyAlternateSorts;
+        end else PopUserMessage(warning,'Cannot browse an empty database!  Add a system first?');
       end;
       mBrowseSpeed:begin
-        BuildAlternateSorts;
-        SystemBrowser(Systems);
-        DestroyAlternateSorts;
+        if Systems^.Count>0 then begin
+          BuildAlternateSorts;
+          SystemBrowser(Systems);
+          DestroyAlternateSorts;
+        end else PopUserMessage(warning,'Cannot browse an empty database!  Add a system first?');
       end;
-      mRealTime:RealtimeCompare;
+      mRealTime:if Systems^.Count>1
+        then RealtimeCompare
+        else PopUserMessage(warning,'Need more than one database entry for this to be useful.');
       mCompare:begin
-        BuildAlternateSorts;
-        CompareSystems(SystemsByName);
-        {CompareSystems(Systems);}
-        DestroyAlternateSorts;
+        if Systems^.Count>1 then begin
+          BuildAlternateSorts;
+          CompareSystems(SystemsByName);
+          DestroyAlternateSorts;
+        end
+        else PopUserMessage(warning,'Need more than one database entry for this to be useful.');
       end;
       mAbout:PopAbout;
       mConsole:begin
@@ -1599,16 +1707,21 @@ begin
         end;
       end;
       mSave:begin
-        SaveDatabase(Systems,DBFileName);
-        DBDirty:=false;
+        if Systems^.Count>0 then begin
+          SaveDatabase(Systems,DBFileName);
+          DBDirty:=false;
+        end else PopUserMessage(warning,'Cannot save an empty database.  Add a system first?');
       end;
       mSetup:PopUserMessage(info,' User settings are controlled via command-line switches. Use -? for help. ');
       mExport:begin
-        temps:=PromptForFilename('Enter the path+file to export to a .CSV file.');
-        SaveDatabaseCSV(Systems,temps)
+        if Systems^.Count>0 then begin
+          temps:=PromptForFilename('Enter the path+file to export to a .CSV file.');
+          SaveDatabaseCSV(Systems,temps)
+        end else PopUserMessage(warning,'Cannot export an empty database.  Add a system first?');
       end;
       mIntro:PopIntro;
       mAdd:begin
+        oldDBDirty:=DBDirty;
         MakeNewSystem(tmpsys);
         DetectSystem(tmpsys);
         CommitSystem(tmpsys);
@@ -1617,20 +1730,17 @@ begin
           else begin
             buildAlternateSorts;
             if not EditSystem(Systems,Systems^.IndexOf(tmpsys),true)
-              then deletesystem(Systems,Systems^.IndexOf(tmpsys));
+              then begin
+                deletesystem(Systems,Systems^.IndexOf(tmpsys));
+                {User aborted their new system edit, so restore whatever
+                dirty state existed before they started}
+                DBDirty:=oldDBDirty;
+              end;
             destroyAlternateSorts;
           end;
       end;
     else
-      with msg do begin
-        MsgConsole^.LogMsg(warning,'User selected non-existent menu #'+inttostr(menuChoice));
-        Init(1,' Not implemented yet ');
-        Addline('');
-        AddLine(' I''m sorry, but whatever you selected hasn''t been implemented yet.');
-        Addline('');
-        Show;
-        Done;
-      end;
+      PopUserMessage(warning,'Somehow you managed to find non-implemented menu #'+inttostr(menuChoice)+'!');
     end; {case}
 
     SaveScreen^.Display;
@@ -1638,7 +1748,7 @@ begin
   until MenuChoice=0;
   LookTOT^.SetDefaults;
   if DBDirty
-    then if PromptYN('Database has been changed; save it?')
+    then if PromptYN(' Database has been changed; save it? ')
       then SaveDatabase(Systems,DBFileName);
 end;
 

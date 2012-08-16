@@ -430,6 +430,7 @@ Begin
                 EndString := EndString + memnames[Regs.BL] + ' (BIOS)';
                 CardNumber := 3;
               End;
+    (* This method is untested and possibly flawed
     hercmono : begin
                  {test for Hercules by seeing if there is more than 4K of
                  RAM on the adapter by writing junk and seeing if it sticks.
@@ -452,14 +453,15 @@ Begin
                  memw[$b000:$0000]:=tempword;
                  memw[$b000:$1000]:=tempword2;
                end;
+    *)
     IBM8514 : begin
                 EndString := 'IBM 8514';
                 CardNumber := 5;
               end;
-    ATT400 : begin
+(*    ATT400 : begin {This is broken, the driver never autodetects for this mode}
                EndString := 'AT&T 400';
                CardNumber := 6;
-             end;
+             end;*)
     VGA :{$ENDIF} begin
             {$IFDEF SVGADEBUG}debugstatus('XGA');{$ENDIF}
             xword1:=isXGA;
@@ -635,17 +637,18 @@ Begin
                       Intr($10, regs);
                       If al = $5f Then
                         Begin
+                          EndString:=EndString+'Chips&Technologies ';
                           Case bl SHR 4 Of
-                            0 : EndString := EndString + 'Chips&Technologies 82c451';
-                            1 : EndString := EndString + 'Chips&Technologies 82c452';
-                            2 : EndString := EndString + 'Chips&Technologies 82c455';
-                            3 : EndString := EndString + 'Chips&Technologies 82c453';
-                            4 : EndString := EndString + 'Chips&Technologies 82c450';
-                            5 : EndString := EndString + 'Chips&Technologies 82c456';
-                            6 : EndString := EndString + 'Chips&Technologies 82c457';
-                            7 : EndString := EndString + 'Chips&Technologies F65520';
-                            8 : EndString := EndString + 'Chips&Technologies F65530';
-                            9 : EndString := EndString + 'Chips&Technologies F65510';
+                            0 : EndString := EndString + '82c451';
+                            1 : EndString := EndString + '82c452';
+                            2 : EndString := EndString + '82c455';
+                            3 : EndString := EndString + '82c453';
+                            4 : EndString := EndString + '82c450';
+                            5 : EndString := EndString + '82c456';
+                            6 : EndString := EndString + '82c457';
+                            7 : EndString := EndString + 'F65520';
+                            8 : EndString := EndString + 'F65530';
+                            9 : EndString := EndString + 'F65510';
                           End;
                           vgacard:=CTI;
                           CardNumber := 13;
@@ -690,20 +693,21 @@ Begin
                     vgacard := trident;
                     cardnumber := 15;
                     Port[$3C5] := old xor 2;
+                    EndString:=EndString+', Trident ';
                     case SubVers of
-                      1       : Begin EndString := EndString + ', Trident TR8800BR'; Dec(CardNumber) End;
-                      2       : Begin EndString := EndString + ', Trident TR8800CS'; Dec(CardNumber) End;
-                      3       : EndString := EndString + ', Trident TR8900';
-                      4,$13   : EndString := EndString + ', Trident TR8900C';
-                      $23     : EndString := EndString + ', Trident TR9000';
-                      $33     : EndString := EndString + ', Trident TR8900CL or D';
-                      $43     : EndString := EndString + ', Trident TR9000i';
-                      $53     : EndString := EndString + ', Trident TR8900CXr';
-                      $63     : EndString := EndString + ', Trident LCD9100B';
-                      $83     : EndString := EndString + ', Trident LX8200';
-                      $93     : EndString := EndString + ', Trident TVGA9200CXi';
-                      $A3     : EndString := EndString + ', Trident LCD9320';
-                      $73,$F3 : EndString := EndString + ', Trident GUI9420';
+                      1       : Begin EndString := EndString + 'TR8800BR'; Dec(CardNumber) End;
+                      2       : Begin EndString := EndString + 'TR8800CS'; Dec(CardNumber) End;
+                      3       : EndString := EndString + 'TR8900';
+                      4,$13   : EndString := EndString + 'TR8900C';
+                      $23     : EndString := EndString + 'TR9000';
+                      $33     : EndString := EndString + 'TR8900CL or D';
+                      $43     : EndString := EndString + 'TR9000i';
+                      $53     : EndString := EndString + 'TR8900CXr';
+                      $63     : EndString := EndString + 'LCD9100B';
+                      $83     : EndString := EndString + 'LX8200';
+                      $93     : EndString := EndString + 'TVGA9200CXi';
+                      $A3     : EndString := EndString + 'LCD9320';
+                      $73,$F3 : EndString := EndString + 'GUI9420';
                     end;
                     case SubVers Of
                       1..4, $13, $23, $43 : Begin
@@ -746,11 +750,12 @@ Begin
                             { Everex Card };
                             CardNumber := 16;
                             DX:=(DX and $FFF0) shr 4;
+                            EndString:=EndString+', Everex ';
                             case DX of
-                              $678: EndString := EndString + ', Everex Viewpoint';
-                              $236: EndString := EndString + ', Everex Ultragraphics II';
-                              $620: EndString := EndString + ', Everex Vision VGA';
-                              $673: EndString := EndString + ', Everex EVGA'
+                              $678: EndString := EndString + 'Viewpoint';
+                              $236: EndString := EndString + 'Ultragraphics II';
+                              $620: EndString := EndString + 'Vision VGA';
+                              $673: EndString := EndString + 'EVGA'
                             Else
                               EndString := EndString + ', unknown Everex';
                             end; {case}
@@ -996,12 +1001,13 @@ Begin
                                   vgacard := paradise;
                                   cardnumber := 22;
                                   SubVers := (rdinx ($3D0, $36) shl 8) + rdinx ($3D0, $37);
+                                  EndString:=EndString+', Western Digital ';
                                   case SubVers of
-                                    $3234 : EndString := EndString + ', Western Digital WD90C24';
-                                    $3236 : EndString := EndString + ', Western Digital WD90C26';
-                                    $3330 : EndString := EndString + ', Western Digital WD90C30';
-                                    $3331 : EndString := EndString + ', Western Digital WD90C31';
-                                    $3333 : EndString := EndString + ', Western Digital WD90C33';
+                                    $3234 : EndString := EndString + 'WD90C24';
+                                    $3236 : EndString := EndString + 'WD90C26';
+                                    $3330 : EndString := EndString + 'WD90C30';
+                                    $3331 : EndString := EndString + 'WD90C31';
+                                    $3333 : EndString := EndString + 'WD90C33';
                                   else
                                     EndString := EndString + ', unknown Paradise';
                                   end;
@@ -1103,13 +1109,14 @@ Begin
                     if testinx2 ($3CE,$45, $ff) then
                       begin
                         SubVers := rdinx ($3CE, $C) shr 3;
+                        EndString:=EndString+', Compaq ';
                         case SubVers of
-                          3   : EndString := EndString + ', Compaq IVGS';
-                          5   : EndString := EndString + ', Compaq AVGA';
-                          6   : EndString := EndString + ', Compaq QVision 1024';
-                          $E  : if (rdinx($3CE,$56) and 4) > 0 then EndString := EndString + ', Compaq QVision 1280'
-                                else EndString := EndString + ', Compaq QVision 1024';
-                          $10 : EndString := EndString + ', Compaq AVPort';
+                          3   : EndString := EndString + 'IVGS';
+                          5   : EndString := EndString + 'AVGA';
+                          6   : EndString := EndString + 'QVision 1024';
+                          $E  : if (rdinx($3CE,$56) and 4) > 0 then EndString := EndString + 'QVision 1280'
+                                else EndString := EndString + 'QVision 1024';
+                          $10 : EndString := EndString + 'AVPort';
                         else
                           EndString := EndString + ', unknown Compaq';
                         end;
@@ -1362,51 +1369,56 @@ Begin
                   end;
               End;
 
-            if vgacard = standard then
-              begin
-                {$IFDEF SVGADEBUG}debugstatus('Cirrus stage 1');{$ENDIF}
-                { Cirrus 1 };
+            if vgacard = standard then begin
+              {$IFDEF SVGADEBUG}debugstatus('Cirrus stage 1');{$ENDIF}
+              { Cirrus 1 };
 
-                { Test for Cirrus 54xx }
-                old := rdinx ($3C4, 6);
-                wrinx ($3C4, 6, 0);
-                if rdinx ($3C4, 6) = $F then
-                  begin
-                    wrinx ($3c4, 6, $12);
-                    if (rdinx ($3C4, 6) = $12) and testinx2 ($3C4, $1E, $3F) then
-                      begin
-                        SubVers := rdinx ($3d4, $27);
-                        if testinx2 ($3CE,9, $ff) then
+              { Test for Cirrus 54xx }
+              old := rdinx ($3C4, 6);
+              wrinx ($3C4, 6, 0);
+              if rdinx ($3C4, 6) = $F
+                then begin
+                  wrinx ($3c4, 6, $12);
+                  if (rdinx ($3C4, 6) = $12) and testinx2 ($3C4, $1E, $3F)
+                    then begin
+                      SubVers := rdinx ($3d4, $27);
+                      if testinx2 ($3CE,9, $ff)
+                        then begin
+                          EndString:=EndString+', Cirrus CL-GD';
                           case SubVers of
-                            $88 : EndString := Endstring + ', Cirrus CL-GD5402';
-                            $89 : EndString := Endstring + ', Cirrus CL-GD5402 r1';
-                            $8A : EndString := Endstring + ', Cirrus CL-GD5420';
-                            $8B : EndString := Endstring + ', Cirrus CL-GD5420 r1';
-                            $8C..$8F : EndString := Endstring + ', Cirrus CL-GD5422';
-                            $90..$93 : EndString := Endstring + ', Cirrus CL-GD5426';
-                            $94..$97 : EndString := Endstring + ', Cirrus CL-GD5424';
-                            $98..$9B : EndString := Endstring + ', Cirrus CL-GD5428';
-                            $A4..$A7 : EndString := Endstring + ', Cirrus CL-GD543x';
+                            $88 : EndString := Endstring + '5402';
+                            $89 : EndString := Endstring + '5402 r1';
+                            $8A : EndString := Endstring + '5420';
+                            $8B : EndString := Endstring + '5420 r1';
+                            $8C..$8F : EndString := Endstring + '5422';
+                            $90..$93 : EndString := Endstring + '5426';
+                            $94..$97 : EndString := Endstring + '5424';
+                            $98..$9B : EndString := Endstring + '5428';
+                            $A4..$A7 : EndString := Endstring + '543x';
                           else
                             EndString := EndString + ', unknown Cirrus CL-GD54';
-                          end
-                        else
-                          if testinx2 ($3C4, $19, $ff) then
+                          end;
+                        end
+                      else
+                        if testinx2 ($3C4, $19, $ff)
+                          then begin
+                            EndString:=EndString+', Cirrus CL-GD';
                             case SubVers shr 6 of
-                              0 : EndString := Endstring + ', Cirrus CL-GD6205';
-                              1 : EndString := Endstring + ', Cirrus CL-GD6235';
-                              2 : EndString := Endstring + ', Cirrus CL-GD6215';
-                              3 : EndString := Endstring + ', Cirrus CL-GD6225';
-                            end
-                        else
-                          EndString := EndString + 'Cirrus AVGA2 (5402)';
+                              0 : EndString := Endstring + '6205';
+                              1 : EndString := Endstring + '6235';
+                              2 : EndString := Endstring + '6215';
+                              3 : EndString := Endstring + '6225';
+                            end;
+                          end
+                          else
+                            EndString := EndString + 'Cirrus AVGA2 (5402)';
                         vgacard := cirrus;
                         cardnumber := 12;
-                      end;
+                    end;
                   end
                 else
                   wrinx($3C4,6,old);
-              End;
+            End;
 
 
             if vgacard = standard then
@@ -1425,12 +1437,13 @@ Begin
                     if rdinx ($3CE, $A) = 1 then
                       begin
                         SubVers := rdinx ($3CE, $AA);
+                        EndString:=EndString+', Cirrus CL-GD';
                         case SubVers shr 4 of
-                          4 : EndString := EndString + ', Cirrus CL-GD6440';
-                          5 : EndString := EndString + ', Cirrus CL-GD6412';
-                          6 : EndString := EndString + ', Cirrus CL-GD5410';
-                          7 : EndString := EndString + ', Cirrus CL-GD6420';
-                          8 : EndString := EndString + ', Cirrus CL-GD6410';
+                          4 : EndString := EndString + '6440';
+                          5 : EndString := EndString + '6412';
+                          6 : EndString := EndString + '5410';
+                          7 : EndString := EndString + '6420';
+                          8 : EndString := EndString + '6410';
                         else
                           EndString := EndString +  ', unknown Cirrus CL-GD64'
                         end;
