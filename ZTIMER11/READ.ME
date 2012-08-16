@@ -1,0 +1,293 @@
+
+                        The Zen Timer Library
+                        =====================
+
+                            Version 1.1
+
+This is a 'C' callable library for timing code fragments with an accuracy of
+better than 10 microseconds (less when using the long period zen timer). The
+code was originally written by Michael Abrash for his book "Zen of Assembly
+language - Volume I, Knowledge". I modified the code and made it into a 'C'
+callable library and added the utility routines LZTimerCount() and
+PZTimerCount() to return an unsigned long integer representing the timed
+count in microseconds, and a set of C++ wrapper classes.
+
+This new version include a new Ultra Long Period timer that can be used
+to time code that takes up to 24 hours to execute with an accuracy of 1/10th
+of a second. I have fixed the long period Zen Timer so that you can now
+time across a midnight boundary correctly, and I have added a number of
+C++ classes that provided a common interface to the timing routines.
+
+Note also that this new version is memory model dependant whereas the old
+one was memory model independant.
+
+                         Using the timer
+                         ---------------
+
+To use the timer, isolate the piece of code you wish to time and bracket
+it with calls to PZTimerOn (LZTimerOn respectively) and PZTimerOff (LZTimerOff
+respectively). You can either call PZTimerReport (LZTimerReport respectively)
+which will display the count on the standard output device, or you can call
+PZTimerCount (LZTimerCount respectively) to obtain the count use it from
+within your C program. For example:
+
+int i;
+
+void main(void)
+{
+    LZTimerOn();
+    for (i = 0; i < 20000; i++)
+        i = i;                      /* Do some work */
+    LZTimerOff();
+    LZTimerReport();
+}
+
+shows the simplest way to use the timer. The file "main.c" contains code
+to test both the precision and long period timers, so have a look at it to
+get an idea of how to use the timer.
+
+The precision timer gives the most accurate results, but can only be
+used for code that executes in less than 54ms, and you CANNOT turn
+interrupts on while the code is being timed (if you code goes into an
+infinite loop while using the precision timer you will need to reach for
+that elusive reset switch :-). Personally the long period timer is
+accurate enough for me and I generally use this exclusively.
+
+One point to note when using the long period time however, interrupts
+are ON while this timer executes. This means that every time you hit a key
+or move the mouse, the timed count will be longer that normal. Thus you
+should avoid hitting any keys or moving the mouse while timing code fragments
+if you want highly accurate results. It is also a good idea to insert a
+delay of about 1-2 seconds before turning the long period timer on if
+a key has just been pressed by the user (this includes the return key used
+to start the program from the command line!). Otherwise you may measure the
+time taken by the keyboard ISR to process the upstroke of the key that was
+just pressed.
+
+In this new version there is now an Ultra Long Period timer that can
+be used to time code that takes up to 24 hours to execute. There are two
+routines that are used to accomplish this - ULZReadTime() and
+ULZElapsedTime(). The way to use these routines is simple:
+
+void main(void)
+{
+    ulong   start,finish,time;
+
+    start = ULZReadTime();
+
+    /* Do something useful in here */
+
+    finish = ULZReadTime();
+    time = ULZElapsedTime(start,finish);
+}
+
+Calling ULZReadTime() latches the current timer count and returns it.
+You call ULZElapsedTime() to compute the time difference between the start
+and finishing times, which is returned in 1/10ths of a second.
+
+                        Using the C++ interface
+                        -----------------------
+
+If you are using C++, you can use the C++ wrapper classes that provide
+a simpler and common interface to all of the three timing routine (precision,
+long period and ultra long period). There are three classes that are used
+for this:
+
+    PZTimer     - C++ Class to access the Precision Zen Timer
+    LZTimer     - C++ Class to access the Long Period Zen Timer
+    ULZTimer    - C++ Class to access the Ultra Long Period Zen Timer
+
+Each class provides the following member functions:
+
+start() member function
+-----------------------
+
+The start() member function is called to start the timer counting. It
+does not modify the internal state of the timer at all.
+
+
+stop() member function
+----------------------
+
+The stop() member function is called to stop the timer from counting and
+to update the internal timer count. The internal timer count is the total
+amout of time that the timer has been running since the last call to
+reset() or restart() so it is cumulative.
+
+reset() member function
+-----------------------
+
+The reset() member function resets the internal state of the timer to a
+zero count and no overflow. This should be called to zero the state of the
+timer before timing a piece of code. Note that the reset operation is
+performed every time that a new instance of one of the timer classes is
+created.
+
+restart() member function
+-------------------------
+
+The restart() member function simply resets the timers internal state to
+a zero count and begins timing.
+
+count() member function
+-----------------------
+
+The count() member function returns the current timer count, which will
+be in fractions of a second. You can use the resolution() member function
+to determine how many counts there are in a second so you can convert it
+to a meaningful value. Use this routine if you wish to manipulate and display
+the count yourself. If the timer has overflowed while it was timing, this
+member function will return a count of 0xFFFFFFFF (-1 signed).
+
+overflow() member function
+--------------------------
+
+The overflow() member function will return true if the timer has overflowed
+while it was counting.
+
+resolution() member function
+----------------------------
+
+The resolution() member function returns the number of timer counts that
+represent a second, so you can convert the count returned by the count()
+member function to a time.
+
+operator << () friend function
+------------------------------
+
+This a convenience function that outputs a formatted string to a C++
+output stream that represents the value of the internal timer count in
+seconds. The string represents the time to the best accuracy possible with
+the timer being used.
+
+The file main.cpp in the distribution gives an example of how to use the
+different timer classes.
+
+Restrictions
+------------
+
+When using the precision timer class, you must ensure that there will be
+less than 54 ms between each call to start() and stop() or an overflow
+will result. The total cumulative time can be up to approx. 1 hour 10 mins.
+
+The Long Period timer class also has a cumulative limit of approx. 1 hour
+10 mins but this can be timed with only a single call to start() and stop().
+
+When using the Ultra Long Period timer class you must ensure that no
+more than 24 hours elapses between calls to start() and stop() or you will
+get invalid result(). There is no way that we can reliably detect this
+so the timer will quietly give you a value that is much less than it should
+be. However, the total cumulative limit for this timer is about 119,000
+hours which should be enough for most practial purposes, but you must
+ensure that no more than 24 hours elapses between calls to start() and
+stop(). If you wish to use the timer for applications like ray tracing,
+then calling then latching the timer after every 10 scanlines or so should
+ensure that this criteria is met.
+
+You can only have one instance of the Precision and Long Period timers
+running at any one time, but you can have mutiple instance of the ultra
+long period timer running.
+
+Notes on compiling the library
+------------------------------
+
+   The library was compiled using Borland C++ 3.0 and Turbo Assembler 3.0.
+The code will NOT assemble under MASM, since it is written using
+Turbo Assemblers IDEAL mode syntax. You will need to modify it significantly
+to get it to assemble under MASM.
+
+   I write all my code with 4 space tabs, so if you wish to view the source
+code the way I see it :-), you will need to set you editor to 4 space tabs
+(even the .ASM files use 4 space tabs). Alternatively you can view the
+source code files with "m.exe" included in the archive, a more replacement
+that I have written. It automatically expands tabs to 4 spaces (or any
+size you like with the -t option).
+
+   The long period Zen Timer has been assembled to run on all computers,
+including the IBM PS/2 range of computers whose timer chips are not
+100% compatible with the 8253. If you have read Michael's book, or you
+have had a look at the source code for the long period timer, you will
+know that you can re-assemble it with the PS2 equate set to 0 which will
+give more accurate results on computers with 100% compatible 8253 timer
+chips (note that this does not affect the precision Zen Timer - this works
+on all computers). I personally leave the PS2 equate set to 1, so that my
+code will work on any computer. Occasionally (and this is very rare - it
+has happend only once in the 3 odd months I have been using this code),
+the timer count will be out by 54 ms, but I find that I can live with
+this.
+
+   The makefile included in the distribution is set up to build the library
+on my computer, but it should be very easy to modify for another installation
+(it took me five minutes to move it from my old 286 machine to my new
+486/33 with a larger hard disk!). Consult the makefile to see how to do it.
+To build all of the memory model libraries, use the "buildall.bat" batch
+file. Note that the makefiles expect the presence to two makefile utilties
+that I always use. They are in the 'makefile.zip' archive as both source
+and executable versions.
+
+   I have included the turboc.cfg file that I use to compile code from
+the command line using Borland C++ 3.0. You will need to modify the include
+file and library file directories for your system. If you have an earlier
+version of Borland C++, or Turbo C++ then most of the optimisation switches
+will not be valid.
+
+Files in this archive
+---------------------
+
+This archive contains stored subdirectories so you should have unzipped it
+with the -d option, otherwise all of the following files will be in
+the same directory.
+
+    buidall.bat         - Batch file to build all memory model libraries
+    debug.h             - Header file for portable code (you need this)
+    lztest.asm          - Shell program for timing assembler code
+    lztime.bat          - Batch file to automate assembler code timing
+    lztimer.asm         - Long Period Zen Timer source code
+    main.c              - Sample program source code
+    main.cpp            - Sample C++ class interface code
+    makefile            - Makefile for the Zen Timer library
+    makeutil.zip        - Archive containing makefile utilities (needed)
+    model.mac           - Memory model independant macros for TASM
+    pztest.asm          - Shell program for timing assemble code
+    pztime.bat          - Batch file to automate assembler code timing
+    pztimer.asm         - Precision Zen Timer source code
+    read.me             - What you are reading :-)
+    revision            - List of revisions to the code
+    timer.prj           - Borland C++ 3.0 project file (compiles main.cpp)
+    turboc.cfg          - Configutation file for Borland C++ 3.0
+    ulztimer.c          - C source for the ultra long period timer
+    ztimer.cpp          - C++ source for non-inline class members
+    ztimer.h            - Header file for the library
+    ztimer_s.lib        - Small model library
+    ztimer_c.lib        - Compact model library
+    ztimer_m.lib        - Medium model library
+    ztimer_l.lib        - Large model library
+    ztimer_h.lib        - Huge model library
+
+    Assembler test files in directory test:
+
+    test\movtst.asm     - Sample assember test code
+    test\movtst2.asm    - Sample assembler code to overflow PZTimer
+
+    Turbo Pascal related files in pascal directory:
+
+    pascal\lztimer.pas  - Source code for the TP interface unit
+    pascal\lztimer.tpu  - Prebuilt Turbo Pascal unit for the interface
+    pascal\notes        - Notes on the pascal port
+    pascal\main.pas     - Turbo Pascal version of sample test code
+
+
+Well, thats it. I hope you find this library useful (I use it all the time
+to time my graphics routines). You can contact me with comments, queries and
+bug fixes as show below:
+
+Internet:
+
+Kendall Bennett                                 kjb@godzilla.cgl.citri.edu.au
+Duncan Murdoch (Turbo Pascal stuff)             dmurdoch@watstat.uwaterloo.ca
+
+Snail mail:                                     Kendall Bennett
+                                                15 Stevenson Street
+                                                Kew Melbourne Victoria 3101
+                                                Australia
+

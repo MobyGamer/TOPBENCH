@@ -1,0 +1,215 @@
+;****************************************************************************
+;*
+;*					Copyright (C) 1991 Kendall Bennett.
+;*							All rights reserved.
+;*
+;* Filename:	$RCSfile: model.mac $
+;* Version:		$Revision: 1.2 $
+;*
+;* Language:	Turbo Assembler 2.5
+;* Environment:	IBM PC (MS DOS)
+;*
+;* Description:	Macros to provide memory model independant assembly language
+;*				module for Borland C++.
+;*
+;* NOTES:	When you declare the data and code segments, you should specify
+;*			a name to be used. This name should be the name of the file
+;* 			being assembled, but you may use the same name for mutiple
+;*			modules if you wish so that the data and code for these modules
+;*			are all contained in the same segments. Of course the maximum
+;*			size of data and code must be less than 64k respectively.
+;*
+;* $Id: model.mac 1.2 91/11/12 11:36:14 kjb Exp $
+;*
+;* Revision History:
+;* -----------------
+;*
+;* $Log:	model.mac $
+;* Revision 1.2  91/11/12  11:36:14  kjb
+;* Added macro for static model independant procedures.
+;* 
+;* Revision 1.1  91/09/20  16:26:07  kjb
+;* Initial revision
+;* 
+;****************************************************************************
+
+; Define symbols codesize and datasize depending on the requested memory
+; model.
+
+ifdef	__TINY__
+		codesize	EQU	0
+		datasize	EQU	0
+		hugedata	EQU	0
+else
+ifdef 	__MEDIUM__
+		codesize	EQU	1
+		datasize 	EQU	0
+		hugedata	EQU	0
+else
+ifdef 	__COMPACT__
+		codesize	EQU	0
+		datasize	EQU	1
+		hugedata	EQU	0
+else
+ifdef	__LARGE__
+		codesize	EQU	1
+		datasize	EQU	1
+		hugedata	EQU	0
+else
+ifdef	__HUGE__
+		codesize	EQU	1
+		datasize	EQU 1
+		hugedata	EQU	1
+else
+		codesize	EQU	0		; Default to small model if none specified
+		datasize 	EQU	0
+		hugedata	EQU	0
+endif
+endif
+endif
+endif
+endif
+
+; Macros for obtaining size of pointer for model requested.
+
+if datasize
+		DPTR		EQU	DWORD
+		dptrsize	EQU	4		; Size of a data pointer
+else
+		DPTR		EQU	WORD
+		dptrsize	EQU	2
+endif
+
+if codesize
+		CPTR		EQU	DWORD
+		FPTR		EQU	FAR
+		cptrsize	EQU	4		; Size of a code pointer
+else
+		CPTR		EQU	WORD
+		FPTR		EQU	NEAR
+		cptrsize	EQU	2
+endif
+
+; Macros for procedure definitions given a name. Note that they also exports
+; the symbol with the PUBLIC directive, so that it need not be explicitly
+; exported.
+
+MACRO	procstart name			; Set up model independant proc
+if codesize						; and export name
+PROC	name FAR
+else
+PROC	name NEAR
+endif
+		PUBLIC name
+ENDM
+
+MACRO	procstatic name			; Set up model independant private proc
+if codesize
+PROC	name FAR
+else
+PROC	name NEAR
+endif
+ENDM
+
+MACRO	procnear name			; Set up near proc
+PROC	name NEAR				; and export name
+		PUBLIC name
+ENDM
+
+MACRO	procfar name			; Set up far proc
+PROC	name FAR				; and export name
+		PUBLIC name
+ENDM
+
+MACRO	procend name			; End procedure macro
+ENDP	name
+ENDM
+
+; Macros for the _BSS data segment. This segment contains uninitialised data.
+
+MACRO	begbssseg
+SEGMENT	_BSS WORD PUBLIC 'BSS'
+ENDM
+
+MACRO	endbssseg
+ENDS	_BSS
+ENDM
+
+; Macros for the _DATA data segment. This segment contains initialised data.
+
+MACRO	begdataseg name
+ifdef	__HUGE__
+SEGMENT &name&_DATA WORD PUBLIC 'DATA'
+else
+SEGMENT	_DATA WORD PUBLIC 'DATA'
+endif
+ENDM
+
+MACRO	enddataseg name
+ifdef	__HUGE__
+ENDS    &name&_DATA
+else
+ENDS	_DATA
+endif
+ENDM
+
+; Macro to be invoked at the start of all modules to set up segments for
+; later use.
+
+MACRO	header name
+begdataseg name
+enddataseg name
+begbssseg
+endbssseg
+ENDM
+
+; Macro for the main code segment.
+
+MACRO	begcodeseg name
+if codesize
+SEGMENT &name&_TEXT BYTE PUBLIC 'CODE'
+ifdef	__HUGE__
+GROUP	DGROUP &name&_DATA
+		ASSUME CS:&name&_TEXT,DS:DGROUP
+else
+GROUP	DGROUP _DATA,_BSS
+        ASSUME CS:&name&_TEXT,DS:DGROUP
+endif
+else
+SEGMENT _TEXT BYTE PUBLIC 'CODE'
+GROUP   DGROUP _DATA,_BSS
+		ASSUME CS:_TEXT,DS:DGROUP
+endif
+ENDM
+
+MACRO	endcodeseg name
+if codesize
+ENDS    &name&_TEXT
+else
+ENDS	_TEXT
+endif
+ENDM
+
+; Macros for entering and leaving procedures. Here we automatically save
+; the SI and DI registers that are used as register variables by Borland C++.
+; We also save the DS register in the HUGE model and make it point to our
+; data segment. Upon leaving all registers are restored.
+
+MACRO	setupDS
+		push	si						; Save register variables
+		push	di						; For Borland C++
+
+	IF	hugedata
+		push	ds						; Save DS
+		mov		ax,DGROUP				; Address our data segment
+		mov		ds,ax
+	ENDIF
+ENDM
+
+MACRO	restoreDS
+	IF	hugedata
+		pop		ds
+	ENDIF
+		pop		di
+		pop		si
+ENDM

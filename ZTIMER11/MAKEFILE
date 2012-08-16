@@ -1,0 +1,136 @@
+#############################################################################
+#
+#								 Zen Timer
+#
+#							   From the book
+#						 "Zen of Assembly Language"
+#							Volume 1, Knowledge
+#
+#							 by Michael Abrash
+#
+#					Makefile for a memory model indepedant
+#					'C' callable library by Kendall Bennett
+#
+# Descripton:	Makefile for the Zen Timer library.
+#
+# $Id: makefile 1.9 92/04/21 01:36:51 kjb Exp $
+#
+#############################################################################
+
+# Turn on autodependency checking
+
+.AUTODEPEND
+
+# Let make know where to find all the appropriate files
+
+.PATH.asm       = .
+.PATH.lib       = \bc\lib\mylib
+.PATH.obj       = .
+.PATH.exe       = .
+
+# These directives will need to be modified for your particular setup.
+# Currently the are set for use with Borland C++ 3.0 installed in
+# the directory "BC" rather than "BORLANDC" as is the default.
+
+CC              = bcc               # Name of C compiler
+ASM             = tasm              # Name of assembler
+LINK            = tlink             # Name of linker
+LIB             = tlib              # Name of librarian
+LIB_FLAGS       = /C /E
+
+# This will need to be changed to your normal include file directory
+
+INC_DEST        = \bc\include\myinc
+
+LIBNAME         = ztimer_           # Name of library file to create
+
+!if $d(debug)
+CC_DOPT         = -v                # Turn on debugging for C compiler
+ASM_DOPT        = /ZI               # Turn on debugging for assembler
+!endif
+
+# Set up memory model macros depending on version we are making
+
+!if $d(medium)
+MODEL           = m
+ASM_MODEL       = /d__MEDIUM__
+!elif $d(compact)
+MODEL           = c
+ASM_MODEL       = /d__COMPACT__
+!elif $d(large)
+MODEL           = l
+ASM_MODEL       = /d__LARGE__
+!elif $(huge)
+MODEL           = h
+ASM_MODEL       = /d__HUGE__
+!else
+MODEL           = s                 # Default to small model
+ASM_MODEL       = /d__SMALL__
+!endif
+
+LIBFILE         = $(.PATH.lib)\$(LIBNAME)$(MODEL).lib
+ASM_FLAGS       = /MX /m /O /i$(.PATH.asm) $(ASM_DOPT) $(ASM_MODEL)
+CC_FLAGS        = -m$(MODEL) $(CC_DOPT)
+
+# Implicit rules to make the object files for the library...
+
+.cpp.obj:
+    $(CC) $(CC_FLAGS) -c {$< }
+     
+.c.obj:
+    $(CC) $(CC_FLAGS) -c {$< }
+     
+.asm.obj:
+	$(ASM) $(ASM_FLAGS) $<, $&
+
+# Object files required by the library
+
+OBJECTS         = pztimer.obj lztimer.obj ztimer.obj ulztimer.obj
+
+all: $(LIBFILE) install_inc
+
+# Just build the library, don't install the header files
+
+build: $(LIBFILE)
+
+$(LIBFILE): $(OBJECTS)
+    buildrsp &&!|
+    $(OBJECTS)
+!   > ztimer.rsp
+    $(LIB) $(LIB_FLAGS) $< @ztimer.rsp
+    del ztimer.rsp
+
+install_inc:
+    @copy ztimer.h debug.h $(INC_DEST)
+
+# Clean up directory removing all files not needed to make the library.
+# This works for 4Dos 4.0. If you are running under MS DOS, you will
+# probably need to change this to delete each file type separately.
+
+clean:
+	@del *.obj *.sym *.bak *.exe *.tdk
+	@del $(.PATH.lib)\*.bak
+    @del ztimer.zip
+
+stamp:
+    @foreach "rcs -srelease" files.lst
+
+rcsclean:
+    @foreach rcsclean files.lst
+
+# Check in the latest revisions of source files with RCS
+
+ci:
+    @foreach "ci -q -u $(RCSOPT)" files.lst
+
+# Check out the latest revisions of source files from RCS
+
+co:
+    @foreach "co -q $(RCSOPT)" files.lst
+
+# Create a distribution zip file
+
+zip: clean
+    copy $(.PATH.lib)\$(LIBNAME)?.lib .
+    pkzip -rp -xrcs\*.* -xfiles.lst ztimer.zip *.*
+

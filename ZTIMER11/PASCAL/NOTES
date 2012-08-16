@@ -1,0 +1,57 @@
+
+                        The Zen Timer Library
+                        =====================
+
+                            Version 1.1
+
+Turbo Pascal Notes
+------------------
+
+   Duncan Murdoch kindly took the time to build a Turbo Pascal interface
+for the Zen Timer library, which requires Turbo Pascal 6.0 or above (so
+he tells me :-). Following are his notes on the interface unit.
+
+   The interface to the assembler routines is written to be as simple as
+possible.  Void functions became procedures; the count functions returning
+unsigned long integers return signed longints.  Leading underscores were added
+to the procedure/function names to match the assembler source.
+
+   Because of limitations in the linker, TP versions prior to 6.0 will
+*not* be able to use this unit.
+
+Interfaced routines:
+
+procedure _PZTimerOn;              Starts precision timer.
+
+procedure _PZTimerOff;             Stops precision timer.
+
+procedure _PZTimerReport;          Reports result of precision timing to
+                                   standard output.
+
+function  _PZTimerCount : longint; Returns microsecond count for precision
+                                   timer.  May overflow, and return negative
+                                   value.  Value -1 signals timer overflow.
+
+procedure _LZTimerOn;              The LZ routines are as above, but for
+procedure _LZTimerOff;             the long period timer.
+procedure _LZTimerReport;
+function  _LZTimerCount : longint;
+
+   I have asked Duncan if it is possible for Turbo Pascal to handle 
+unsigned long integers, since times greater than about 35 minutes will 
+become negative when interpreted as a signed long integer. If this is not
+possible, then you will have to take this into account when using the
+library.
+
+   Please note that as in this version the Turbo Pascal related code does
+not include the ultra long period timing routines and does not have the
+advantage of the C++ class interface (naturally :-) as I don't have
+Turbo Pascal and have not ported the changes.
+
+You can contact me with comments, queries and bug fixes as shown below:
+
+Internet:
+
+Kendall Bennett                                 kjb@godzilla.cgl.citri.edu.au
+Duncan Murdoch (Turbo Pascal unit)              dmurdoch@watstat.uwaterloo.ca
+

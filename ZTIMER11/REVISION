@@ -1,0 +1,29 @@
+
+                        The Zen Timer Library
+                       -----------------------
+
+                           Revision History
+                          ------------------
+
+Version 1.0 - Jan 1992
+----------------------
+
+    Original version of the library including the port by Duncan Murdoch
+for Turbo Pascal 6.0 users.
+
+Version 1.1 - April 1992
+------------------------
+
+  - Modified the long period Zen Timer to allow timing across the midnight
+    boundary.
+
+  - Added a new Ultra Long period timer for timing code that takes up to
+    24 hours to execute.
+
+  - Added a new common C++ class interface to the Zen Timer library
+    to abstract out the differences between the old timer routines and the
+    new ultra long period routines.
+
+  - Because of the addition of C++ wrapper classes etc had to make the
+    library memory model dependant again.
+
