@@ -139,6 +139,17 @@ const
     ''
   );
 
+  CommandLineHelp:array[0..7] of pChar=(
+    '',
+    'Command-line options:',
+    '  -?,-h  This help message',
+    '  -c     Attempt setting "condensed" mode on VGA and EGA systems',
+    '  -q     Turn off sound in the realtime benchmarking section',
+    '  -s     Skip some of the more volatile detection tests',
+    '  -d#    Specify realtime benchmark search distance (default: 2)',
+    '  -i     Profile this machine, print Score, then immediately exit'
+  );
+
 implementation
 
 end.

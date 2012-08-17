@@ -117,6 +117,7 @@ var
   BenchMenu,DBMenu:MenuOBJ; {must be static objects due to TOT broken design}
   MsgConsole:PMConsole;
   FStatus:PWinOBJ;
+  tmpScreen:PScreenOBJ; {used for all the repaint* procedures}
 
 
 Constructor TLog.Init;
@@ -268,6 +269,21 @@ begin
       then addline(' Systems loaded: '+inttostr(Systems^.Count)
              +' (RAM holds roughly ~'+inttostr(Systems^.Count+(memavail div (Systems^.getsize div Systems^.Count)))+')');
     addline('    Memory free: '+inttostr(memavail div 1024)+' KB (largest: '+inttostr(maxavail div 1024)+' KB)');
+    addline(' ');
+    show;
+  end;
+  dispose(foomsg,done);
+end;
+
+Procedure PopSetupMessage;
+var
+  foomsg:PMessageObj;
+  loop:byte;
+begin
+  new(foomsg,init(2,' Controlling TOPBENCH Behavior '));
+  with foomsg^ do begin
+    addline('User settings are controlled via command-line switches.');
+    for loop:=0 to 7 do AddLine(strpas(CommandLineHelp[loop]));
     addline(' ');
     show;
   end;
@@ -739,7 +755,6 @@ var
   w:word;
   mid:byte;
   tmpsys:PSystem;
-  tmpScreen:PScreenOBJ;
   bf:byte;
 begin
   h:=(y2-y1-2) {AND $FE};
@@ -752,9 +767,8 @@ begin
     then startlist:=endlist-h;
   if startlist<0 then startlist:=0;
 
-  new(tmpScreen,init);
+  {tmpscreen must be init'd before getting here!}
   with tmpScreen^ do begin
-    save;
     {screen.resetwindow;}
     if opttitle='' then opttitle:='System List';
     TitledBox(x1,y1,x2,y2,
@@ -772,9 +786,7 @@ begin
         else WriteAt(1,w+1,bf,tmpsys^.Name^);
     end;
     resetwindow;
-    display;
   end;
-  dispose(tmpScreen,done);
 end;
 
 Procedure repaintSysInfo(x1,y1,x2,y2,style:byte;opttitle:string80;SysList:PSystems;curitem:word);
@@ -782,7 +794,6 @@ var
   tmpsys:PSystem;
   b:byte;
   lastrow:byte;
-  tmpScreen:PScreenOBJ;
 
   procedure writewrap(x1,y1,width:byte;s:string);
   {there are several ways to skin this cat.  This particular way minimizes
@@ -850,9 +861,8 @@ const
 
 begin
   tmpsys:=SysList^.At(curitem);
-  new(tmpscreen,init);
+  {tmpscreen must be init'd before getting here!}
   with tmpScreen^ do begin
-    save;
     gotoxy(1,1);
     {resetwindow;}
     TitledBox(x1,y1,x2,y2,
@@ -915,9 +925,7 @@ begin
       end;
 
     resetwindow;
-    display;
   end;
-  dispose(tmpscreen,done);
 end;
 
 Procedure repaintSysLine(y:byte;system:PSystem);
@@ -925,16 +933,14 @@ var
   b:byte;
   x1,y1,x2,y2:byte;
   lastrow:byte;
-  tmpScreen:PScreenOBJ;
 
 const
   sm=11;
   us=14;
 
 begin
-  new(tmpScreen,init);
+  {tmpscreen must be init'd before getting here!}
   with tmpScreen^ do begin
-    save;
     gotoxy(1,1);
     {resetwindow;}
     x1:=1;
@@ -964,9 +970,7 @@ begin
          usecMemtest+usecMemEA+usecOpcodes+usecVidmem+usec3DGames
          )+' æsec');
     resetwindow;
-    display;
   end;
-  dispose(tmpScreen,done);
 end;
 
 Procedure repaintSysTimings(x1,y1,x2,y2,style:byte;hiflags:word;SysList:PSystems;curitem:word);
@@ -975,7 +979,6 @@ var
   tmpsys:PSystem;
   b:byte;
   lastrow:byte;
-  tmpScreen:PScreenOBJ;
   col,labelcol,normcol,wincol:byte;
 
 const
@@ -984,9 +987,8 @@ const
 
 begin
   tmpsys:=SysList^.At(curitem);
-  new(tmpScreen,init);
+  {tmpscreen must be init'd before getting here!}
   with tmpScreen^ do begin
-    save;
     gotoxy(1,1);
     {resetwindow;}
     TitledBox(x1,y1,x2,y2,
@@ -1053,9 +1055,7 @@ begin
       end;
     *)
     resetwindow;
-    display;
   end;
-  dispose(tmpScreen,done);
 end;
 
 Function EditSystem(whichlist:PSystems;whichsys:word;cancelallowed:boolean):boolean;
@@ -1289,10 +1289,16 @@ var
 
   Procedure RepaintRealtime;
   begin
+    new(tmpScreen,init);
+    tmpScreen^.save;
+
     repaintSysLine(1,tmpsys);
     repaintSysList(1,bstart,Monitor^.Width,bheight,
-                   0,true,' ...matches the following entry in the database: ',Systems,closest);
+                   0,true,' ...most closely matches the following entry in the database: ',Systems,closest);
     repaintSysInfo(1,istart-1,Monitor^.Width,istart+iheight,2,' Matched system detail: ',Systems,closest);
+
+    tmpScreen^.display;
+    dispose(tmpScreen,done);
   end;
 
 begin
@@ -1422,8 +1428,14 @@ var
 
   Procedure RepaintBoth;
   begin
+    new(tmpScreen,init);
+    tmpScreen^.save;
+
     repaintSysList(1,bstart,Monitor^.Width,bheight,1,false,'',SystemList,curSys);
     repaintSysInfo(1,istart-1,Monitor^.Width,istart+iheight,2,'System Details:',SystemList,curSys);
+
+    tmpScreen^.display;
+    dispose(tmpScreen,done);
   end;
 
 begin
@@ -1526,6 +1538,9 @@ var
       if  tusec[b]              <  tusec[b xor 1]              then hflags[b]:=hflags[b] OR ftotal;
     end;
 
+    new(tmpScreen,init);
+    tmpScreen^.save;
+
     repaintSysList(1,1,(Monitor^.Width div 2),bheight,
       (active xor 1)+1,false,'',SystemList,curSys[0]);
     repaintSystimings((Monitor^.Width div 2)+1,1,Monitor^.Width,bheight,
@@ -1535,6 +1550,9 @@ var
       active+1,false,'',SystemList,curSys[1]);
     repaintSystimings((Monitor^.Width div 2)+1,Monitor^.Depth-1-bheight,Monitor^.Width,Monitor^.depth-1,
       active+1,hflags[1],SystemList,curSys[1]);
+
+    tmpScreen^.display;
+    dispose(tmpScreen,done);
 
     {Place WINNER bar onscreen}
     screen.writecenter(Monitor^.Depth div 2,LookTOT^.vmenutitle,s);
@@ -1575,13 +1593,7 @@ begin
   writeln(FullBanner);
   {if upstring(paramstr(1))='STARBENCH' then StarBench;}
   if is_param('?') or is_param('h') then begin
-    writeln('Command-line options:');
-    writeln('  -?,-h    This help message');
-    writeln('  -c       Attempt setting "condensed" mode on VGA and EGA systems');
-    writeln('  -q       Turn off sound in the realtime benchmarking section');
-    writeln('  -s       Skip some of the more volatile detection tests');
-    writeln('  -d#      Specify realtime benchmark search distance (default: '+inttostr(_searchdistance)+')');
-    writeln('  -i       Profile this machine, print Score, then immediately exit');
+    for w:=0 to 7 do writeln(strpas(CommandLineHelp[w]));
     halt(10);
   end;
   if is_param('c') then begin
@@ -1754,7 +1766,7 @@ begin
         else
           PopUserMessage(warning,'Database read-only; only partially loaded due to lack of RAM.');
       end;
-      mSetup:PopUserMessage(info,' User settings are controlled via command-line switches. Use -? for help. ');
+      mSetup:PopSetupMessage;
       mExport:begin
         if Systems^.Count>0 then begin
           temps:=PromptForFilename('Enter the path+file to export to a .CSV file.');
