@@ -17,19 +17,6 @@ type
   line is an enhanced MC6845-based CGA so it gets folded into CGA.}
   VideoSystems=(unset,MDA,CGA,EGA,MCGA,VGA);
   VidSysLabelArray=array[VideoSystems] of string[4];
-{
-Introduction
-Benchmarking:
-  Realtime comparison, Compare two machines
-Database Operations:
-  Add this computer,
-  import results file, import directory\filespec, save, save as, export to .csv
-  System Browser (View/delete/edit system)
-Setup:
-  form with checkboxes soundtoggle, verboselog, colortoggle, realtimespeed (fingerprint accuracy or realtime speed?)
-Debug Console
-About
-}
 
   userActions=(
   mNull,
@@ -127,8 +114,8 @@ const
   StubVersion='0.97b';
   StubBanner='TOPBENCH | Benchmark and detection stub | Version '+StubVersion;
 
-  FullVersion='0.32';
-  FullBanner='TOPBENCH | 16-bit x86 Benchmarking Suite | Version '+StubVersion;
+  FullVersion='0.33';
+  FullBanner='TOPBENCH | 16-bit real-mode x86 Benchmarking Suite | Version '+FullVersion;
 
   DefaultDate=19810801; {birth of IBM PC, roughly}
   MHzLabel=' MHz';

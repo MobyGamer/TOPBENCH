@@ -9,11 +9,11 @@ uses
   bstubov,
   {$ENDIF}
 
-  totLOOK, totSYS, totFAST, totWIN, totMSG, {totLINK,
-  totLIST,} {totDIR,} totIO1, totIO2, totIO3, totINPUT, totMENU{,
-  totSTR, totDATE, totMISC, extWIN},
+  totLOOK, totSYS, totFAST, totWIN, totMSG,
+  totIO1, totIO2, totIO3, totINPUT, totMENU,
 
-  m6845ctl, {to grab color constants}
+  m6845ctl,
+  m320_640,
   strings,
   dos,crt,
   topb_constants,
@@ -40,6 +40,7 @@ uses
   {$O totSTR}
   {$O totDATE}
   {$O totMISC}
+  {$O totINPUT}
 
   {$O topb_detect}
   {$O detectconstants}
@@ -94,7 +95,9 @@ type
 
 const
   DBdirty:boolean=false; {if dirty, DB needs to be written to disk}
+  DBreadonly:boolean=false; {if DB gets partially loaded to due low ram, don't save it back out again}
   INIBufSize=18*512*2; {enough to hold an entire 1.44MB track}
+  minramfree=80*50*2;
   {default colors that work with both MDA and CGA}
   cnormal:byte=$07;
   creverse:byte=$70;
@@ -114,6 +117,7 @@ var
   BenchMenu,DBMenu:MenuOBJ; {must be static objects due to TOT broken design}
   MsgConsole:PMConsole;
   FStatus:PWinOBJ;
+
 
 Constructor TLog.Init;
 begin
@@ -153,7 +157,7 @@ begin
   verboseLog:=false;
 
   new(ConScreen,init);
-  ConScreen^.create(80,Monitor^.Depth,TLightGray);
+  ConScreen^.create(Monitor^.Width,Monitor^.Depth,TLightGray);
   ConScreen^.writeCenter(1,_creverse,'Debug message console.  Only recent entries displayed.  Press a key to dismiss. ');
 end;
 
@@ -190,7 +194,7 @@ begin
     fatal  :fileLog^.Commit('=FATAL=  '+msg);
   end;
   {then, insert it into the message console}
-  ConScreen^.Scroll(up,1,2,80,Monitor^.Depth);
+  ConScreen^.Scroll(up,1,2,Monitor^.Width,Monitor^.Depth);
   case m of
     info:color:=_cnormal;
     warning:color:=_chigh;
@@ -233,32 +237,32 @@ end;
 
 Procedure PopUserMessage(class:messagetype;s:string80);
 var
-  foomsg:MessageObj;
+  foomsg:PMessageObj;
   loop:byte;
   ts:string[12];
 begin
-  with foomsg do begin
-    case class of
-      info   :ts:='Information';
-      warning:ts:='Warning:';
-      error  :ts:='Error!';
-    end;
-    init(2,ts);
+  case class of
+    info   :ts:='Information';
+    warning:ts:='Warning:';
+    error  :ts:='Error!';
+  end;
+  new(foomsg,init(2,ts));
+  with foomsg^ do begin
     addline(s);
     addline(' ');
     show;
-    done;
     MsgConsole^.LogMsg(class,s);
   end;
+  dispose(foomsg,done);
 end;
 
 Procedure PopAbout;
 var
-  foomsg:MessageObj;
+  foomsg:PMessageObj;
   loop:byte;
 begin
-  with foomsg do begin
-    init(2,strpas(mainmenuLookup[mAbout].blurb));
+  new(foomsg,init(2,strpas(mainmenuLookup[mAbout].blurb)));
+  with foomsg^ do begin
     for loop:=0 to 15 do AddLine(strpas(AboutText[loop]));
     if Systems^.Count>0
       then addline(' Systems loaded: '+inttostr(Systems^.Count)
@@ -266,8 +270,8 @@ begin
     addline('    Memory free: '+inttostr(memavail div 1024)+' KB (largest: '+inttostr(maxavail div 1024)+' KB)');
     addline(' ');
     show;
-    done;
   end;
+  dispose(foomsg,done);
 end;
 
 procedure introtext; external;
@@ -314,19 +318,19 @@ end;
 
 function PromptYN(msg:string80):boolean;
 var
-  PromptWin:PromptOBJ;
+  PromptWin:PPromptOBJ;
   result:tAction;
 begin
-  with PromptWin do begin
-    Init(1,'');
+  new(promptwin,Init(1,''));
+  with PromptWin^ do begin
     AddLine(msg);
     AddLine(' ');
     SetOption(1,'  ~Y~es  ',89,Finished);
     SetOption(2,'  ~N~o  ',78,Escaped);
     Result := Show;
-    Done;
   end;
   PromptYN:=(Result = Finished);
+  dispose(promptwin,done);
 end;
 
 
@@ -458,17 +462,25 @@ var
   Procedure AttemptCommit;
   {if this fails, object is wiped out (by design) so don't call this
   unless you are REALLY sure it's time to commit the object.}
-
+  var
+    foomsg:string80;
   begin
     mouse.hide;
     Screen.writeln(tmpsys^.Name^);
     {mouse.show;}
-    if foundflags=RequiredFeatures
+    if (foundflags=RequiredFeatures) and (memavail>minramfree)
       then CommitSystem(tmpsys)
       else begin
-        MsgConsole^.LogMsg(warning,'Commit of '+tmpsys^.UID^+' rejected due to lack of required entries');
+        foomsg:='Commit of '+tmpsys^.UID^+' rejected due to lack of ';
+        if foundflags<>requiredfeatures
+          then MsgConsole^.LogMsg(warning,foomsg+'required entries');
+        if memavail<=minramfree then begin
+          MsgConsole^.LogMsg(error,foomsg+'available RAM');
+          DBreadonly:=true;
+        end;
         dispose(tmpsys,done);
       end;
+
     foundflags:=0;
   end;
 
@@ -727,7 +739,7 @@ var
   w:word;
   mid:byte;
   tmpsys:PSystem;
-  tmpScreen:ScreenOBJ;
+  tmpScreen:PScreenOBJ;
   bf:byte;
 begin
   h:=(y2-y1-2) {AND $FE};
@@ -740,8 +752,8 @@ begin
     then startlist:=endlist-h;
   if startlist<0 then startlist:=0;
 
-  with tmpScreen do begin
-    init;
+  new(tmpScreen,init);
+  with tmpScreen^ do begin
     save;
     {screen.resetwindow;}
     if opttitle='' then opttitle:='System List';
@@ -761,16 +773,16 @@ begin
     end;
     resetwindow;
     display;
-    done;
   end;
+  dispose(tmpScreen,done);
 end;
 
-Procedure repaintSysInfo(x1,y1,x2,y2,style:byte;SysList:PSystems;curitem:word);
+Procedure repaintSysInfo(x1,y1,x2,y2,style:byte;opttitle:string80;SysList:PSystems;curitem:word);
 var
   tmpsys:PSystem;
   b:byte;
   lastrow:byte;
-  tmpScreen:ScreenOBJ;
+  tmpScreen:PScreenOBJ;
 
   procedure writewrap(x1,y1,width:byte;s:string);
   {there are several ways to skin this cat.  This particular way minimizes
@@ -784,7 +796,7 @@ var
   begin
     if length(s)<width
       {if string width is under wrap threshold, just write it and exit}
-      then tmpscreen.writeplain(x1,y1,s)
+      then tmpscreen^.writeplain(x1,y1,s)
       else begin
         curpos:=1; cury:=y1; lastcurpos:=1;
         while curpos<length(s) do begin
@@ -795,7 +807,7 @@ var
             then begin
               dec(curpos,width);
               temps:=copy(s,curpos+1,length(s)-curpos);
-              tmpscreen.writeplain(x1,cury,temps);
+              tmpscreen^.writeplain(x1,cury,temps);
               break;
             end else begin
               {find the space and write curpos to it}
@@ -804,7 +816,7 @@ var
                   curpos:=b;
                   {copy up to right before the space}
                   temps:=copy(s,lastcurpos,curpos-lastcurpos);
-                  tmpscreen.writeplain(x1,cury,temps);
+                  tmpscreen^.writeplain(x1,cury,temps);
                   lastcurpos:=curpos+1; {+1 skips the found space}
                   inc(cury);
                   break;
@@ -814,7 +826,7 @@ var
               if lastcurpos<>curpos+1 then begin
                 {copy what we have anyway}
                 temps:=copy(s,lastcurpos,curpos-1-lastcurpos);
-                tmpscreen.writeplain(x1,cury,temps);
+                tmpscreen^.writeplain(x1,cury,temps);
                 lastcurpos:=curpos;
                 inc(cury);
                 break;
@@ -838,14 +850,14 @@ const
 
 begin
   tmpsys:=SysList^.At(curitem);
-  with tmpScreen do begin
-    init;
+  new(tmpscreen,init);
+  with tmpScreen^ do begin
     save;
     gotoxy(1,1);
     {resetwindow;}
     TitledBox(x1,y1,x2,y2,
               LookTOT^.vmenuborder,LookTOT^.vmenutitle,LookTOT^.vmenuborder,
-              style,'System Details:');
+              style,opttitle);
     setwindow(x1+1,y1+1,x2-1,y2-1);
     lastrow:=y2-y1-1;
     {for debugging and layout:}
@@ -904,8 +916,57 @@ begin
 
     resetwindow;
     display;
-    done;
   end;
+  dispose(tmpscreen,done);
+end;
+
+Procedure repaintSysLine(y:byte;system:PSystem);
+var
+  b:byte;
+  x1,y1,x2,y2:byte;
+  lastrow:byte;
+  tmpScreen:PScreenOBJ;
+
+const
+  sm=11;
+  us=14;
+
+begin
+  new(tmpScreen,init);
+  with tmpScreen^ do begin
+    save;
+    gotoxy(1,1);
+    {resetwindow;}
+    x1:=1;
+    y1:=y;
+    x2:=Monitor^.Width;
+    y2:=y+3;
+    TitledBox(x1,y1,x2,y2,
+              LookTOT^.vmenuborder,LookTOT^.vmenutitle,LookTOT^.vmenuborder,
+              0,'The current system...');
+    setwindow(x1+1,y1+1,x2-1,y2-1);
+
+    writeat(1,1,LookTOT^.vmenutitle,'SCORE:');
+    writeplain(8,1,inttostr(system^.score));
+       writeat(us+(0*sm),1,LookTOT^.vmenutitle,'MemTest: ');
+    writeplain(us+(0*sm),2,inttostr(system^.usecMemtest)+' æsec');
+       writeat(us+(1*sm),1,LookTOT^.vmenutitle,'MemEA:   ');
+    writeplain(us+(1*sm),2,inttostr(system^.usecMemEA)+' æsec');
+       writeat(us+(2*sm),1,LookTOT^.vmenutitle,'Opcodes: ');
+    writeplain(us+(2*sm),2,inttostr(system^.usecOpcodes)+' æsec');
+       writeat(us+(3*sm),1,LookTOT^.vmenutitle,'VidMem:  ');
+    writeplain(us+(3*sm),2,inttostr(system^.usecVidmem)+' æsec');
+       writeat(us+(4*sm),1,LookTOT^.vmenutitle,'3DGames: ');
+    writeplain(us+(4*sm),2,inttostr(system^.usec3DGames)+' æsec');
+       writeat(us+(5*sm),1,LookTOT^.vmenutitle,'Total:   ');
+    with system^ do
+    writeplain(us+(5*sm),2,inttostr(
+         usecMemtest+usecMemEA+usecOpcodes+usecVidmem+usec3DGames
+         )+' æsec');
+    resetwindow;
+    display;
+  end;
+  dispose(tmpScreen,done);
 end;
 
 Procedure repaintSysTimings(x1,y1,x2,y2,style:byte;hiflags:word;SysList:PSystems;curitem:word);
@@ -914,7 +975,7 @@ var
   tmpsys:PSystem;
   b:byte;
   lastrow:byte;
-  tmpScreen:ScreenOBJ;
+  tmpScreen:PScreenOBJ;
   col,labelcol,normcol,wincol:byte;
 
 const
@@ -923,8 +984,8 @@ const
 
 begin
   tmpsys:=SysList^.At(curitem);
-  with tmpScreen do begin
-    init;
+  new(tmpScreen,init);
+  with tmpScreen^ do begin
     save;
     gotoxy(1,1);
     {resetwindow;}
@@ -993,8 +1054,8 @@ begin
     *)
     resetwindow;
     display;
-    done;
   end;
+  dispose(tmpScreen,done);
 end;
 
 Function EditSystem(whichlist:PSystems;whichsys:word;cancelallowed:boolean):boolean;
@@ -1002,7 +1063,7 @@ Function EditSystem(whichlist:PSystems;whichsys:word;cancelallowed:boolean):bool
 var
   x1,y1,x2,y2:byte;
 
-  editwin:{Move}WinOBJ;
+  editwin:{Move}PWinOBJ;
   tmpsys:psystem;
   k:word;x,y:byte;
   {field objects:}
@@ -1101,8 +1162,8 @@ begin
   fok.SetHotKey(280); {Alt-O}
   fcancel.Init(fwidth-15,fhtab+fheight-2-2,' ~C~ancel ',Escaped);
   fcancel.SetHotKey(302); {Alt-C}
-  with editwin do begin
-    init;
+  new(editwin,init);
+  with editwin^ do begin
     SetSize(
       (monitor^.width div 2)-(fwidth div 2),(monitor^.depth div 2)-(fheight div 2),
       (monitor^.width div 2)+(fwidth div 2),(monitor^.depth div 2)+(fheight div 2),1
@@ -1156,8 +1217,8 @@ begin
       end;
       done;
     end;
-    done;
   end;
+  dispose(editwin,done);
   {moronic form manager does NOT call added objects' done method!
   must do it ourselves!}
   fKeys.done;
@@ -1181,7 +1242,7 @@ is performed to get closer.  No smoothing is performed.
 }
 const
   {windows heights and sizes}
-  bstart=1;
+  bstart=1+4;
   istart:byte=25;
   bheight:byte=10;
   iheight=13;
@@ -1199,19 +1260,6 @@ var
   Very simple euclidean distance function (I never took statistics, hope
   that's right!) that outputs the "distance" in microsecond timings
   between two systems.  This function is simple, but it does the job.
-  Consider the following scenario:
-
-  sys1:          sys2:          target sys:
-  memtest=5000   memtest=2000   memtest=1998
-    memea=1250     memea=2000     memea=2002
-  opcodes=1250   opcodes=2000   opcodes=1998
-   vidmem=1250    vidmem=2000    vidmem=2002
-       3d=1250        3d=2000        3d=2000
-
-  Using just addition as a distance function, both sys1 and sys2 would
-  be equal distance from the target which is clearly screwed up.
-  Using the below function, the distance from sys1 would be 6002 and
-  from sys2 would be 8.
   }
   var
     a,b:integer; {change to :word and the bug described below also surfaces}
@@ -1219,7 +1267,8 @@ var
     {these variables and inefficient process below is because I discovered
     a bug in Turbo Pascal developing this program, where TP was incorrectly
     typcasting a signed longint result into various places.  Uncomment
-    the last block of this function if you want to see the bug in action.}
+    the last block of this function if you want to see the bug in action.
+    The bug is probably related to TP's 386 longint routines, but not sure.}
   begin
     l:=0;
     a:=sys1^.usecMemTest; b:=sys2^.usecMemTest; inc(l,abs(a-b));
@@ -1238,13 +1287,12 @@ var
     );*)
   end;
 
-  Procedure RepaintBoth;
+  Procedure RepaintRealtime;
   begin
-    repaintSysList(1,bstart,80,bheight,1,true,'Your machine is functioning closest to the following system:',Systems,closest);
-    repaintSysInfo(1,istart-1,80,istart+iheight,2,Systems,closest);
-    {$IFNDEF DEBUG}
-    Screen.WriteAT(1,monitor^.depth,chigh,'Adjust your machine or emulator to see the results change realtime.  ESC exits.');
-    {$ENDIF}
+    repaintSysLine(1,tmpsys);
+    repaintSysList(1,bstart,Monitor^.Width,bheight,
+                   0,true,' ...matches the following entry in the database: ',Systems,closest);
+    repaintSysInfo(1,istart-1,Monitor^.Width,istart+iheight,2,' Matched system detail: ',Systems,closest);
   end;
 
 begin
@@ -1253,6 +1301,9 @@ begin
   closest:=1;
   {curSys:=SystemList^.Count-1;}
   MakeNewSystem(tmpsys);
+  {$IFNDEF DEBUG}
+  Screen.WriteAT(1,monitor^.depth,chigh,'Adjust your machine or emulator to see the results change realtime.  ESC exits.');
+  {$ENDIF}
   repeat
     if _sound then sound(14000);
     tmpsys^.usecMemTest:=testmemoryblockops;
@@ -1290,7 +1341,7 @@ begin
       {reset list index to closest one}
       closest:=minidx;
     end;
-    repaintBoth;
+    repaintRealtime;
     {$IFDEF DEBUG}
     if found
       then screen.writeat(1,25,$07,'Exact match at idx '+inttostr(closest)
@@ -1371,9 +1422,8 @@ var
 
   Procedure RepaintBoth;
   begin
-    repaintSysList(1,bstart,80,bheight,1,false,'',SystemList,curSys);
-    repaintSysInfo(1,istart-1,80,istart+iheight,2,SystemList,curSys);
-    Screen.WriteAT(1,monitor^.depth,chigh,'Browse the list using movement keys; DEL to delete or ENTER to edit a system');
+    repaintSysList(1,bstart,Monitor^.Width,bheight,1,false,'',SystemList,curSys);
+    repaintSysInfo(1,istart-1,Monitor^.Width,istart+iheight,2,'System Details:',SystemList,curSys);
   end;
 
 begin
@@ -1381,6 +1431,7 @@ begin
   bheight:=istart-2;
   curSys:=0;
   {curSys:=SystemList^.Count-1;}
+  Screen.WriteAT(1,monitor^.depth,chigh,'Browse the list using movement keys; DEL to delete or ENTER to edit a system');
   repaintBoth;
   repeat
     oldcur:=cursys;
@@ -1429,7 +1480,7 @@ var
   compresult:integer;
   s:string80;
 
-  Procedure RepaintAll;
+  Procedure RepaintQuadrants;
   var
     hflags:array[0..1] of word;
     tmpsys:array[0..1] of PSystem;
@@ -1498,7 +1549,7 @@ begin
 
   repeat
     {repaint screen}
-    repaintAll;
+    repaintQuadrants;
     case Key.Getkey of
     {tab}  9:active:=active xor 1;
     {up} 328:dec(cursys[active]);
@@ -1514,26 +1565,6 @@ begin
   until Key.Lastkey=27;
 end;
 
-Procedure StarBench;
-{A silly idea I had two decades ago that would make a nice easter egg.}
-begin
-  if WhatVideoSubsystem='MDA' then begin
-    writeln('Sorry, but StarBench requires CGA or higher.');
-    halt(2);
-  end;
-  asm
-    mov ax,0006
-    int 10h
-  end;
-  {Determine maximum # of stars a system can produce}
-  asm
-    mov ax,0003
-    int 10h
-  end;
-  writeln('StarBench!');
-  halt(3);
-end;
-
 Procedure initTOPB;
 var
   fname:string128;
@@ -1541,16 +1572,16 @@ var
   w:word;
 
 begin
-  {StarBench!}
-  if upstring(paramstr(1))='STARBENCH' then StarBench;
+  writeln(FullBanner);
+  {if upstring(paramstr(1))='STARBENCH' then StarBench;}
   if is_param('?') or is_param('h') then begin
-    clrscr;
     writeln('Command-line options:');
     writeln('  -?,-h    This help message');
     writeln('  -c       Attempt setting "condensed" mode on VGA and EGA systems');
     writeln('  -q       Turn off sound in the realtime benchmarking section');
     writeln('  -s       Skip some of the more volatile detection tests');
-    writeln('  -dN      Specify realtime benchmark search distance (default: '+inttostr(_searchdistance)+')');
+    writeln('  -d#      Specify realtime benchmark search distance (default: '+inttostr(_searchdistance)+')');
+    writeln('  -i       Profile this machine, print Score, then immediately exit');
     halt(10);
   end;
   if is_param('c') then begin
@@ -1561,6 +1592,10 @@ begin
   end;
   if is_param('q') then _sound:=false;
   if is_param('s') then _skiptests:=true;
+  if is_param('i') then begin
+    writeln('TOPBENCH Score of this machine: ',TopScore);
+    halt(4);
+  end;
   if param_int('d')<>0 then _searchdistance:=param_int('d');
 
   {I don't want any mouse support for majority of program -- it's slightly
@@ -1609,7 +1644,7 @@ begin
   end;
 
   Screen.Clear(tWhite,'°'); {paint the screen}
-  Screen.PartClear(1,Monitor^.Depth,80,Monitor^.Depth,TWhite,' '); {prepare status line}
+  Screen.PartClear(1,Monitor^.Depth,Monitor^.Width,Monitor^.Depth,TWhite,' '); {prepare status line}
 
   Systems:=New(PSystems, Init(256, 16));
   {load the existing database}
@@ -1708,10 +1743,16 @@ begin
         end;
       end;
       mSave:begin
-        if Systems^.Count>0 then begin
-          SaveDatabase(Systems,DBFileName);
-          DBDirty:=false;
-        end else PopUserMessage(warning,'Cannot save an empty database.  Add a system first?');
+        if not DBreadonly then begin
+          if Systems^.Count>0 then begin
+            SaveDatabase(Systems,DBFileName);
+            DBDirty:=false;
+          end
+          else
+            PopUserMessage(warning,'Cannot save an empty database.  Add a system first?');
+        end
+        else
+          PopUserMessage(warning,'Database read-only; only partially loaded due to lack of RAM.');
       end;
       mSetup:PopUserMessage(info,' User settings are controlled via command-line switches. Use -? for help. ');
       mExport:begin
@@ -1748,7 +1789,7 @@ begin
     dispose(SaveScreen,done);
   until MenuChoice=0;
   LookTOT^.SetDefaults;
-  if DBDirty
+  if DBDirty and not DBreadonly
     then if PromptYN(' Database has been changed; save it? ')
       then SaveDatabase(Systems,DBFileName);
 end;
