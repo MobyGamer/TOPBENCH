@@ -14,6 +14,7 @@ uses
 
   m6845ctl,
   m320_640,
+  ztimer,
   strings,
   dos,crt,
   topb_constants,
@@ -1498,6 +1499,8 @@ var
     tmpsys:array[0..1] of PSystem;
     tusec:array[0..1] of word;
     b:byte;
+    sr:string16;
+    r:real;
   const
     fscore  =$01;
     fMemTest=$02;
@@ -1516,13 +1519,26 @@ var
     compresult:=Systems^.Compare(tmpsys[0],tmpsys[1]);
     case compresult of
       -1:begin
-        s:=#32#32#25#25#25#25#25#25#25#25#25#25' Faster '#25#25#25#25#25#25#25#25#25#25#32#32;
+        r:=tmpsys[1]^.score / tmpsys[0]^.score;
+        Str(r:12:2,sr);
+        repeat delete(sr,1,1) until sr[1]<>#32;
+        sr:=#32+sr;
+        s:= #32#32#25#25#25#25#25#25#25#25#25#25
+           +sr+'x Faster '
+           +#25#25#25#25#25#25#25#25#25#25#32#32;
       end;
       0:begin
-        s:='  컴컴컴컴컴  Same  컴컴컴컴컴  ';
+        s:='      컴컴컴컴컴  Same  컴컴컴컴컴      ';
       end;
       1:begin
-        s:=#32#32#24#24#24#24#24#24#24#24#24#24' Faster '#24#24#24#24#24#24#24#24#24#24#32#32;
+        r:=tmpsys[0]^.score / tmpsys[1]^.score;
+        Str(r:12:2,sr);
+        repeat delete(sr,1,1) until sr[1]<>#32;
+        sr:=#32+sr;
+        s:= #32#32#24#24#24#24#24#24#24#24#24#24
+           +sr+'x Faster '
+           +#24#24#24#24#24#24#24#24#24#24#32#32;
+
       end;
     end;
 
@@ -1583,6 +1599,174 @@ begin
   until Key.Lastkey=27;
 end;
 
+Procedure StarBench;
+{
+A silly idea I had two decades ago that would make a nice easter egg.
+ScreenX = ScreenDist * Xpos / Zpos
+ScreenY = ScreenDist * Ypos / Zpos
+  screendist=256;
+}
+type
+  startype=record
+    x,y,z,scnx,scny,oldscnx,oldscny,speed:integer;
+  end;
+const
+  maxfound:word=3;
+  maxram=(64*1024) - 16;
+  maximum=maxram div sizeof(startype);
+  maxdist=(4*256)-1;
+  maxspeed=5;
+  scnwidth=640;
+  scnheight=200;
+  maxx=scnwidth-1;
+  maxy=scnheight-1;
+  midx=(scnwidth div 2)-1;
+  midy=(scnheight div 2)-1;
+  cols:array[0..3] of byte=(3,3,1,2);
+  foundmax:boolean=false;
+  fps=60;
+type
+  PStarray=^TStarray;
+  TStarray=array[0..maximum-1] of startype;
+var
+  stars:PStarray;
+  w:word;
+  ch:char;
+
+begin
+  if WhatVideoSubsystem='MDA' then begin
+    writeln('Sorry, but starbenching requires CGA or higher.');
+    halt(2);
+  end;
+  writeln('Initializing universe...');
+  if maxavail<sizeof(TStarray) then begin
+    writeln('Not enough memory!');
+    halt(2);
+  end;
+  getmem(stars,sizeof(TStarray));
+  RandSeed:=1;
+  for w:=0 to maximum-1 do with stars^[w] do begin
+    repeat
+      z:=maxspeed+random(maxdist);
+      x:=random(scnwidth);
+      y:=random(scnheight)*2;
+      speed:=1+random(maxspeed);
+      {calc new star screen position}
+      scnx:=midx+ ((x shl 8) div z);
+      scny:=midy+(((y shl 8) div z) div 2);
+      until (z > maxspeed)
+    and (scnx > 0) and (scnx < maxx) and (scny > 0) and (scny < maxy);
+    if (w and $7f) = $7f then write(#13,(maximum-1)-w,' ');
+  end;
+
+  asm
+    mov ax,0006
+    int 10h
+  end;
+
+  {Determine maximum # of stars a system can produce at 60fps}
+  repeat
+    if not foundmax then _PZTimerON;
+    for w:=0 to maxfound do with stars^[w] do begin
+      {calc new star screen position}
+      dec(z,speed);
+      oldscnx:=scnx;
+      oldscny:=scny;
+      asm
+        les di,stars
+        mov ax,w
+        shl ax,1
+        shl ax,1
+        shl ax,1
+        shl ax,1 {our struct is 16 bytes}
+
+        {mov ax,es:[di].startype.scnx
+        mov es:[di].startype.oldscnx,ax
+        mov ax,es:[di].startype.scny
+        mov es:[di].startype.oldscny,ax}
+
+        {scnx:=midx+ ((x shl 8) div z);}
+        add di,ax
+        mov ax,es:[di].startype.x
+        mov ah,al {mov cl,8; shl ax,cl}
+        xor al,al
+        cwd
+        mov bx,es:[di].startype.z
+        idiv bx
+        add ax,midx
+        mov es:[di].startype.scnx,ax
+
+        {scny:=midy+(((y shl 8) div z) div 2);}
+        mov ax,es:[di].startype.y
+        mov ah,al
+        xor al,al
+        cwd
+        idiv bx
+        sar ax,1
+        add ax,midy
+        mov es:[di].startype.scny,ax
+      end;
+      {if star is off the screen, reset star}
+      if (z<maxspeed+1)
+      or (scnx < 0) or (scnx > maxx)
+      or (scny < 0) or (scny > maxy)
+        then begin
+          z:=maxdist;
+          if not foundmax and (maxfound < maximum-1)
+            then inc(maxfound);
+          {calc new star screen position}
+          asm
+            les di,stars
+            mov ax,w
+            shl ax,1
+            shl ax,1
+            shl ax,1
+            shl ax,1 {our struct is 16 bytes}
+            add di,ax
+            mov ax,es:[di].startype.x
+            mov ah,al {mov cl,8; shl ax,cl}
+            xor al,al
+            cwd
+            mov bx,es:[di].startype.z
+            idiv bx
+            add ax,midx
+            mov es:[di].startype.scnx,ax
+
+            mov ax,es:[di].startype.y
+            mov ah,al
+            xor al,al
+            cwd
+            idiv bx
+            sar ax,1
+            add ax,midy
+            mov es:[di].startype.scny,ax
+          end;
+        end;
+      {draw new star}
+      if (oldscnx <> scnx)
+      or (oldscny <> scny)
+      then begin
+        mode6_setpixel_direct(oldscnx,oldscny,0);
+        mode6_setpixel_direct(scnx,scny,1{cols[z div 256]});
+      end;
+    end;
+    if not foundmax then begin
+      _PZTimerOff;
+      if _PZTimerCount > (1000000 div fps)
+        then foundmax:=true;
+    end;
+  until keypressed;
+  freemem(stars,sizeof(TStarray));
+  asm
+    mov ax,0003
+    int 10h
+  end;
+  write('StarBench: ',maxfound);
+  if maxfound>=maximum-1 then write(' (maximum!)');
+  writeln;
+  halt(3);
+end;
+
 Procedure initTOPB;
 var
   fname:string128;
@@ -1591,7 +1775,7 @@ var
 
 begin
   writeln(FullBanner);
-  {if upstring(paramstr(1))='STARBENCH' then StarBench;}
+  if upstring(paramstr(1))='STARBENCH' then StarBench;
   if is_param('?') or is_param('h') then begin
     for w:=0 to 7 do writeln(strpas(CommandLineHelp[w]));
     halt(10);
