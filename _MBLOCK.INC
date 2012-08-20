@@ -10,7 +10,8 @@ REP LODSW is not used in real life but is included to measure mem read speed.
 With the exception of REP LODSW, this suite simulates typical program
 operations like searching/comparing for individual characters}
   asm
-    call    _PZTimerOn
+    pushf; cli; call _PZTimerOn; popf
+
     mov     dx,ds {we're not using dx at all in this test}
 
     {Basic test mostly simulates what real programs do:
@@ -56,9 +57,8 @@ operations like searching/comparing for individual characters}
 
     mov     ds,dx           {restore ds or Pascal will freak out}
 
-    call    _PZTimerOff
+    pushf; cli; call _PZTimerOff; popf;
   end;
   {freemem(buf2,bufsize); freemem(buf1,bufsize);}
   testMemoryBlockOps:=_PZTimerCount;
 end;
-

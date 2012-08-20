@@ -13,6 +13,7 @@ REP LODSW is not used in real life but is included to measure mem read speed.
 With the exception of REP LODSW, this suite simulates typical program
 operations like searching/comparing for individual characters}
   asm
+
     mov     dx,ds {we're not using dx at all in this test}
 
     {Basic test mostly simulates what real programs do:
@@ -59,11 +60,12 @@ operations like searching/comparing for individual characters}
     mov     ds,dx           {restore ds or Pascal will freak out}
 
   end;
-{Exercises all effective addressing modes by actually trying to move memory 
-with them.  All encodings are included.  Included mostly for the benefit of 
+{Exercises all effective addressing modes by actually trying to move memory
+with them.  All encodings are included.  Included mostly for the benefit of
 emulator authors.
 Accumulator has optimized forms, so both accum and generic reg8/16 tested.}
   asm
+
     {Make half-assed attempt at not causing trouble by pointing as much as
     we can to known preallocated space.  Chances are low that putting values
     right back into memory won't cause a problem anyway, but it would be just
@@ -474,9 +476,9 @@ Accumulator has optimized forms, so both accum and generic reg8/16 tested.}
 
   end;
 {
-Exercises almost every single 8086 opcode, in roughly opcode order.  
-Exceptions are anything that would interrupt the timing of the code, any non- 
-8086 instruction, and all floating-point instructions.  (This code must run on 
+Exercises almost every single 8086 opcode, in roughly opcode order.
+Exceptions are anything that would interrupt the timing of the code, any non-
+8086 instruction, and all floating-point instructions.  (This code must run on
 all processors.)  Instructions explicitly not exercised are:
 
   Instructions skipped          Because:
@@ -496,6 +498,7 @@ all processors.)  Instructions explicitly not exercised are:
 }
 
   asm
+
     mov     ax,foow
     mov     dx,$5678
     (*lea     bx,scratchspace {init some vars}*)
@@ -947,9 +950,9 @@ all processors.)  Instructions explicitly not exercised are:
     std
     cld {reversed from opcode encoding to ensure we don't bork future moves}
 
-{Call a BIOS do-nothing interrupt to test INT.  Dummy interrupt in this case 
-is 1C, the user hook interrupt, which we haven't hooked so it should just do 
-an iret.  If a TSR is loaded that DOES hook it, it's going to skew things, so 
+{Call a BIOS do-nothing interrupt to test INT.  Dummy interrupt in this case
+is 1C, the user hook interrupt, which we haven't hooked so it should just do
+an iret.  If a TSR is loaded that DOES hook it, it's going to skew things, so
 remember to remind the user to test on a clean boot if possible.}
     int     1Ch
     (* old do-nothing interrupt test was READ CURSOR POSITION
@@ -968,8 +971,8 @@ remember to remind the user to test on a clean boot if possible.}
     *)
 
     pushf
-    call    doNothingInterrupt; {...to force an IRET in memory to be measured.  
-Previous test also calls an IRET but the IRET is usually located in the BIOS 
+    call    doNothingInterrupt; {...to force an IRET in memory to be measured.
+Previous test also calls an IRET but the IRET is usually located in the BIOS
 ROM if 1c hasn't been hooked.}
 
     (*this completely crashed a virtual session -- it turns out that,
@@ -1054,7 +1057,7 @@ Flight Simulator 4 1990 Sublogic          moderate 309737
 Battle Command     1991 Realtime          moderate 420442
 Blue Angels        1990 Artech            slow     413359
 
-(1) This is my subjective visual feel for the framerate of a game at a given 
+(1) This is my subjective visual feel for the framerate of a game at a given
 machine speed.
 
 (2) This is the actual 3-D game instruction count for one calculation block.
@@ -1084,29 +1087,28 @@ screen copy.
 
 I made some interesting observations when looking at the execution history:
 
-- I used to think that the difference between a fast and slow 3-D game was due 
-to optimization of MULs or something, but all of the above games performed the 
-same 9 MULs per rotation.  Only Stunt Driver was different; it calculated only 
-6 MULs when the car was driving, probably because it only needed to account 
+- I used to think that the difference between a fast and slow 3-D game was due
+to optimization of MULs or something, but all of the above games performed the
+same 9 MULs per rotation.  Only Stunt Driver was different; it calculated only
+6 MULs when the car was driving, probably because it only needed to account
 for 2 axis at a time due to the nature of the simulation.
 
 - Indianapolis 500 performs nearly double the amount of calculations as
 Interphase, yet I marked it as "fast", and it is suitably impressive on an
 808x machine.  Why?  Because the game's viewport is only half the screen
 (roughly a 320x100 area instead of the full 320x200).  But that's okay,
-because it's a driving game on an oval track; you don't need a lot of vision 
+because it's a driving game on an oval track; you don't need a lot of vision
 up or down.
 
 - The games varied wildly with their math representations; many used what
 appeared to be 16.16 fixed point, but I believe I saw a few others, such as
 8.16 (Interphase) and 8.24 (Flight Simluator). I could be wrong however, and
 encourage you to do your own research/disassembly/logging.  All my data is
-available upon request if you'd like to study it (but I warn you, the 
+available upon request if you'd like to study it (but I warn you, the
 sed/awk/shell scripts I wrote to process it will likely disgust you).
 
 }
   asm
-
 
     {Init so we have a consistent starting point}
     mov  ax,$0101
@@ -1710,4 +1712,3 @@ it would be a major slowdown to the tests.}
   end;
 
 end;
-

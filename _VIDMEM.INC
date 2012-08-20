@@ -10,7 +10,7 @@ REP STOS is not performed because it would cause unacceptable visible
 disruption to the screen while the realtime updates are in progress.
 Also, size of block move is not a full 80x25 screen because otherwise
 it would be a major slowdown to the tests.}
-    call    _PZTimerOn;
+    pushf; cli; call _PZTimerOn; popf
     mov     dx,ds
 
     les     di,[buf1]
@@ -34,11 +34,10 @@ it would be a major slowdown to the tests.}
 
     mov     ds,dx
 
-    call    _PZTimerOff
+    pushf; cli; call _PZTimerOff; popf
   end;
 
   {freemem(buf1,screenarea);}
   testVideoAdapterWrites:=_PZTimerCount;
 end;
 
-

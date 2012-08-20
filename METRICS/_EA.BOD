@@ -1,9 +1,10 @@
-{Exercises all effective addressing modes by actually trying to move memory 
-with them.  All encodings are included.  Included mostly for the benefit of 
+{Exercises all effective addressing modes by actually trying to move memory
+with them.  All encodings are included.  Included mostly for the benefit of
 emulator authors.
 Accumulator has optimized forms, so both accum and generic reg8/16 tested.}
   asm
-    call    _PZTimerOn
+    pushf; cli; call _PZTimerOn; popf
+
     {Make half-assed attempt at not causing trouble by pointing as much as
     we can to known preallocated space.  Chances are low that putting values
     right back into memory won't cause a problem anyway, but it would be just
@@ -412,5 +413,5 @@ Accumulator has optimized forms, so both accum and generic reg8/16 tested.}
     {restore our frame}
     pop     bp
 
-    call    _PZTimerOff
+    pushf; cli; call _PZTimerOff; popf
   end;

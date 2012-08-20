@@ -1666,7 +1666,11 @@ begin
 
   {Determine maximum # of stars a system can produce at 60fps}
   repeat
-    if not foundmax then _PZTimerON;
+    if not foundmax then begin
+      asm pushf; cli end;
+      _PZTimerON;
+      asm popf end;
+    end;
     for w:=0 to maxfound do with stars^[w] do begin
       {calc new star screen position}
       dec(z,speed);
@@ -1712,6 +1716,10 @@ begin
       or (scny < 0) or (scny > maxy)
         then begin
           z:=maxdist;
+          speed:=1+random(maxspeed);
+          x:=random(scnwidth);
+          y:=random(scnheight)*2;
+
           if not foundmax and (maxfound < maximum-1)
             then inc(maxfound);
           {calc new star screen position}
@@ -1751,7 +1759,9 @@ begin
       end;
     end;
     if not foundmax then begin
+      asm pushf; cli end;
       _PZTimerOff;
+      asm popf; end;
       if _PZTimerCount > (1000000 div fps)
         then foundmax:=true;
     end;

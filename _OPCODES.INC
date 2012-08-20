@@ -2,9 +2,9 @@ Function testCPUOpcodes:longint;
 begin
 
 {
-Exercises almost every single 8086 opcode, in roughly opcode order.  
-Exceptions are anything that would interrupt the timing of the code, any non- 
-8086 instruction, and all floating-point instructions.  (This code must run on 
+Exercises almost every single 8086 opcode, in roughly opcode order.
+Exceptions are anything that would interrupt the timing of the code, any non-
+8086 instruction, and all floating-point instructions.  (This code must run on
 all processors.)  Instructions explicitly not exercised are:
 
   Instructions skipped          Because:
@@ -24,7 +24,8 @@ all processors.)  Instructions explicitly not exercised are:
 }
 
   asm
-    call _PZTimerOn
+    pushf; cli; call _PZTimerOn; popf
+
     mov     ax,foow
     mov     dx,$5678
     (*lea     bx,scratchspace {init some vars}*)
@@ -476,9 +477,9 @@ all processors.)  Instructions explicitly not exercised are:
     std
     cld {reversed from opcode encoding to ensure we don't bork future moves}
 
-{Call a BIOS do-nothing interrupt to test INT.  Dummy interrupt in this case 
-is 1C, the user hook interrupt, which we haven't hooked so it should just do 
-an iret.  If a TSR is loaded that DOES hook it, it's going to skew things, so 
+{Call a BIOS do-nothing interrupt to test INT.  Dummy interrupt in this case
+is 1C, the user hook interrupt, which we haven't hooked so it should just do
+an iret.  If a TSR is loaded that DOES hook it, it's going to skew things, so
 remember to remind the user to test on a clean boot if possible.}
     int     1Ch
     (* old do-nothing interrupt test was READ CURSOR POSITION
@@ -497,8 +498,8 @@ remember to remind the user to test on a clean boot if possible.}
     *)
 
     pushf
-    call    doNothingInterrupt; {...to force an IRET in memory to be measured.  
-Previous test also calls an IRET but the IRET is usually located in the BIOS 
+    call    doNothingInterrupt; {...to force an IRET in memory to be measured.
+Previous test also calls an IRET but the IRET is usually located in the BIOS
 ROM if 1c hasn't been hooked.}
 
     (*this completely crashed a virtual session -- it turns out that,
@@ -535,8 +536,7 @@ ROM if 1c hasn't been hooked.}
     {push   [bx]} DB $FF,$37
     {pop    [bx]} DB $8F,$07
 
-    call _PZTimerOff
+    pushf; cli; call _PZTimerOff; popf
   end;
   testCPUOpcodes:=_PZTimerCount;
 end;
-
