@@ -8,7 +8,7 @@ TOPBENCH's database.  This stub can run on system with as little as
 128KB total RAM, provided the user uses a non-bloated DOS boot disk.
 }
 
-{$DEFINE OVERLAYS}
+{{$DEFINE OVERLAYS}
 
 uses
   {$IFDEF OVERLAYS}
@@ -138,7 +138,7 @@ begin
     pop     ds
   end;
 
-  new(i,init(fname,appendfile));
+  new(i,init(fname,appendfile,1024));
   i^.WriteComment('Data collected by: '+StubBanner);
   i^.WriteComment('This file contains fingerprinting information about your computer.  Please');
   i^.WriteComment('email this file to trixter@oldskool.org with a subject line of "Benchmark" to');

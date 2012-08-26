@@ -1,7 +1,11 @@
 program topbench;
 
 {{$DEFINE DEBUG}
+
 {{$DEFINE USEOVERLAYS}
+{Overlays are only used while trying to run and debug the program
+within the Turbo Pascal IDE.  There should not be any reason to
+distribute the program with overlays because it only saves about 128K}
 
 uses
   objects,
@@ -16,34 +20,29 @@ uses
   m320_640,
   ztimer,
   strings,
-  dos,crt,
+  dos,{crt,}
   topb_constants,
   topb_datastructures,
   topb_detect,
   btsuites,
   cmdlin,
   inifiles,
+  tinterrupts,
   support;
 
 {$IFDEF USEOVERLAYS}
   {Note: documentation discourages overlaying TOTSYS, TOTINPUT, and TOTFAST}
-  {$O totLOOK}
-  {$O totREAL}
-  {$O totWIN}
-  {$O totMSG}
-  {$O totLINK}
+  {$O totSYS} {$O totINPUT} {$O totFAST}
+
   {{$O totLIST}
   {{$O totDIR}
-  {$O totIO1}
-  {$O totIO2}
-  {$O totIO3}
-  {$O totMENU}
-  {$O totSTR}
-  {$O totDATE}
-  {$O totMISC}
-  {$O totINPUT}
+  {$O totLOOK} {$O totREAL} {$O totWIN} {$O totMSG} {$O totLINK}
+  {$O totIO1} {$O totIO2} {$O totIO3} {$O totMENU} {$O totSTR}
+  {$O totDATE} {$O totMISC} {$O totINPUT}
 
   {$O topb_detect}
+  {$O topb_datastructures}
+  {$O m320_640}
   {$O detectconstants}
   {$O detectglobal}
   {$O detectGraphics}
@@ -53,7 +52,10 @@ uses
   {$O cputype}
   {$O crc16}
   {$O dos}
+  {$O objects}
   {$O cmdlin}
+  {$O support}
+  {$O inifiles}
 {$ENDIF}
 
 type
@@ -119,7 +121,6 @@ var
   MsgConsole:PMConsole;
   FStatus:PWinOBJ;
   tmpScreen:PScreenOBJ; {used for all the repaint* procedures}
-
 
 Constructor TLog.Init;
 begin
@@ -284,7 +285,7 @@ begin
   new(foomsg,init(2,' Controlling TOPBENCH Behavior '));
   with foomsg^ do begin
     addline('User settings are controlled via command-line switches.');
-    for loop:=0 to 7 do AddLine(strpas(CommandLineHelp[loop]));
+    for loop:=0 to numHelpLines-1 do AddLine(strpas(CommandLineHelp[loop]));
     addline(' ');
     show;
   end;
@@ -1312,13 +1313,13 @@ begin
   Screen.WriteAT(1,monitor^.depth,chigh,'Adjust your machine or emulator to see the results change realtime.  ESC exits.');
   {$ENDIF}
   repeat
-    if _sound then sound(14000);
+    if _sound then Chan2SquarewaveON(14000);
     tmpsys^.usecMemTest:=testmemoryblockops;
     tmpsys^.usecMemEA  :=testmemEA;
     tmpsys^.usecOpcodes:=testCPUOpcodes;
     tmpsys^.usecVidMem :=testVideoAdapterWrites;
     tmpsys^.usec3DGames:=test3DGames;
-    if _sound then nosound;
+    if _sound then Chan2SquarewaveOFF;
     tmpsys^.score:=topscore;
     tmpsys^.BIOSCRC16:=WhatBIOSCRC16;
     {Perform binary search to see if we have an exact match in the database}
@@ -1424,8 +1425,8 @@ const
   iheight=13;
 
 var
-  w:word;
-  oldcur,cursys:integer;
+  w,keyw:word;
+  oldcur,oldfound,cursys:integer;
 
   Procedure RepaintBoth;
   begin
@@ -1444,11 +1445,13 @@ begin
   bheight:=istart-2;
   curSys:=0;
   {curSys:=SystemList^.Count-1;}
-  Screen.WriteAT(1,monitor^.depth,chigh,'Browse the list using movement keys; DEL to delete or ENTER to edit a system');
+  Screen.WriteAT(1,monitor^.depth,chigh,
+  'Browse using movement keys ³ Letter=jump to next ³ DEL to delete ³ ENTER to edit');
   repaintBoth;
   repeat
     oldcur:=cursys;
-    case Key.Getkey of
+    keyw:=Key.Getkey;
+    case keyw of
     {del}339:begin
       DeleteSystem(SystemList,cursys);
       if cursys=SystemList^.Count
@@ -1465,6 +1468,25 @@ begin
     {pgd}337:inc(cursys,bheight-2);
     {hom}327:cursys:=0;
     {end}335:cursys:=Systems^.Count-1;
+    {letter}
+    ord('a')..ord('z'):begin
+        oldfound:=cursys;
+        for w:=cursys+1 to Systemlist^.Count-1 do begin
+          if upchar(PSystem(Systemlist^.at(w))^.Name^[1])=chr(keyw-32)
+            then begin
+              cursys:=w;
+              break;
+            end;
+        end;
+        {nothing?  Start over from top of list}
+        if oldfound=cursys then for w:=0 to cursys do begin
+          if upchar(PSystem(Systemlist^.at(w))^.Name^[1])=chr(keyw-32)
+            then begin
+              cursys:=w;
+              break;
+            end;
+        end;
+      end;
     end;
     {if user moved:}
     If oldcur<>cursys then begin
@@ -1684,11 +1706,6 @@ begin
         shl ax,1
         shl ax,1 {our struct is 16 bytes}
 
-        {mov ax,es:[di].startype.scnx
-        mov es:[di].startype.oldscnx,ax
-        mov ax,es:[di].startype.scny
-        mov es:[di].startype.oldscny,ax}
-
         {scnx:=midx+ ((x shl 8) div z);}
         add di,ax
         mov ax,es:[di].startype.x
@@ -1785,21 +1802,35 @@ var
 
 begin
   writeln(FullBanner);
-  if upstring(paramstr(1))='STARBENCH' then StarBench;
   if is_param('?') or is_param('h') then begin
-    for w:=0 to 7 do writeln(strpas(CommandLineHelp[w]));
+    for w:=0 to numHelpLines-1 do writeln(strpas(CommandLineHelp[w]));
     halt(10);
   end;
+  if upstring(paramstr(1))='STARBENCH' then StarBench;
+  if not is_param('p')
+    then if InV86
+      then begin
+        writeln('The system appears to be in protected mode, which can greatly skew operation.');
+        writeln('Please boot clean before running TOPBENCH.  (If you are _100% sure_ this is a');
+        writeln('false positive, re-run with /p to override.)');
+        halt(5);
+      end;
   if is_param('c') then begin
     Monitor^.SetCondensed;
     {reset mouse so that it picks up new dimensions}
     mouse.done;
     mouse.init;
   end;
+  if non_flag_count<>0 then DBFilename:=non_flag_param(1);
   if is_param('q') then _sound:=false;
   if is_param('s') then _skiptests:=true;
   if is_param('i') then begin
-    writeln('TOPBENCH Score of this machine: ',TopScore);
+    writeln('Score:                ',TopScore);
+    writeln('Memory:               ',testmemoryblockops,' æs');
+    writeln('Effective addressing: ',testmemEA,' æs');
+    writeln('Opcode exercise:      ',testCPUOpcodes,' æs');
+    writeln('Vid adapter speed:    ',testVideoAdapterWrites,' æs');
+    writeln('3DGame distribution:  ',test3DGames,' æs');
     halt(4);
   end;
   if param_int('d')<>0 then _searchdistance:=param_int('d');
@@ -1848,6 +1879,27 @@ begin
       AddFullItem(strpas(title),ord(id),mhk,strpas(blurb),nil);
     SetStatus(ord(mSave),false);
   end;
+
+  if not is_param('k')
+    {if CGA or higher, disable blink bit}
+    then if WhatVideoSubsystem<>'MDA'
+      then begin
+        if WhatVideoSubsystem='CGA'
+          then asm
+            mov  dx,m6845_mode_ctl
+            mov  al,c_videosignal_enable+c_fast_char_clock {blinking not included, so blinking is off}
+            out  dx,al
+          end else asm {if EGA or higher, do something completely different}
+            mov ax,1003h {disable blink on ega/vga}
+            mov bl,0
+            int 10h
+          end;
+        {embrighten the colors we'll be using}
+        LookTOT^.vmenuborder:=LookTOT^.vmenuborder OR $88;
+        LookTOT^.vmenutitle:=LookTOT^.vmenutitle OR $88;
+        LookTOT^.vmenulonorm:=LookTOT^.vmenulonorm OR $88;
+        LookTOT^.vmenulohot:=LookTOT^.vmenulohot OR $88;
+      end;
 
   Screen.Clear(tWhite,'°'); {paint the screen}
   Screen.PartClear(1,Monitor^.Depth,Monitor^.Width,Monitor^.Depth,TWhite,' '); {prepare status line}

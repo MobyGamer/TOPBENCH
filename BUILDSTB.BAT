@@ -12,9 +12,11 @@ tpc -Tc:\bp\bin -L -GD -B -$A+ -$G- -$R- -$S- -DOVERLAYS detect\detectgr
 tpc -Tc:\bp\bin -L -GD -B -$A+ -$G- -$R- -$S- -DOVERLAYS topbstub
 rem pklite \compiled\topbstub.exe
 
-del c:\temp\tstub097.zip
+del c:\temp\tstub97c.zip
 cd \compiled
-pkzip -ex c:\temp\tstub097.zip dstub.exe dstub.map topbstub.exe topbstub.ovr
+pkzip -ex c:\temp\tstub97c.zip dstub.exe dstub.map topbstub.exe topbstub.ovr
 cd \topbench
-pkzip -ex c:\temp\tstub097.zip whatsnew.txt readstub.txt
+pkzip -ex c:\temp\tstub97c.zip whatsnew.txt readstub.txt
+
+copy c:\temp\tstub97c.zip s:\temp
 

@@ -47,7 +47,7 @@ type
   dbmenuArray=array[mAdd..mExport] of menuLookuptype;
 
 const
-  DBFilename='database.ini';
+  DBFilename:string16='database.ini';
   ConfigFilename='topbench.ini';
   LOGFilename='topbench.log';
 
@@ -111,11 +111,11 @@ const
 
   RequiredFeatures=LTestMemF+LTestMemEAF+LTestOpcodesF+LTestVidMemF+LTest3DGamesF+Lbioscrc16F+LscoreF+LNameF;
 
-  StubVersion='0.97b';
+  StubVersion='0.97c';
   StubBanner='TOPBENCH | Benchmark and detection stub | Version '+StubVersion;
 
-  FullVersion='0.34b';
-  FullBuildDate='20120820';
+  FullVersion='0.35';
+  FullBuildDate='20120825';
   FullBanner='TOPBENCH | 16-bit real-mode x86 Benchmarking Suite | Version '+FullVersion;
 
   DefaultDate=19810801; {birth of IBM PC, roughly}
@@ -140,15 +140,19 @@ const
     ''
   );
 
-  CommandLineHelp:array[0..7] of pChar=(
+  numHelpLines=11;
+  CommandLineHelp:array[0..numHelpLines-1] of pChar=(
     '',
     'Command-line options:',
-    '  -?,-h  This help message',
-    '  -c     Attempt setting "condensed" mode on VGA and EGA systems',
-    '  -q     Turn off sound in the realtime benchmarking section',
-    '  -s     Skip some of the more volatile detection tests',
-    '  -d#    Specify realtime benchmark search distance (default: 2)',
-    '  -i     Profile this machine, print Score, then immediately exit'
+    '  -?,-h    This help message',
+    '  -c       Attempt setting "condensed" mode on VGA and EGA systems',
+    '  -q       Turn off sound in the realtime benchmarking section',
+    '  -s       Skip some of the more volatile detection tests',
+    '  -d#      Specify realtime benchmark search distance (default: 2)',
+    '  -i       Profile this machine, print Score, then immediately exit',
+    '  -p       Skip test for protected mode',
+    '  -k       Disable video "special effects" on color systems',
+    '  FILENAME Specify an alternate database filename'
   );
 
 implementation

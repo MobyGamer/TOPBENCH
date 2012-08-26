@@ -1,3 +1,8 @@
+Version 0.97c:
+
+  + Fixed bug with reading the 8254 timer; should no longer get
+    results like "65535 or "54xxx" for the timings
+
 Version 0.97b:
 
   - Removed attempts to detect 80c8x processors because it is not
