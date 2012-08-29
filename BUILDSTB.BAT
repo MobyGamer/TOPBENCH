@@ -18,5 +18,5 @@ pkzip -ex c:\temp\tstub97c.zip dstub.exe dstub.map topbstub.exe topbstub.ovr
 cd \topbench
 pkzip -ex c:\temp\tstub97c.zip whatsnew.txt readstub.txt
 
-copy c:\temp\tstub97c.zip s:\temp
+copy c:\temp\tstub97c.zip s:\temp\tmp
 

@@ -114,14 +114,15 @@ const
   StubVersion='0.97c';
   StubBanner='TOPBENCH | Benchmark and detection stub | Version '+StubVersion;
 
-  FullVersion='0.35';
-  FullBuildDate='20120825';
+  FullVersion='0.36';
+  FullBuildDate='20120828';
   FullBanner='TOPBENCH | 16-bit real-mode x86 Benchmarking Suite | Version '+FullVersion;
 
   DefaultDate=19810801; {birth of IBM PC, roughly}
   MHzLabel=' MHz';
 
-  AboutText:array[0..15] of pChar=(
+  numAboutLines=16;
+  AboutText:array[0..numAboutLines-1] of pChar=(
     '',
     ' The Oldskool PC Benchmark ',
     ' Version '+FullVersion+', '+FullBuildDate,
@@ -140,7 +141,7 @@ const
     ''
   );
 
-  numHelpLines=11;
+  numHelpLines=12;
   CommandLineHelp:array[0..numHelpLines-1] of pChar=(
     '',
     'Command-line options:',
@@ -152,6 +153,7 @@ const
     '  -i       Profile this machine, print Score, then immediately exit',
     '  -p       Skip test for protected mode',
     '  -k       Disable video "special effects" on color systems',
+    '  -r       Return raw detected MHz (instead of quantizing to friendly value)',
     '  FILENAME Specify an alternate database filename'
   );
 

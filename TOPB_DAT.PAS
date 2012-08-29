@@ -101,6 +101,10 @@ type
     function Compare(Key1, Key2: Pointer): Integer; virtual;
   end;
 
+var
+  Systems:PSystems;
+  SystemsByName:PSystemsByName;
+
 implementation
 
 Constructor TSystem.Init;

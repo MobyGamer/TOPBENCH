@@ -13,17 +13,22 @@ uses
   bstubov,
   {$ENDIF}
 
-  totLOOK, totSYS, totFAST, totWIN, totMSG,
-  totIO1, totIO2, totIO3, totINPUT, totMENU,
+  totLOOK,
+  totSYS,
+  totFAST,
+  totWIN,
+  totIO1,
+  totIO2,
+  totINPUT,
+  totMENU,
 
   m6845ctl,
-  m320_640,
-  ztimer,
   strings,
-  dos,{crt,}
+  dos,
   topb_constants,
   topb_datastructures,
   topb_detect,
+  topb_support,
   btsuites,
   cmdlin,
   inifiles,
@@ -37,11 +42,12 @@ uses
   {{$O totLIST}
   {{$O totDIR}
   {$O totLOOK} {$O totREAL} {$O totWIN} {$O totMSG} {$O totLINK}
-  {$O totIO1} {$O totIO2} {$O totIO3} {$O totMENU} {$O totSTR}
+  {$O totIO1} {$O totIO2} {{$O totIO3} {$O totMENU} {$O totSTR}
   {$O totDATE} {$O totMISC} {$O totINPUT}
 
   {$O topb_detect}
   {$O topb_datastructures}
+  {$O topb_support}
   {$O m320_640}
   {$O detectconstants}
   {$O detectglobal}
@@ -58,44 +64,6 @@ uses
   {$O inifiles}
 {$ENDIF}
 
-type
-  messageType=(info,warning,error,fatal);
-
-  {Object for logging messages to a file}
-  PLog=^TLog;
-  TLog=object(TObject)
-    logname:string128;
-    Constructor Init(name:string128);
-    Destructor Done; virtual;
-
-    Procedure Commit(msg:string);
-
-    private
-    loghandle:text;
-  end;
-
-  {Message console object.  Messages are tagged with info, warning, or error
-  and show up on a virtual screen in different colors.  All messages except
-  info are also logged atomically to the application logfile.  If verboselog
-  is set, then info messages are logged as well.}
-  PMConsole=^TMConsole;
-  TMConsole=object(Tobject)
-    verboseLog:boolean; {if true, "info" messages get written to log}
-    ConScreen,savescreen:PScreenOBJ;
-    {colors for the console.  Default values work for both color and MDA.}
-    _cnormal,_creverse,_chigh,_cunderline,_cblink:byte;
-
-    Constructor Init;
-    Destructor Done; virtual;
-
-    Procedure Show;
-    Procedure Hide;
-    Procedure LogMsg(m:messageType;msg:string);
-
-    private
-    fileLog:PLog;
-  end;
-
 const
   DBdirty:boolean=false; {if dirty, DB needs to be written to disk}
   DBreadonly:boolean=false; {if DB gets partially loaded to due low ram, don't save it back out again}
@@ -110,187 +78,13 @@ const
   {user preferences flags:}
   _sound:boolean=true;
   _skiptests:boolean=false;
-  _searchdistance:byte=2; {fine-tune results n-_sd to n+_sd}
+  _searchdistance:byte=2; {fine-tune results n-sd to n+sd}
+  _realMhz:boolean=false; {don't try to quantize detected MHz}
 
 var
-  Systems:PSystems;
-  SystemsByName:PSystemsByName;
   mematstart:longint;
   MainMenu:PMenuOBJ;
   BenchMenu,DBMenu:MenuOBJ; {must be static objects due to TOT broken design}
-  MsgConsole:PMConsole;
-  FStatus:PWinOBJ;
-  tmpScreen:PScreenOBJ; {used for all the repaint* procedures}
-
-Constructor TLog.Init;
-begin
-  Inherited Init;
-
-  logname:=name;
-  assign(loghandle,logname);
-  rewrite(loghandle);
-  close(loghandle);
-end;
-
-Destructor TLog.Done;
-begin
-  Inherited Done;
-end;
-
-Procedure TLog.commit(msg:string);
-begin
-  append(loghandle);
-  writeln(loghandle,msg);
-  close(loghandle);
-end;
-
-
-Constructor TMConsole.Init;
-
-begin
-  Inherited Init;
-
-  _cnormal:=$07;
-  _creverse:=$70;
-  _chigh:=$0f;
-  _cunderline:=$01;
-  _cblink:=$8c;
-
-  new(fileLog,init(logfilename));
-  verboseLog:=false;
-
-  new(ConScreen,init);
-  ConScreen^.create(Monitor^.Width,Monitor^.Depth,TLightGray);
-  ConScreen^.writeCenter(1,_creverse,'Debug message console.  Only recent entries displayed.  Press a key to dismiss. ');
-end;
-
-Destructor TMConsole.Done;
-begin
-  dispose(ConScreen,done);
-  dispose(fileLog,done);
-
-  Inherited Done;
-end;
-
-Procedure TMConsole.Show;
-begin
-  new(savescreen,init);
-  savescreen^.save;
-  ConScreen^.Display;
-end;
-
-Procedure TMConsole.Hide;
-begin
-  savescreen^.display;
-  dispose(savescreen,done);
-end;
-
-Procedure TMConsole.LogMsg;
-var
-  color:byte;
-begin
-  {first, make sure it gets into the log file if it is important}
-  case m of
-    info:if verboseLog then fileLog^.Commit(msg);
-    warning:fileLog^.Commit('Warning: '+msg);
-    error  :fileLog^.Commit('=ERROR=  '+msg);
-    fatal  :fileLog^.Commit('=FATAL=  '+msg);
-  end;
-  {then, insert it into the message console}
-  ConScreen^.Scroll(up,1,2,Monitor^.Width,Monitor^.Depth);
-  case m of
-    info:color:=_cnormal;
-    warning:color:=_chigh;
-    error,
-    fatal:color:=_cblink;
-  end;
-  ConScreen^.WriteAt(1,Monitor^.Depth,color,msg);
-  {if we have a fatal error,
-  MAYDAY MAYDAY TOPBENCH IS BUDDY-SPIKED ABORT ABORT ABORT}
-  if m=fatal then begin
-    screen.resetwindow;
-    if screenseg=ptr($b000,0)
-      then asm mov ax,0007; int 10h; end
-      else asm mov ax,0003; int 10h; end;
-    asm
-      les di,screenseg
-      mov ax,0720h
-      mov cx,1000h
-      rep stosw
-    end;
-    system.writeln('FATAL ERROR: '+msg);
-    system.writeln('It might be prudent to check '+fileLog^.logname+' for clues.');
-    halt(1);
-  end;
-end;
-
-procedure PrepFWindow(title:string80);
-begin
-  {pop-up window so user can see file ops taking place}
-  new(fStatus,init);
-  with fStatus^ do begin
-    SetSize(4,4,Monitor^.width-4,monitor^.depth-4,1);
-    SetTitle(title);
-    SetClose(false);
-    draw;
-    Screen.Clear(tlightgray,' ');
-  end;
-end;
-
-
-Procedure PopUserMessage(class:messagetype;s:string80);
-var
-  foomsg:PMessageObj;
-  loop:byte;
-  ts:string[12];
-begin
-  case class of
-    info   :ts:='Information';
-    warning:ts:='Warning:';
-    error  :ts:='Error!';
-  end;
-  new(foomsg,init(2,ts));
-  with foomsg^ do begin
-    addline(s);
-    addline(' ');
-    show;
-    MsgConsole^.LogMsg(class,s);
-  end;
-  dispose(foomsg,done);
-end;
-
-Procedure PopAbout;
-var
-  foomsg:PMessageObj;
-  loop:byte;
-begin
-  new(foomsg,init(2,strpas(mainmenuLookup[mAbout].blurb)));
-  with foomsg^ do begin
-    for loop:=0 to 15 do AddLine(strpas(AboutText[loop]));
-    if Systems^.Count>0
-      then addline(' Systems loaded: '+inttostr(Systems^.Count)
-             +' (RAM holds roughly ~'+inttostr(Systems^.Count+(memavail div (Systems^.getsize div Systems^.Count)))+')');
-    addline('    Memory free: '+inttostr(memavail div 1024)+' KB (largest: '+inttostr(maxavail div 1024)+' KB)');
-    addline(' ');
-    show;
-  end;
-  dispose(foomsg,done);
-end;
-
-Procedure PopSetupMessage;
-var
-  foomsg:PMessageObj;
-  loop:byte;
-begin
-  new(foomsg,init(2,' Controlling TOPBENCH Behavior '));
-  with foomsg^ do begin
-    addline('User settings are controlled via command-line switches.');
-    for loop:=0 to numHelpLines-1 do AddLine(strpas(CommandLineHelp[loop]));
-    addline(' ');
-    show;
-  end;
-  dispose(foomsg,done);
-end;
 
 procedure introtext; external;
 {$L introscn.obj}
@@ -332,49 +126,6 @@ begin
   end;
   screen.writecenter(monitor^.depth,LookTOT^.vmenulohot,'Press any key to dismiss');
   Key.getkey;
-end;
-
-function PromptYN(msg:string80):boolean;
-var
-  PromptWin:PPromptOBJ;
-  result:tAction;
-begin
-  new(promptwin,Init(1,''));
-  with PromptWin^ do begin
-    AddLine(msg);
-    AddLine(' ');
-    SetOption(1,'  ~Y~es  ',89,Finished);
-    SetOption(2,'  ~N~o  ',78,Escaped);
-    Result := Show;
-  end;
-  PromptYN:=(Result = Finished);
-  dispose(promptwin,done);
-end;
-
-
-Function PromptForFilename(blurb:string80):string128;
-const
-  wid=77;
-var
-  PromptWin:PWinOBJ;
-  fname:PLateralIOOBJ;
-begin
-  new(PromptWin,init);
-  with PromptWin^ do begin
-    SetSize(4,2,wid,4,1);
-    SetTitle(blurb);
-    SetClose(false);
-    draw;
-    screen.writeplain(1,1,'Filename: ');
-  end;
-  new(fname,init(10,1,wid-10,127));
-  with fname^ do begin
-    SetLabel('Filename: ');
-    Activate;
-    PromptForFilename:=GetValue;
-  end;
-  dispose(fname,done);
-  dispose(PromptWin,done);
 end;
 
 Procedure CommitSystem(var NewSystem:PSystem);
@@ -432,8 +183,9 @@ begin
     newsys^.SetCPU(WhatCPU);
 
     screen.writeln('CPU speed... ');
-    {newsys^.MHz:=WhatMHzReal;} {too touchy}
-    newsys^.MHz:=WhatMHzRealNormalized;
+    if _realMHz
+      then newsys^.MHz:=WhatMHzReal
+      else newsys^.MHz:=WhatMHzRealNormalized;
   end;
 
   Screen.writeln('BIOS... ');
@@ -678,7 +430,8 @@ begin
   new(PINIFile(i),init(fn,newfile,INIBufSize));
   if i <> NIL then begin
     i^.WriteComment('This file contains fingerprinting information about various computers for');
-    i^.WriteComment('the TOPBENCH benchmark.  Hand-edit at your peril!');
+    i^.WriteComment('the TOPBENCH benchmark.  Hand-edit at your peril!  If you add new systems,');
+    i^.WriteComment('please consider sending this file to trixter@oldskool.org.');
     s^.ForEach(@CallWrite);
     dispose(i,Done);
   end else begin
@@ -873,11 +626,13 @@ begin
     setwindow(x1+1,y1+1,x2-1,y2-1);
     lastrow:=y2-y1-1;
     {for debugging and layout:}
-(*    for b:=1 to lastrow do writecenter(b,cnormal,inttostr(b));
+    {$IFDEF DEBUG}
+    for b:=1 to lastrow do writecenter(b,cnormal,inttostr(b));
     for b:=1 to x2-2 do begin
       writeat(b,lastrow-4,cnormal,inttostr(b mod 10));
       writeat(b,lastrow,cnormal,inttostr(b mod 10));
-    end;*)
+    end;
+    {$ENDIF}
 
     writeat(1,1,LookTOT^.vmenutitle,'SCORE:');
     writeplain(8,1,inttostr(tmpsys^.score));
@@ -1406,8 +1161,6 @@ begin
     else MsgConsole^.LogMsg(error,tmpsys^.UID^+' not found in Systems?');
 end;
 
-
-
 Procedure SystemBrowser(SystemList:PSystems);
 {
 The system browser.  Intended functionality is a list of systems up top,
@@ -1427,6 +1180,7 @@ const
 var
   w,keyw:word;
   oldcur,oldfound,cursys:integer;
+  namechar,inputchar:char;
 
   Procedure RepaintBoth;
   begin
@@ -1446,7 +1200,7 @@ begin
   curSys:=0;
   {curSys:=SystemList^.Count-1;}
   Screen.WriteAT(1,monitor^.depth,chigh,
-  'Browse using movement keys ³ Letter=jump to next ³ DEL to delete ³ ENTER to edit');
+  'Browse using movement keys ³ Letter/Number=jumps ³ DEL to delete ³ ENTER to edit');
   repaintBoth;
   repeat
     oldcur:=cursys;
@@ -1469,22 +1223,26 @@ begin
     {hom}327:cursys:=0;
     {end}335:cursys:=Systems^.Count-1;
     {letter}
-    ord('a')..ord('z'):begin
+    ord('a')..ord('z'),
+    ord('0')..ord('9'):begin
         oldfound:=cursys;
         for w:=cursys+1 to Systemlist^.Count-1 do begin
-          if upchar(PSystem(Systemlist^.at(w))^.Name^[1])=chr(keyw-32)
-            then begin
-              cursys:=w;
-              break;
-            end;
+          namechar:=upchar(PSystem(Systemlist^.at(w))^.Name^[1]);
+          if keyw>ord('9')
+            then inputchar:=chr(keyw-32) {letter, convert to upcase}
+            else inputchar:=chr(keyw);   {number, convert to number}
+          if namechar=inputchar then begin
+            cursys:=w;
+            break;
+          end;
         end;
         {nothing?  Start over from top of list}
         if oldfound=cursys then for w:=0 to cursys do begin
-          if upchar(PSystem(Systemlist^.at(w))^.Name^[1])=chr(keyw-32)
-            then begin
-              cursys:=w;
-              break;
-            end;
+          namechar:=upchar(PSystem(Systemlist^.at(w))^.Name^[1]);
+          if namechar=inputchar then begin
+            cursys:=w;
+            break;
+          end;
         end;
       end;
     end;
@@ -1621,179 +1379,6 @@ begin
   until Key.Lastkey=27;
 end;
 
-Procedure StarBench;
-{
-A silly idea I had two decades ago that would make a nice easter egg.
-ScreenX = ScreenDist * Xpos / Zpos
-ScreenY = ScreenDist * Ypos / Zpos
-  screendist=256;
-}
-type
-  startype=record
-    x,y,z,scnx,scny,oldscnx,oldscny,speed:integer;
-  end;
-const
-  maxfound:word=3;
-  maxram=(64*1024) - 16;
-  maximum=maxram div sizeof(startype);
-  maxdist=(4*256)-1;
-  maxspeed=5;
-  scnwidth=640;
-  scnheight=200;
-  maxx=scnwidth-1;
-  maxy=scnheight-1;
-  midx=(scnwidth div 2)-1;
-  midy=(scnheight div 2)-1;
-  cols:array[0..3] of byte=(3,3,1,2);
-  foundmax:boolean=false;
-  fps=60;
-type
-  PStarray=^TStarray;
-  TStarray=array[0..maximum-1] of startype;
-var
-  stars:PStarray;
-  w:word;
-  ch:char;
-
-begin
-  if WhatVideoSubsystem='MDA' then begin
-    writeln('Sorry, but starbenching requires CGA or higher.');
-    halt(2);
-  end;
-  writeln('Initializing universe...');
-  if maxavail<sizeof(TStarray) then begin
-    writeln('Not enough memory!');
-    halt(2);
-  end;
-  getmem(stars,sizeof(TStarray));
-  RandSeed:=1;
-  for w:=0 to maximum-1 do with stars^[w] do begin
-    repeat
-      z:=maxspeed+random(maxdist);
-      x:=random(scnwidth);
-      y:=random(scnheight)*2;
-      speed:=1+random(maxspeed);
-      {calc new star screen position}
-      scnx:=midx+ ((x shl 8) div z);
-      scny:=midy+(((y shl 8) div z) div 2);
-      until (z > maxspeed)
-    and (scnx > 0) and (scnx < maxx) and (scny > 0) and (scny < maxy);
-    if (w and $7f) = $7f then write(#13,(maximum-1)-w,' ');
-  end;
-
-  asm
-    mov ax,0006
-    int 10h
-  end;
-
-  {Determine maximum # of stars a system can produce at 60fps}
-  repeat
-    if not foundmax then begin
-      asm pushf; cli end;
-      _PZTimerON;
-      asm popf end;
-    end;
-    for w:=0 to maxfound do with stars^[w] do begin
-      {calc new star screen position}
-      dec(z,speed);
-      oldscnx:=scnx;
-      oldscny:=scny;
-      asm
-        les di,stars
-        mov ax,w
-        shl ax,1
-        shl ax,1
-        shl ax,1
-        shl ax,1 {our struct is 16 bytes}
-
-        {scnx:=midx+ ((x shl 8) div z);}
-        add di,ax
-        mov ax,es:[di].startype.x
-        mov ah,al {mov cl,8; shl ax,cl}
-        xor al,al
-        cwd
-        mov bx,es:[di].startype.z
-        idiv bx
-        add ax,midx
-        mov es:[di].startype.scnx,ax
-
-        {scny:=midy+(((y shl 8) div z) div 2);}
-        mov ax,es:[di].startype.y
-        mov ah,al
-        xor al,al
-        cwd
-        idiv bx
-        sar ax,1
-        add ax,midy
-        mov es:[di].startype.scny,ax
-      end;
-      {if star is off the screen, reset star}
-      if (z<maxspeed+1)
-      or (scnx < 0) or (scnx > maxx)
-      or (scny < 0) or (scny > maxy)
-        then begin
-          z:=maxdist;
-          speed:=1+random(maxspeed);
-          x:=random(scnwidth);
-          y:=random(scnheight)*2;
-
-          if not foundmax and (maxfound < maximum-1)
-            then inc(maxfound);
-          {calc new star screen position}
-          asm
-            les di,stars
-            mov ax,w
-            shl ax,1
-            shl ax,1
-            shl ax,1
-            shl ax,1 {our struct is 16 bytes}
-            add di,ax
-            mov ax,es:[di].startype.x
-            mov ah,al {mov cl,8; shl ax,cl}
-            xor al,al
-            cwd
-            mov bx,es:[di].startype.z
-            idiv bx
-            add ax,midx
-            mov es:[di].startype.scnx,ax
-
-            mov ax,es:[di].startype.y
-            mov ah,al
-            xor al,al
-            cwd
-            idiv bx
-            sar ax,1
-            add ax,midy
-            mov es:[di].startype.scny,ax
-          end;
-        end;
-      {draw new star}
-      if (oldscnx <> scnx)
-      or (oldscny <> scny)
-      then begin
-        mode6_setpixel_direct(oldscnx,oldscny,0);
-        mode6_setpixel_direct(scnx,scny,1{cols[z div 256]});
-      end;
-    end;
-    if not foundmax then begin
-      asm pushf; cli end;
-      _PZTimerOff;
-      asm popf; end;
-      if _PZTimerCount > (1000000 div fps)
-        then foundmax:=true;
-    end;
-  until keypressed;
-  freemem(stars,sizeof(TStarray));
-  asm
-    mov ax,0003
-    int 10h
-  end;
-  write('StarBench: ',maxfound);
-  if maxfound>=maximum-1 then write(' (maximum!)');
-  writeln;
-  halt(3);
-end;
-
 Procedure initTOPB;
 var
   fname:string128;
@@ -1824,6 +1409,7 @@ begin
   if non_flag_count<>0 then DBFilename:=non_flag_param(1);
   if is_param('q') then _sound:=false;
   if is_param('s') then _skiptests:=true;
+  if is_param('r') then _realMHZ:=true;
   if is_param('i') then begin
     writeln('Score:                ',TopScore);
     writeln('Memory:               ',testmemoryblockops,' æs');
