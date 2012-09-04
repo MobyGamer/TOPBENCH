@@ -220,6 +220,7 @@ Procedure ImportSystemFile(s:string128);
 {Imports one or more entries from an ini-style database file}
 const
   usecThreshold=10000;
+  invalid=': invalid value';
 
 var
   ini:PINIfile;
@@ -302,31 +303,31 @@ begin
           tmpsys^.usecMemTest:=strToInt(value);
           if tmpsys^.usecMemTest < usecThreshold
             then foundflags:=foundflags OR LTestMemF
-            else MsgConsole^.LogMsg(error,'Invalid usecMemTest value');
+            else MsgConsole^.LogMsg(error,'usecMemTest'+invalid);
         end;
         if upstring(key)=upstring(LTestMemEA) then begin
           tmpsys^.usecMemEA:=strToInt(value);
           if tmpsys^.usecMemEA < usecThreshold
             then foundflags:=foundflags OR LTestMemEAF
-            else MsgConsole^.LogMsg(error,'Invalid usecMemEA value');
+            else MsgConsole^.LogMsg(error,'usecMemEA'+invalid);
         end;
         if upstring(key)=upstring(LTestOpcodes) then begin
           tmpsys^.usecOpcodes:=strToInt(value);
           if tmpsys^.usecOpcodes < usecThreshold
             then foundflags:=foundflags OR LTestOpcodesF
-            else MsgConsole^.LogMsg(error,'Invalid usecOpcodes value');
+            else MsgConsole^.LogMsg(error,'usecOpcodes'+invalid);
         end;
         if upstring(key)=upstring(LTestVidMem) then begin
           tmpsys^.usecVidMem:=strToInt(value);
           if tmpsys^.usecVidMem < usecThreshold
             then foundflags:=foundflags OR LTestVidMemF
-            else MsgConsole^.LogMsg(error,'Invalid usecVidMem value');
+            else MsgConsole^.LogMsg(error,'usecVidMem'+invalid);
         end;
         if upstring(key)=upstring(LTest3DGames) then begin
           tmpsys^.usec3DGames:=strToInt(value);
           if tmpsys^.usec3DGames < usecThreshold
             then foundflags:=foundflags OR LTest3DGamesF
-            else MsgConsole^.LogMsg(error,'Invalid usec3DGames value');
+            else MsgConsole^.LogMsg(error,'usec3DGames'+invalid);
         end;
         if upstring(key)=upstring(Lbioscrc16) then begin
           tmpsys^.BIOSCRC16:=hexStrToLong(value);
@@ -401,7 +402,8 @@ var
       {mouse.show;}
       MsgConsole^.LogMsg(info,'Writing '+UID^+':'+name^+':'+inttostr(score));
       {Required fields:}
-      i^.StartNewSection(UID^,Name^);
+      {i^.StartNewSection(UID^,Name^);}
+      i^.StartNewSection(UID^,''); {eliminate the comment to save floppy space}
       i^.WriteKeyValue(LTestMem,inttostr(usecMemTest));
       i^.WriteKeyValue(LTestOpcodes,inttostr(usecOpcodes));
       i^.WriteKeyValue(LTestVidMem,inttostr(usecVidmem));
@@ -465,19 +467,22 @@ var
       Screen.writeln(Name^);
       {mouse.show;}
       tmps:=UID^;
-      tmps:=tmps+','+'"'+Name^+'"';
-      tmps:=tmps+','+inttostr(score);
-      tmps:=tmps+','+inttostr(usecMemTest);
-      tmps:=tmps+','+inttostr(usecOpcodes);
-      tmps:=tmps+','+inttostr(usecVidmem);
-      tmps:=tmps+','+inttostr(usecMemEA);
-      tmps:=tmps+','+inttostr(usec3DGames);
-      tmps:=tmps+','; if CPU<>NIL then tmps:=tmps+CPU^;
-      tmps:=tmps+','; if MHz<>0 then tmps:=tmps+support.RealToStr(MHz);
-      tmps:=tmps+','; if BIOS<>NIL then tmps:=tmps+'"'+BIOS^+'"';
-      tmps:=tmps+','+IntToStr(BIOSDateNormalized);
-      tmps:=tmps+','+hexword(BIOSCRC16);
-      tmps:=tmps+','+VidSysLabels[VideoSubsystem];
+      tmps:=tmps+','+'"'+Name^+'"'
+        +','+inttostr(score)
+        +','+inttostr(usecMemTest)
+        +','+inttostr(usecOpcodes)
+        +','+inttostr(usecVidmem)
+        +','+inttostr(usecMemEA)
+        +','+inttostr(usec3DGames)+',';
+      if CPU<>NIL then tmps:=tmps+CPU^;
+      tmps:=tmps+',';
+      if MHz<>0 then tmps:=tmps+support.RealToStr(MHz);
+      tmps:=tmps+',';
+      if BIOS<>NIL then tmps:=tmps+'"'+BIOS^+'"';
+      tmps:=tmps
+        +','+IntToStr(BIOSDateNormalized)
+        +','+hexword(BIOSCRC16)+','
+        +VidSysLabels[VideoSubsystem];
       {we run the risk of exceeding 255 bytes here, so flush and continue}
       write(f,tmps);
       tmps:=','; if VideoAdapter<>NIL then tmps:=tmps+'"'+VideoAdapter^+'"';

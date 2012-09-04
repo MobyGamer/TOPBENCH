@@ -292,21 +292,14 @@ sorted by their name.  This will be built shortly before using the system
 browser, then disposed of afterwards. tcollection
 }
 
-(*
-  if PString(Key1)^ = PString(Key2)^ then
-    Compare := 0
-  else if PString(Key1)^ < PString(Key2)^ then
-    Compare := -1
-  else
-    Compare := 1;
-*)
-
 begin
   if PSystem(Key1)^.name^ > PSystem(Key2)^.name^
     then Compare := 1
     else if PSystem(Key1)^.name^ < PSystem(Key2)^.name^
       then Compare := -1
-      else Compare := 0;
+      {names are same.  Now follow same rules as sorting by speed}
+      else Compare:=TSystems.Compare(Key1,Key2);
+
 end;
 
 end.
