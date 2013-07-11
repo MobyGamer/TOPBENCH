@@ -46,7 +46,7 @@ uses
   {$O totDATE} {$O totMISC} {$O totINPUT}
 
   {$O topb_detect}
-  {$O topb_datastructures}
+  {{$O topb_datastructures}
   {$O topb_support}
   {$O m320_640}
   {$O detectconstants}
@@ -1423,6 +1423,19 @@ begin
     writeln('Vid adapter speed:    ',testVideoAdapterWrites,' æs');
     writeln('3DGame distribution:  ',test3DGames,' æs');
     halt(4);
+  end;
+  if is_param('l') then begin
+    writeln('Continuous Score benchmarking requested.  Press a key to abort.');
+    w:=0;
+    repeat
+      inc(w);
+      write(#13,'Iteration #',hexword(w),' This system''s TOPBENCH Score: ',TopScore);
+      Chan2SquarewaveON(14000);
+      Chan2SquarewaveOFF;
+    until keypressed;
+    if keypressed then repeat readkeychar until not keypressed;
+    writeln;
+    halt(5);
   end;
   if param_int('d')<>0 then _searchdistance:=param_int('d');
 

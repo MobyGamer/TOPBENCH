@@ -114,8 +114,8 @@ const
   StubVersion='0.97c';
   StubBanner='TOPBENCH | Benchmark and detection stub | Version '+StubVersion;
 
-  FullVersion='0.36a';
-  FullBuildDate='20120903';
+  FullVersion='0.37';
+  FullBuildDate='20130710';
   FullBanner='TOPBENCH | 16-bit real-mode x86 Benchmarking Suite | Version '+FullVersion;
 
   DefaultDate=19810801; {birth of IBM PC, roughly}
@@ -141,7 +141,7 @@ const
     ''
   );
 
-  numHelpLines=12;
+  numHelpLines=13;
   CommandLineHelp:array[0..numHelpLines-1] of pChar=(
     '',
     'Command-line options:',
@@ -151,6 +151,7 @@ const
     '  -s       Skip some of the more volatile detection tests',
     '  -d#      Specify realtime benchmark search distance (default: 2)',
     '  -i       Profile this machine, print Score, then immediately exit',
+    '  -l       Profile this machine infinitely, printing Score (any key exits)',
     '  -p       Skip test for protected mode',
     '  -k       Disable video "special effects" on color systems',
     '  -r       Return raw detected MHz (instead of quantizing to friendly value)',

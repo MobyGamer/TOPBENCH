@@ -191,7 +191,7 @@ var
   lcounter:longint;
 
 begin
-  SetTimer(@CountHandler, 20); {set to fire at 20Hz / 50ms}
+  SetTimerHz(@CountHandler, 20); {set to fire at 20Hz / 50ms}
   {$IFDEF DEBUGINT}
   repeat write(#13,HandlerCounter) until keypressed; while keypressed do readkeychar;
   {$ENDIF}
@@ -234,7 +234,7 @@ var
   lcounter:longint;
 
 begin
-  SetTimer(@CountHandler, 20); {set to fire at 20Hz / 50ms}
+  SetTimerHz(@CountHandler, 20); {set to fire at 20Hz / 50ms}
   {$IFDEF DEBUGINT}
   repeat write(#13,HandlerCounter) until keypressed; while keypressed do readkeychar;
   {$ENDIF}
