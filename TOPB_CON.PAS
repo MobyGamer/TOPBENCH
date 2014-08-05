@@ -111,11 +111,11 @@ const
 
   RequiredFeatures=LTestMemF+LTestMemEAF+LTestOpcodesF+LTestVidMemF+LTest3DGamesF+Lbioscrc16F+LscoreF+LNameF;
 
-  StubVersion='0.97c';
+  StubVersion='0.97d';
   StubBanner='TOPBENCH | Benchmark and detection stub | Version '+StubVersion;
 
-  FullVersion='0.37';
-  FullBuildDate='20130710';
+  FullVersion='0.38a';
+  FullBuildDate='20140328';
   FullBanner='TOPBENCH | 16-bit real-mode x86 Benchmarking Suite | Version '+FullVersion;
 
   DefaultDate=19810801; {birth of IBM PC, roughly}
@@ -141,14 +141,15 @@ const
     ''
   );
 
-  numHelpLines=13;
+  numHelpLines=14;
   CommandLineHelp:array[0..numHelpLines-1] of pChar=(
     '',
     'Command-line options:',
     '  -?,-h    This help message',
     '  -c       Attempt setting "condensed" mode on VGA and EGA systems',
     '  -q       Turn off sound in the realtime benchmarking section',
-    '  -s       Skip some of the more volatile detection tests',
+    '  -s       Skip the CPU detection tests',
+    '  -v       Skip the video detection tests',
     '  -d#      Specify realtime benchmark search distance (default: 2)',
     '  -i       Profile this machine, print Score, then immediately exit',
     '  -l       Profile this machine infinitely, printing Score (any key exits)',

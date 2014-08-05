@@ -48,7 +48,7 @@ uses
   {$O topb_detect}
   {{$O topb_datastructures}
   {$O topb_support}
-  {$O m320_640}
+  {{$O m320_640}
   {$O detectconstants}
   {$O detectglobal}
   {$O detectGraphics}
@@ -77,7 +77,8 @@ const
   cblink:byte=$8c;
   {user preferences flags:}
   _sound:boolean=true;
-  _skiptests:boolean=false;
+  _skipcputests:boolean=false;
+  _skipvideotests:boolean=false;
   _searchdistance:byte=2; {fine-tune results n-sd to n+sd}
   _realMhz:boolean=false; {don't try to quantize detected MHz}
 
@@ -178,7 +179,7 @@ begin
   newsys^.score:=topscorefingerprint;
   Screen.writeln('Detecting: ');
 
-  if not _skiptests then begin
+  if not _skipcputests then begin
     screen.writeln('CPU... ');
     newsys^.SetCPU(WhatCPU);
 
@@ -197,13 +198,13 @@ begin
   Screen.writeln('CRC...');
   NewSys^.BIOSCRC16:=WhatBIOSCRC16;
 
-  Screen.writeln('Video subsystem...');
-  s:=WhatVideoSubsystem;
-  for vs:=MDA to VGA do
-    if upstring(s)=VidSysLabels[vs]
-      then newsys^.VideoSubsystem:=vs;
+  if not _skipvideotests then begin
+    Screen.writeln('Video subsystem...');
+    s:=WhatVideoSubsystem;
+    for vs:=MDA to VGA do
+      if upstring(s)=VidSysLabels[vs]
+        then newsys^.VideoSubsystem:=vs;
 
-  if not _skiptests then begin
     Screen.writeln('Video adapter...');
     newsys^.setvideoadapter(WhatVideoAdapter);
   end;
@@ -256,6 +257,7 @@ var
   end;
 
 begin
+  MsgConsole^.LogMsg(info,'Attempting import of '+s);
   ini:=new(PINIFile,init(s,readfile,INIBufSize));
   if ini=NIL then begin
     MsgConsole^.LogMsg(error,'Couldn''t open INI file: '+s);
@@ -1384,6 +1386,30 @@ begin
   until Key.Lastkey=27;
 end;
 
+Procedure embrighten;
+begin
+  if not is_param('k')
+    {if CGA or higher, disable blink bit}
+    then if WhatVideoSubsystem<>'MDA'
+      then begin
+        if WhatVideoSubsystem='CGA'
+          then asm
+            mov  dx,m6845_mode_ctl
+            mov  al,c_videosignal_enable+c_fast_char_clock {blinking not included, so blinking is off}
+            out  dx,al
+          end else asm {if EGA or higher, do something completely different}
+            mov ax,1003h {disable blink on ega/vga}
+            mov bl,0
+            int 10h
+          end;
+        {embrighten the colors we'll be using}
+        LookTOT^.vmenuborder:=LookTOT^.vmenuborder OR $88;
+        LookTOT^.vmenutitle:=LookTOT^.vmenutitle OR $88;
+        LookTOT^.vmenulonorm:=LookTOT^.vmenulonorm OR $88;
+        LookTOT^.vmenulohot:=LookTOT^.vmenulohot OR $88;
+      end;
+end;
+
 Procedure initTOPB;
 var
   fname:string128;
@@ -1413,7 +1439,8 @@ begin
   end;
   if non_flag_count<>0 then DBFilename:=non_flag_param(1);
   if is_param('q') then _sound:=false;
-  if is_param('s') then _skiptests:=true;
+  if is_param('s') then _skipcputests:=true;
+  if is_param('v') then _skipvideotests:=true;
   if is_param('r') then _realMHZ:=true;
   if is_param('i') then begin
     writeln('Score:                ',TopScore);
@@ -1484,27 +1511,6 @@ begin
     SetStatus(ord(mSave),false);
   end;
 
-  if not is_param('k')
-    {if CGA or higher, disable blink bit}
-    then if WhatVideoSubsystem<>'MDA'
-      then begin
-        if WhatVideoSubsystem='CGA'
-          then asm
-            mov  dx,m6845_mode_ctl
-            mov  al,c_videosignal_enable+c_fast_char_clock {blinking not included, so blinking is off}
-            out  dx,al
-          end else asm {if EGA or higher, do something completely different}
-            mov ax,1003h {disable blink on ega/vga}
-            mov bl,0
-            int 10h
-          end;
-        {embrighten the colors we'll be using}
-        LookTOT^.vmenuborder:=LookTOT^.vmenuborder OR $88;
-        LookTOT^.vmenutitle:=LookTOT^.vmenutitle OR $88;
-        LookTOT^.vmenulonorm:=LookTOT^.vmenulonorm OR $88;
-        LookTOT^.vmenulohot:=LookTOT^.vmenulohot OR $88;
-      end;
-
   Screen.Clear(tWhite,'°'); {paint the screen}
   Screen.PartClear(1,Monitor^.Depth,Monitor^.Width,Monitor^.Depth,TWhite,' '); {prepare status line}
 
@@ -1547,6 +1553,7 @@ var
   end;
 
 begin
+  embrighten;
   DBDirty:=false; {after first import, DB is clean}
   repeat
     {DBMenu.SetStatus(ord(mSave),DBDirty);} {only works with pulldown menus}
