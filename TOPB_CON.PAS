@@ -118,7 +118,7 @@ const
   FullBuildDate='20140328';
   FullBanner='TOPBENCH | 16-bit real-mode x86 Benchmarking Suite | Version '+FullVersion;
 
-  DefaultDate=19810801; {birth of IBM PC, roughly}
+  DefaultDate=19810812; {birth of IBM PC, roughly}
   MHzLabel=' MHz';
 
   numAboutLines=16;
