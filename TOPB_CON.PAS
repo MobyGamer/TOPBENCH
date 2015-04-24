@@ -47,7 +47,7 @@ type
   dbmenuArray=array[mAdd..mExport] of menuLookuptype;
 
 const
-  DBFilename:string16='database.ini';
+  DBFilename:string128='database.ini';
   ConfigFilename='topbench.ini';
   LOGFilename='topbench.log';
 
