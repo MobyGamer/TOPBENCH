@@ -10,6 +10,7 @@ Updates to this library, and all TOPBENCH code, are recorded in WHATSNEW.TXT.
 20111017 - added more video adapter detection code
 20111105 - added some helper functions
 20111119 - switched to putting updates in WHATSNEW.TXT, look there instead.
+20150707 - Code refactoring; additional HP LX detection
 
 todo:
 - verif AT&T/Compaq 400-line CGA graphics detection code
@@ -90,361 +91,358 @@ Const
 Var
   RomInfoSeg : Word;
   RomInfoOfs : Word;
-  foos:string[8];
-  Endstring,s:string;
-  xword1:word;
-  xbool:boolean;
-  xbyte:byte;
+  datefoo:string[8];
+  machStr,s:string;
+  idWord:word;
+  idByte:byte;
   regs:registers;
 
 Begin
-  EndString := '';
-  If UpCase(Chr(Mem[$F000:$E076])) = 'D' then Begin
-    S := '';
-    For xWord1 := $E077 To $E079 Do S := S + UpCase(Chr(Mem[$F000:xword1]));
-    If S = 'ELL' Then Begin
-      EndString := 'Dell ';
-      xBool := True;
-      xByte := Mem[$F000:$E845];
-      If xByte In DellNums Then EndString := Concat (EndString, Dells[xByte], ' ')
-      Else Begin
-        EndString := ConCat (EndString, 'unknown; ID is', hex (xbyte),' ');
-        xBool := False;
-      End;
-      EndString := ConCat (EndString, '/');
+  machStr:='';
+  {Check for Dell systems}
+  If UpCase(Chr(Mem[$F000:$E076]))='D' then Begin
+    S:='';
+    For idWord:=$E077 To $E079 Do S:=S + UpCase(Chr(Mem[$F000:idWord]));
+    If S='ELL' Then Begin
+      machStr:='Dell ';
+      idByte:=Mem[$F000:$E845];
+      If idByte In DellNums
+        Then machStr:=machStr+Dells[idByte]+' '
+        Else machStr:=machStr+'unknown; ID is'+hex (idByte)+' ';
+      machStr:=machStr+'/';
     End
   End;
 
-  Regs.AX := $6F00;
-  Regs.BX := 0;
-  Regs.Flags := Regs.Flags and FCarry;
+  {Check for HP Vectra systems}
+  Regs.AX:=$6F00;
+  Regs.BX:=0;
+  Regs.Flags:=Regs.Flags and FCarry;
   Intr($16, Regs);
-  If ((FCarry And Regs.Flags) = 0) And (Regs.BX = $4850) then EndString := 'HP Vectra Series ';
+  If ((FCarry And Regs.Flags)=0) And (Regs.BX=$4850) then machStr:='HP Vectra Series ';
 
-  Regs.AX := $4DD4;
+  (*
+  INT 15 - HP 95LX/100LX/200LX - INSTALLATION CHECK
+          AX = 4DD4h
+  Return: BX = 4850h ("HP") if HP 95LX/100LX/200LX
+          CX = model
+          0101h HP 95LX
+          0102h HP 100LX/200LX
+          DH = ???
+          02h HP 200LX 2MB BIOS 1.01 A D german
+          DL = ???
+          00h HP 95LX
+          01h HP 200LX 2MB BIOS 1.01 A D german
+  *)
+  Regs.AX:=$4DD4;
   Intr ($15, Regs);
-  If Regs.BX = $4850 Then EndString := 'HP 95 LX ';
+  If Regs.BX=$4850
+    Then If Regs.CX=$0101
+      Then machStr:='HP 95LX'
+      Else machStr:='HP 100LX/200LX';
 
-  Regs.AH := $C0;
-  Regs.ES := 0;
-  Regs.BX := 0;
+  {Perform INT15-compilant model check}
+  Regs.AH:=$C0;
+  Regs.ES:=0;
+  Regs.BX:=0;
   Regs.Flags:=Regs.Flags and FCarry;
   Intr($15, regs);
-  If ((regs.Flags AND FCarry) = 0) and (Regs.AH = 0) then Begin
-    RomInfoSeg := Regs.ES;
-    RomInfoOfs := Regs.BX;
-    xWord1 := MemW[Regs.ES:Regs.BX + 2]; {model byte + secondary model byte}
-    xByte := Mem[Regs.ES:Regs.BX + 4]; {BIOS revision, zero-based}
-    Case xWord1 Of
-      $0000 : begin
-                {Assume 6300/M24 at first}
-                EndString := ConCat (EndString, 'AT&T 6300/Olivetti M24');
-                if WhatBIOSDate='07/03/87' then EndString:='Applied Engineering PC Transporter';
-                if WhatBIOSDate='12/26-87' then EndString:='Toshiba T1200';
-              end;
-      $00F8 : If WhatBiosDate = '03/30/87'
-                Then EndString := ConCat (EndString, 'PS/2 Model 80 386-16')
-                Else EndString := ConCat (EndString, 'PS/2 Model 75 486-33');
-      $00F9 : EndString := ConCat (EndString, 'PC Convertible');
-      $00FA : Case xByte Of
-                $00 : EndString := ConCat (EndString, 'PS/2 Model 30 (8MHz 8086)');
-                $01 : EndString := ConCat (EndString, 'PS/2 Model 30');
-                $02 : EndString := ConCat (EndString, 'PS/2 Model 30');
-              End;
-      $00FB : Case xByte Of
-                $01 : If WhatBiosDate = '01/10/86'
-                        Then EndString := ConCat (EndString, 'PC/XT (enhanced)')
-                        Else If WhatBiosDate = '05/13/94'
-                          Then EndString := ConCat (EndString, 'HP 200LX Bios V1.01 AD (Deutsch)');
-                $02 : EndString := ConCat (EndString, 'PC/XT');
-                $04 : EndString := ConCat (EndString, 'HP 100LX Bios V1.04 A');
-              End;
-      $00FC : begin
-                If xByte = 1
-                  then EndString := ConCat (EndString, 'PC-AT 2x9, 6MHz')
-                  Else EndString := ConCat (EndString, 'Industrial AT 7531/2');
-                if WhatBIOSDate='06/23/99' then EndString:='VirtualBox VM';
-              end;
-      $00FF : EndString := Concat (EndString, 'Tandy 1000 SL');
-      $01F8 : EndString := ConCat (EndString, 'PS/2 Model 80 20MHz 386');
-      $01FA : EndString := ConCat (EndString, 'PS/2 Model 25/25L');
-      $01FB : EndString := ConCat (EndString, 'PC/XT-2');
-      $01FC : Case xByte Of
-                $00:begin
-                      if WhatBiosDate = '11/15/85' then EndString := ConCat (EndString, 'PC-AT 319 or 339, 8MHz')
-                      else if WhatBiosDate = '01/15&88' then EndString := ConCat (EndString, 'Toshiba T5200/100')
-                      else if WhatBiosDate = '12/26*89' then EndString := ConCat (EndString, 'Toshiba T1200/XE')
-                      else if WhatBiosDate = '07/24&90' then EndString := ConCat (EndString, 'Toshiba T5200/200')
-                      else if WhatBiosDate = '09/17/87' then EndString := ConCat (EndString, 'Tandy 3000')
-                      else if WhatBiosDate = '11/14/88' then EndString := ConCat (EndString, 'Compaq Portable III')
-                      else EndString := ConCat (EndString, 'AT clone');
-                    end;
-                $30:EndString := ConCat (EndString, 'Tandy 3000NL')
-              else
-                EndString := ConCat (EndString, 'Compaq 286/386 or clone');
-              end;
-      $01FF : EndString := Concat (EndString, 'Tandy 1000 TL');
-      $02F8 : EndString := ConCat (EndString, 'PS/2 Model 55-5571');
-      $02FC : If WhatBiosDate = '04/21/86' Then EndString := ConCat (EndString, 'PC/XT-286')
-              Else If WhatBiosDate = '08/05/93' Then EndString := ConCat (EndString, 'Compaq Contura 486')
-              Else If WhatBiosDate = '08/11/88' Then EndString := ConCat (EndString, 'SoftWindows 1.0.1 (PowerMac)')
-              Else EndString := ConCat (EndString, 'Compaq LTE Lite');
-      $04F8 : If xByte=$00
-                Then EndString := ConCat (EndString, 'PS/2 Model 70 386-20')
-                Else EndString := ConCat (EndString, 'PS/2 Model 70 386-20, Typ 2');
-      $04FC : Case xByte Of
+  If ((regs.Flags AND FCarry)=0) and (Regs.AH=0) then Begin
+    RomInfoSeg:=Regs.ES;
+    RomInfoOfs:=Regs.BX;
+    idWord:=MemW[Regs.ES:Regs.BX + 2]; {model byte + secondary model byte}
+    idByte:=Mem[Regs.ES:Regs.BX + 4]; {BIOS revision, zero-based}
+    Case idWord Of
+      $0000:begin
+              {Assume 6300/M24 at first}
+              machStr:='AT&T 6300/Olivetti M24';
+              if WhatBIOSDate='07/03/87' then machStr:='Applied Engineering PC Transporter';
+              if WhatBIOSDate='12/26-87' then machStr:='Toshiba T1200';
+            end;
+      $00F8:If WhatBiosDate='03/30/87'
+              Then machStr:='PS/2 Model 80 386-16'
+              Else machStr:='PS/2 Model 75 486-33';
+      $00F9:machStr:='PC Convertible';
+      $00FA:Case idByte Of
+              $00:machStr:='PS/2 Model 30 (8MHz 8086)';
+              $01:machStr:='PS/2 Model 30';
+              $02:machStr:='PS/2 Model 30';
+            End;
+      $00FB:Case idByte Of
+              $01:If WhatBiosDate='01/10/86'
+                    Then machStr:='PC/XT (enhanced)'
+                    Else If WhatBiosDate='05/13/94'
+                      Then machStr:='HP 200LX Bios V1.01 AD (Deutsch)';
+              $02:machStr:='PC/XT';
+              $04:machStr:='HP 100LX Bios V1.04 A';
+            End;
+      $00FC:begin
+              If idByte=1
+                then machStr:='PC-AT 2x9, 6MHz'
+                Else machStr:='Industrial AT 7531/2';
+              if WhatBIOSDate='06/23/99' then machStr:='VirtualBox VM';
+            end;
+      $00FF:machStr:='Tandy 1000 SL';
+      $01F8:machStr:='PS/2 Model 80 20MHz 386';
+      $01FA:machStr:='PS/2 Model 25/25L';
+      $01FB:machStr:='PC/XT-2';
+      $01FC:Case idByte Of
+              $00:begin
+                    if WhatBiosDate='11/15/85' then machStr:='PC-AT 319 or 339, 8MHz'
+                    else if WhatBiosDate='01/15&88' then machStr:='Toshiba T5200/100'
+                    else if WhatBiosDate='12/26*89' then machStr:='Toshiba T1200/XE'
+                    else if WhatBiosDate='07/24&90' then machStr:='Toshiba T5200/200'
+                    else if WhatBiosDate='09/17/87' then machStr:='Tandy 3000'
+                    else if WhatBiosDate='11/14/88' then machStr:='Compaq Portable III'
+                    else machStr:='AT clone';
+                  end;
+              $30:machStr:='Tandy 3000NL'
+            else
+              machStr:='Compaq 286/386 or clone';
+            end;
+      $01FF:machStr:='Tandy 1000 TL';
+      $02F8:machStr:='PS/2 Model 55-5571';
+      $02FC:If WhatBiosDate='04/21/86' Then machStr:='PC/XT-286'
+              Else If WhatBiosDate='08/05/93' Then machStr:='Compaq Contura 486'
+              Else If WhatBiosDate='08/11/88' Then machStr:='SoftWindows 1.0.1 (PowerMac)'
+              Else machStr:='Compaq LTE Lite';
+      $04F8:If idByte=$00
+                Then machStr:='PS/2 Model 70 386-20'
+                Else machStr:='PS/2 Model 70 386-20, Typ 2';
+      $04FC:Case idByte Of
                 $00,
-                $01 : EndString := ConCat (EndString, 'PS/2 Model 50 286-10');
-                $02 : If WhatBiosDate = '01/28/88'
-                        Then EndString := ConCat (EndString, 'PS/2 Model 50Z 286-10')
-                        Else EndString := ConCat (EndString, 'PS/2 Model 50');
-                $03 : EndString := ConCat (EndString, 'PS/2 Model 50Z 286-10');
-                $04 : EndString := ConCat (EndString, 'PS/2 Model 50Z');
+                $01:machStr:='PS/2 Model 50 286-10';
+                $02:If WhatBiosDate='01/28/88'
+                        Then machStr:='PS/2 Model 50Z 286-10'
+                        Else machStr:='PS/2 Model 50';
+                $03:machStr:='PS/2 Model 50Z 286-10';
+                $04:machStr:='PS/2 Model 50Z';
               Else
-                EndString := ConCat (EndString, 'PS/2 50?');
+                machStr:='PS/2 50?';
               End;
-      $05F8 : EndString := ConCat (EndString, 'IBM PC 7568');
-      $05FC : EndString := ConCat (EndString, 'PS/2 Model 60 10MHz 286');
-      $06F8 : EndString := ConCat (EndString, 'PS/2 Model 55-5571');
-      $06FC : If xByte = $00
-                then EndString := ConCat (EndString, '7552-140 "Gearbox"')
-                Else If xByte = $01
-                  Then EndString := ConCat (EndString, '7552-540 "Gearbox"');
-      $07F8 : Case xByte Of
-                $00,
-                $02 : EndString := ConCat (EndString, 'IBM PC 7561/2');
-                $01,
-                $03 : EndString := ConCat (EndString, 'PS/2 Model 55-5551');
+      $05F8:machStr:='IBM PC 7568';
+      $05FC:machStr:='PS/2 Model 60 10MHz 286';
+      $06F8:machStr:='PS/2 Model 55-5571';
+      $06FC:If idByte=$00
+                then machStr:='7552-140 "Gearbox"'
+                Else If idByte=$01
+                  Then machStr:='7552-540 "Gearbox"';
+      $07F8:Case idByte Of
+                $00,$02:machStr:='IBM PC 7561/2';
+                $01,$03:machStr:='PS/2 Model 55-5551';
               End;
-      $08FC : If xByte = $00 Then
-                EndString := ConCat (EndString, 'PS/2 Model 25/286')
+      $08FC:If idByte=$00 Then
+                machStr:='PS/2 Model 25/286'
               Else
-                EndString := ConCat (EndString, 'Epson, unknown model');
-      $09F8 : Case xByte Of
-                $00 : EndString := ConCat (EndString, 'PS/2 Model 70 386DX-16, Typ 1');
+                machStr:='Epson, unknown model';
+      $09F8:Case idByte Of
+                $00:machStr:='PS/2 Model 70 386DX-16, Typ 1';
                 $02,
-                $03 : EndString := ConCat (EndString, 'PS/2 Model 70');
-                $04 : EndString := ConCat (EndString, 'PS/2 Model 70 386-16, Typ 33');
+                $03:machStr:='PS/2 Model 70';
+                $04:machStr:='PS/2 Model 70 386-16, Typ 33';
               End;
-      $09FC : If xByte=$00 Then Begin
-                If WhatBIOSDate = '08/25/88'
-                  Then EndString := ConCat (EndString, 'PS/2 Model 30 286-10')
-                  Else EndString := ConCat (EndString, 'PS/2 Model 25 286-10');
-              End Else If xByte = $02
-                Then EndString := ConCat (EndString, 'PS/2 Model 25 or 30');
-      $0BF8 : Case xByte Of
-                $00 : EndString := ConCat (EndString, 'PS/2 Model P70 (8573-121), Typ 2');
-                $02 : EndString := ConCat (EndString, 'PS/2 Model P70?');
-              End;
-      $0BFC : If WhatBIOSDate = '12/01/89'
-                Then EndString := ConCat (EndString, 'PS/1 Typ 44')
-                Else If WhatBIOSDate = '02/16/90'
-                  Then EndString := ConCat (EndString, 'PS/1 Model 2011 286-10');
-      $0CF8 : EndString := ConCat (EndString, 'PS/2 Model 55SX 16MHz 386SX');
-      $0DF8 : Case xByte Of
-                $00,
-                $01 : EndString := ConCat (EndString, 'PS/2 Model 70 386-25, Typ 3');
-              Else
-                EndString := ConCat (EndString, 'PS/2 Model 70 486-25, Typ 3');
-              End;
-      $0EF8 : EndString := ConCat (EndString, 'PS/1 486SX');
-      $0FF8 : EndString := ConCat (EndString, 'PS/1 486DX');
-      $10F8 : EndString := ConCat (EndString, 'PS/2 Model 55-5551');
-      $11F8 : EndString := ConCat (EndString, 'PS/2 Model 90 25MHz 386');
-      $12F8 : EndString := ConCat (EndString, 'PS/2 Model 95 XP');
-      $13F8 : EndString := ConCat (EndString, 'PS/2 Model 90 33MHz 386');
-      $14F8 : EndString := ConCat (EndString, 'PS/2 Model 90-AK9 25MHz 486');
-      $15F8 : EndString := ConCat (EndString, 'PS/2 Model 90 XP');
-      $16F8 : EndString := ConCat (EndString, 'PS/2 Model 90-AKD 33MHz 486');
-      $17F8 : EndString := ConCat (EndString, 'PS/2 Model 90 XP');
-      $19F8 : Case xByte Of
-                $05 : If WhatBIOSDate = '03/15/91' Then
-                        EndString := ConCat (EndString, '')
-                      Else
-                        EndString := ConCat (EndString, 'PS/2 Model 35/35LS/40 386SX-20');
-                $06 : EndString := ConCat (EndString, 'PS/2 Model 35 SX / 40 SX, Typ 37');
-              End;
-      $1AF8 : EndString := ConCat (EndString, 'PS/2 Model 95 XP');
-      $1BF8 : If WhatBIOSDate = '09/29/89' Then
-                EndString := ConCat (EndString, 'PS/2 Model 70 386DX-25')
-              Else
-                EndString := ConCat (EndString, 'PS/2 Model 70 486-25');
-      $1CF8 : EndString := ConCat (EndString, 'PS/2 Model 65-121 16MHz 386SX');
-      $1EF8 : EndString := ConCat (EndString, 'PS/2 Model 55LS 16MHz 386SX');
-      $20FC : EndString := ConCat (EndString, 'Compaq ProLinea');
-      $23F8 : EndString := ConCat (EndString, 'PS/2 Model L40 20MHz 386SX');
-      $25F8 : Case xByte Of
-                $00 : EndString := ConCat (EndString, 'PS/2 Model 57 SLC');
-                $06 : EndString := ConCat (EndString, 'PS/2 Model M57 386SLC-20');
-              End;
-      $26F8 : Case xByte Of
-                $00 : EndString := ConCat (EndString, 'PS/2 Model 57 SX');
-                $01 : EndString := ConCat (EndString, 'PS/2 Model 57 386SX-20');
-                $02 : EndString := ConCat (EndString, 'PS/2 Model 57 386SX-20, SCSI');
-              End;
-      $28F8 : EndString := ConCat (EndString, 'PS/2 Model 95 XP');
-      $29F8 : EndString := ConCat (EndString, 'PS/2 Model 90 XP');
-      $2AF8 : EndString := ConCat (EndString, 'PS/2 Model 95 50MHz 486');
-      $2BF8 : EndString := ConCat (EndString, 'PS/2 Model 90 50MHz 486');
-      $2CF8 : Case xByte Of
-                $00 : EndString := ConCat (EndString, 'PS/2 Model 95 XP');
-                $01 : EndString := ConCat (EndString, 'PS/2 Model 95 486SX-20');
-              End;
-      $2D00 : EndString := ConCat (EndString, 'Compaq PC (4.77 mHz Original)');
-      $2DF8 : EndString := ConCat (EndString, 'PS/2 Model 90 20MHz 486SX');
-      $2EF8 : Case xByte Of
-                $00 : EndString := ConCat (EndString, 'PS/2 Model 95XP 486SX-20');
-                $01 : EndString := ConCat (EndString, 'PS/2 Model 95 486SX-20+487SX');
-              End;
-      $2FF8 : EndString := ConCat (EndString, 'PS/2 Model 90 20MHz 486SX+487SX');
-      $30F8 : EndString := ConCat (EndString, 'PS/1 Model 2121 16MHz 386SX');
-      $30FA: EndString := ConCat (EndString, 'IBM Restaurant Terminal');
+      $09FC:If idByte=$00 Then Begin
+              If WhatBIOSDate='08/25/88'
+                Then machStr:='PS/2 Model 30 286-10'
+                Else machStr:='PS/2 Model 25 286-10';
+            End
+            Else If idByte=$02
+              Then machStr:='PS/2 Model 25 or 30';
+      $0BF8:Case idByte Of
+              $00:machStr:='PS/2 Model P70 (8573-121), Typ 2';
+              $02:machStr:='PS/2 Model P70?';
+            End;
+      $0BFC:If WhatBIOSDate='12/01/89'
+              Then machStr:='PS/1 Typ 44'
+              Else If WhatBIOSDate='02/16/90'
+                Then machStr:='PS/1 Model 2011 286-10';
+      $0CF8:machStr:='PS/2 Model 55SX 16MHz 386SX';
+      $0DF8:Case idByte Of
+              $00,
+              $01:machStr:='PS/2 Model 70 386-25, Typ 3';
+            Else
+              machStr:='PS/2 Model 70 486-25, Typ 3';
+            End;
+      $0EF8:machStr:='PS/1 486SX';
+      $0FF8:machStr:='PS/1 486DX';
+      $10F8:machStr:='PS/2 Model 55-5551';
+      $11F8:machStr:='PS/2 Model 90 25MHz 386';
+      $12F8:machStr:='PS/2 Model 95 XP';
+      $13F8:machStr:='PS/2 Model 90 33MHz 386';
+      $14F8:machStr:='PS/2 Model 90-AK9 25MHz 486';
+      $15F8:machStr:='PS/2 Model 90 XP';
+      $16F8:machStr:='PS/2 Model 90-AKD 33MHz 486';
+      $17F8:machStr:='PS/2 Model 90 XP';
+      $19F8:Case idByte Of
+              $05:If WhatBIOSDate<>'03/15/91'
+                    Then machStr:='PS/2 Model 35/35LS/40 386SX-20';
+              $06:machStr:='PS/2 Model 35 SX / 40 SX, Typ 37';
+            End;
+      $1AF8:machStr:='PS/2 Model 95 XP';
+      $1BF8:If WhatBIOSDate='09/29/89'
+              Then machStr:='PS/2 Model 70 386DX-25'
+              Else machStr:='PS/2 Model 70 486-25';
+      $1CF8:machStr:='PS/2 Model 65-121 16MHz 386SX';
+      $1EF8:machStr:='PS/2 Model 55LS 16MHz 386SX';
+      $20FC:machStr:='Compaq ProLinea';
+      $23F8:machStr:='PS/2 Model L40 20MHz 386SX';
+      $25F8:Case idByte Of
+              $00:machStr:='PS/2 Model 57 SLC';
+              $06:machStr:='PS/2 Model M57 386SLC-20';
+            End;
+      $26F8:Case idByte Of
+              $00:machStr:='PS/2 Model 57 SX';
+              $01:machStr:='PS/2 Model 57 386SX-20';
+              $02:machStr:='PS/2 Model 57 386SX-20, SCSI';
+            End;
+      $28F8:machStr:='PS/2 Model 95 XP';
+      $29F8:machStr:='PS/2 Model 90 XP';
+      $2AF8:machStr:='PS/2 Model 95 50MHz 486';
+      $2BF8:machStr:='PS/2 Model 90 50MHz 486';
+      $2CF8:Case idByte Of
+              $00:machStr:='PS/2 Model 95 XP';
+              $01:machStr:='PS/2 Model 95 486SX-20';
+            End;
+      $2D00:machStr:='Compaq PC (4.77 MHz Original)';
+      $2DF8:machStr:='PS/2 Model 90 20MHz 486SX';
+      $2EF8:Case idByte Of
+              $00:machStr:='PS/2 Model 95XP 486SX-20';
+              $01:machStr:='PS/2 Model 95 486SX-20+487SX';
+            End;
+      $2FF8:machStr:='PS/2 Model 90 20MHz 486SX+487SX';
+      $30F8:machStr:='PS/1 Model 2121 16MHz 386SX';
+      $30FA:machStr:='IBM Restaurant Terminal';
       $30FC,
       $31FC,
-      $33FC : EndString := ConCat (EndString, 'Epson, unknown model');
-      $33F8 : EndString := ConCat (EndString, 'PS/2 Model 30-386');
-      $34F8 : EndString := ConCat (EndString, 'PS/2 Model 25-286');
-      $36F8 : EndString := ConCat (EndString, 'PS/2 Model 95 XP');
-      $37F8 : EndString := ConCat (EndString, 'PS/2 Model 90 XP');
-      $38F8 : EndString := ConCat (EndString, 'PS/2 Model 57');
-      $39F8 : EndString := ConCat (EndString, 'PS/2 Model 95 XP');
-      $3FF8 : EndString := ConCat (EndString, 'PS/2 Model 90 XP');
-      $40F8 : EndString := ConCat (EndString, 'PS/2 Model 95-XP');
-      $41F8 : EndString := ConCat (EndString, 'PS/2 Model 77');
-      $42FC : EndString := ConCat (EndString, 'Olivetti M280');
-      $43FE : EndString := ConCat (EndString, 'Olivetti M240');
-      $45F8 : EndString := ConCat (EndString, 'PS/2 Model 90 XP (Pentium)');
-      $45FC : EndString := ConCat (EndString, 'Olivetti M380 (XP1, 3, or 5)');
-      $46F8 : EndString := ConCat (EndString, 'PS/2 Model 95 XP (Pentium)');
-      $46FF : EndString := ConCat (EndString, 'Olivetti M15');
-      $47F8 : EndString := ConCat (EndString, 'PS/2 Model 90/95 E (Pentium)');
-      $48F8 : EndString := ConCat (EndString, 'PS/2 Model 85');
-      $48FC : EndString := ConCat (EndString, 'Olivetti M290');
-      $49F8 : EndString := ConCat (EndString, 'PS/ValuePoint 325T');
-      $4AF8 : EndString := ConCat (EndString, 'PS/ValuePoint 425SX');
-      $4BF8 : EndString := ConCat (EndString, 'PS/ValuePoint 433DX');
-      $4CFB : EndString := ConCat (EndString, 'Olivetti M200');
-      $4EF8 : EndString := ConCat (EndString, 'PS/2 Model 295');
-      $4EFA : EndString := ConCat (EndString, 'Olivetti M111');
-      $4FFC : EndString := ConCat (EndString, 'Olivetti M250');
-      $50F8 : Case xByte Of
-                $00 : EndString := ConCat (EndString, 'PS/2 Model P70 (8573) 386-16');
-                $01 : EndString := ConCat (EndString, 'PS/2 Model P70 (8570-031)');
-              End;
-      $50FC : EndString := ConCat (EndString, 'Olivetti M380 (XP7)');
-      $51FC : EndString := ConCat (EndString, 'Olivetti PCS286');
-      $52F8 : EndString := ConCat (EndString, 'PS/2 Model P75 33MHz 486');
-      $52FC : EndString := ConCat (EndString, 'Olivetti M300');
-      $56F8 : EndString := ConCat (EndString, 'PS/2 Model CL57 SX');
-      $57F8 : EndString := ConCat (EndString, 'PS/2 Model 90 XP');
-      $58F8 : EndString := ConCat (EndString, 'PS/2 Model 95 XP');
-      $59F8 : EndString := ConCat (EndString, 'PS/2 Model 90 XP');
-      $5AF8 : EndString := ConCat (EndString, 'PS/2 Model 95 XP');
-      $5BF8 : EndString := ConCat (EndString, 'PS/2 Model 90 XP');
-      $5CF8 : EndString := ConCat (EndString, 'PS/2 Model 95 XP');
-      $5DF8 : EndString := ConCat (EndString, 'PS/2 Model N51 SLC');
-      $5EF8 : EndString := ConCat (EndString, 'IBM ThinkPad 700');
-      $61F8 : EndString := ConCat (EndString, 'Olivetti P500');
-      $62F8 : EndString := ConCat (EndString, 'Olivetti P800');
-      $80F8 : Case xByte Of
-               $00 : EndString := ConCat (EndString, 'PS/2 Model 80 386-25');
-               $01 : EndString := ConCat (EndString, 'PS/2 Model 80-A21 386-25');
-             End;
-      $81F8 : EndString := ConCat (EndString, 'PS/2 Model 55-5502');
-      $81FC : If WhatBIOSDate = '01/15/88' Then
-                EndString := ConCat (EndString, 'Phoenix 386 V1.10 10a')
-              Else
-                EndString := ConCat (EndString, '"OEM Rechner"');
-      $82FC : EndString := ConCat (EndString, '"OEM Rechner"');
-      $87F8 : EndString := ConCat (EndString, 'PS/2 Model N33SX');
-      $88F8 : EndString := ConCat (EndString, 'PS/2 Model 55-5530T');
-      $94FC : EndString := ConCat (EndString, 'Zenith 386');
-      $97F8 : EndString := ConCat (EndString, 'PS/2 Model 55 Note N23SX');
-      $99F8 : EndString := ConCat (EndString, 'PS/2 Model N51 SX');
-      $9A00 : EndString := ConCat (EndString, 'Compaq Plus (XT compatible)');
-      $A6FE : EndString := ConCat (EndString, 'Quadram Quad386');
-      $F2F8 : EndString := ConCat (EndString, 'Reply Model 32');
-      $F6F8 : EndString := ConCat (EndString, 'Memorex Telex');
-      $F800 : begin
-                foos:=WhatBIOSDate;
-                If (foos[7] = '8') And (foos[8] = '7')
-                Then EndString := ConCat (EndString, 'PS/2 Model 80')
-                Else If WhatBIOSDate = '03/30/87'
-                  Then EndString := ConCat (EndString, 'PS/2 Model 80-041 16 mHz')
-                  Else If WhatBIOSDate = '08/27/87'
-                    Then EndString := ConCat (EndString, 'PS/2 Model 80-071 16 mHz');
-              end;
-      $F801 : If WhatBiosRevision = 1 Then
-                      EndString := ConCat (EndString, 'PS/2 Model 80-111 20 mHz');
-      $F804 : EndString := ConCat (EndString, 'PS/2 Model 70-121');
-      $F809 : If WhatBiosRevision = 2 Then
-                      EndString := ConCat (EndString, 'PS/2 Model 70 Desktop');
-      $F80B : EndString := ConCat (EndString, 'PS/2 Model 70 Portable');
-      $F80D : EndString := ConCat (EndString, 'PS/2 Model 70-A21');
-      $F900 : EndString := ConCat (EndString, 'PC-Kompatibler');
-      $FA00 : EndString := ConCat (EndString, 'PS/2 Model 30');
-      $FB00 : Case WhatBiosRevision Of
-                      0 : EndString := ConCat (EndString, 'XT-2 (frÅherer)');
-                      1 : EndString := ConCat (EndString, 'XT Model 089');
-                    End;
-      $FB01 : EndString := ConCat (EndString, 'XT-2 (spÑterer)');
-      $FC00 : Case WhatBiosRevision Of
-                      0 : EndString := ConCat (EndString, 'AT Model 099 (Original)/7531/2 Industrial AT');
-                      1 : EndString := ConCat (EndString, 'AT Model 239 6mHz (6.6 max governor)');
-                    End;
-      $FC01 : Case WhatBiosRevision Of
-                      00 : If WhatBIOSDate = '11/15/85' Then
-                             EndString := ConCat (EndString, 'AT Model 339, 339 8mHz (8.6 max governor)')
-                           Else
-                             If WhatBIOSDate = '01/24/90' Then
-                               EndString := ConCat (EndString, 'Compaq DeskPro 80386/25e')
-                             Else
-                               EndString := ConCat (EndString, 'Compaq 386/16');
-                      03 : EndString := ConCat (EndString, '? with Phoenix 386 BIOS');
-                      81 : EndString := ConCat (EndString, '? with Phoenix 386 BIOS');
-                    End;
-      $FC02 : If WhatBIOSDate = '10/02/89'
-                Then EndString := ConCat (EndString, 'Compaq Deskpro 386s/386SX 16 mHz')
-                Else If WhatBIOSDate = '04/21/86'
-                  Then EndString := ConCat (EndString, 'XT/286');
-      $FC05 : EndString := ConCat (EndString, 'PS/2 Model 60');
-      $FD00 : EndString := ConCat (EndString, 'PCjr');
-      $FDF8 : EndString := ConCat (EndString, 'IBM Processor Complex (with VPD)');
-      $FE00 : EndString := ConCat (EndString, 'XT, Portable PC, XT/370, 3270PC');
-      $FEFA : EndString := ConCat (EndString, 'IBM PCradio 9075');
-      $FF00 : If WhatBIOSDate = '04/24/81'
-                Then EndString := ConCat (EndString, 'PC-0 (16k Motherboard)')
-                Else If WhatBIOSDate = '10/19/81'
-                  Then EndString := ConCat (EndString, 'PC-1 (64k Motherboard)')
-                  Else If (WhatBIOSDate = '08/16/82') or (WhatBIOSDate = '10/27/82')
-                    Then EndString := ConCat (EndString, 'PC, XT/XT-370 (256k Motherboard)');
-      $FFF9 : EndString := ConCat (EndString, 'PC-Compatible');
+      $33FC:machStr:='Epson, unknown model';
+      $33F8:machStr:='PS/2 Model 30-386';
+      $34F8:machStr:='PS/2 Model 25-286';
+      $36F8:machStr:='PS/2 Model 95 XP';
+      $37F8:machStr:='PS/2 Model 90 XP';
+      $38F8:machStr:='PS/2 Model 57';
+      $39F8:machStr:='PS/2 Model 95 XP';
+      $3FF8:machStr:='PS/2 Model 90 XP';
+      $40F8:machStr:='PS/2 Model 95-XP';
+      $41F8:machStr:='PS/2 Model 77';
+      $42FC:machStr:='Olivetti M280';
+      $43FE:machStr:='Olivetti M240';
+      $45F8:machStr:='PS/2 Model 90 XP (Pentium)';
+      $45FC:machStr:='Olivetti M380 (XP1, 3, or 5)';
+      $46F8:machStr:='PS/2 Model 95 XP (Pentium)';
+      $46FF:machStr:='Olivetti M15';
+      $47F8:machStr:='PS/2 Model 90/95 E (Pentium)';
+      $48F8:machStr:='PS/2 Model 85';
+      $48FC:machStr:='Olivetti M290';
+      $49F8:machStr:='PS/ValuePoint 325T';
+      $4AF8:machStr:='PS/ValuePoint 425SX';
+      $4BF8:machStr:='PS/ValuePoint 433DX';
+      $4CFB:machStr:='Olivetti M200';
+      $4EF8:machStr:='PS/2 Model 295';
+      $4EFA:machStr:='Olivetti M111';
+      $4FFC:machStr:='Olivetti M250';
+      $50F8:Case idByte Of
+              $00:machStr:='PS/2 Model P70 (8573) 386-16';
+              $01:machStr:='PS/2 Model P70 (8570-031)';
+            End;
+      $50FC:machStr:='Olivetti M380 (XP7)';
+      $51FC:machStr:='Olivetti PCS286';
+      $52F8:machStr:='PS/2 Model P75 33MHz 486';
+      $52FC:machStr:='Olivetti M300';
+      $56F8:machStr:='PS/2 Model CL57 SX';
+      $57F8:machStr:='PS/2 Model 90 XP';
+      $58F8:machStr:='PS/2 Model 95 XP';
+      $59F8:machStr:='PS/2 Model 90 XP';
+      $5AF8:machStr:='PS/2 Model 95 XP';
+      $5BF8:machStr:='PS/2 Model 90 XP';
+      $5CF8:machStr:='PS/2 Model 95 XP';
+      $5DF8:machStr:='PS/2 Model N51 SLC';
+      $5EF8:machStr:='IBM ThinkPad 700';
+      $61F8:machStr:='Olivetti P500';
+      $62F8:machStr:='Olivetti P800';
+      $80F8:Case idByte Of
+             $00:machStr:='PS/2 Model 80 386-25';
+             $01:machStr:='PS/2 Model 80-A21 386-25';
+           End;
+      $81F8:machStr:='PS/2 Model 55-5502';
+      $81FC:If WhatBIOSDate='01/15/88'
+              Then machStr:='Phoenix 386 V1.10 10a'
+              Else machStr:='"OEM Rechner"';
+      $82FC:machStr:='"OEM Rechner"';
+      $87F8:machStr:='PS/2 Model N33SX';
+      $88F8:machStr:='PS/2 Model 55-5530T';
+      $94FC:machStr:='Zenith 386';
+      $97F8:machStr:='PS/2 Model 55 Note N23SX';
+      $99F8:machStr:='PS/2 Model N51 SX';
+      $9A00:machStr:='Compaq Plus (XT compatible)';
+      $A6FE:machStr:='Quadram Quad386';
+      $F2F8:machStr:='Reply Model 32';
+      $F6F8:machStr:='Memorex Telex';
+      $F800:begin
+              datefoo:=WhatBIOSDate;
+              If (datefoo[7]='8') And (datefoo[8]='7') Then machStr:='PS/2 Model 80'
+                Else If WhatBIOSDate='03/30/87' Then machStr:='PS/2 Model 80-041 16 MHz'
+                Else If WhatBIOSDate='08/27/87' Then machStr:='PS/2 Model 80-071 16 MHz';
+            end;
+      $F801:If WhatBiosRevision=1 Then machStr:='PS/2 Model 80-111 20 MHz';
+      $F804:machStr:='PS/2 Model 70-121';
+      $F809:If WhatBiosRevision=2 Then machStr:='PS/2 Model 70 Desktop';
+      $F80B:machStr:='PS/2 Model 70 Portable';
+      $F80D:machStr:='PS/2 Model 70-A21';
+      $F900:machStr:='PC-Kompatibler';
+      $FA00:machStr:='PS/2 Model 30';
+      $FB00:Case WhatBiosRevision Of
+              0:machStr:='XT-2 (frÅherer)';
+              1:machStr:='XT Model 089';
+            End;
+      $FB01:machStr:='XT-2 (spÑterer)';
+      $FC00:Case WhatBiosRevision Of
+              0:machStr:='AT Model 099 (Original)/7531/2 Industrial AT';
+              1:machStr:='AT Model 239 6MHz (6.6 max governor)';
+            End;
+      $FC01:Case WhatBiosRevision Of
+              00:If WhatBIOSDate='11/15/85' Then machStr:='AT Model 339, 339 8MHz (8.6 max governor)'
+                 Else If WhatBIOSDate='01/24/90' Then machStr:='Compaq DeskPro 80386/25e'
+                 Else machStr:='Compaq 386/16';
+              03:machStr:='? with Phoenix 386 BIOS';
+              81:machStr:='? with Phoenix 386 BIOS';
+            End;
+      $FC02:If WhatBIOSDate='10/02/89' Then machStr:='Compaq Deskpro 386s/386SX 16 MHz'
+            Else If WhatBIOSDate='04/21/86' Then machStr:='XT/286';
+      $FC05:machStr:='PS/2 Model 60';
+      $FD00:machStr:='PCjr';
+      $FDF8:machStr:='IBM Processor Complex (with VPD)';
+      $FE00:machStr:='XT, Portable PC, XT/370, 3270PC';
+      $FEFA:machStr:='IBM PCradio 9075';
+      $FF00:If WhatBIOSDate='04/24/81' Then machStr:='PC-0 (16k Motherboard)'
+            Else If WhatBIOSDate='10/19/81' Then machStr:='PC-1 (64k Motherboard)'
+            Else If (WhatBIOSDate='08/16/82') or (WhatBIOSDate='10/27/82')
+              Then machStr:='PC, XT/XT-370 (256k Motherboard)';
+      $FFF9:machStr:='PC-Compatible';
     end;
   end;
 
   {int 15/c0 came up short, so we look at the machine ID byte in desperation}
-  if Endstring='' then Case Mem[$FFFF:$000E] Of
-    $FF : if mem[$f000:$c000]=$21
-            then EndString := ConCat (EndString, 'Tandy 1000')
-            else EndString := ConCat (EndString, 'PC');
+  if machStr='' then Case Mem[$FFFF:$000E] Of
+    $FF:if mem[$f000:$c000]=$21
+            then machStr:='Tandy 1000'
+            else machStr:='PC';
     $FE,
-    $FB : EndString := ConCat (EndString, 'PC/XT');
-    $FD : EndString := ConCat (EndString, 'PCjr');
-    $FC : EndString := ConCat (EndString, 'PC/AT');
-    $FA : EndString := ConCat (EndString, 'PS/2 Model 30');
-    $F9 : EndString := ConCat (EndString, 'PS/2 Convertible');
-    $F8 : EndString := ConCat (EndString, 'PS/2 Model 90/95?');
-    $9A : EndString := ConCat (EndString, 'Compaq XT or Compaq Plus');
-    $2D : EndString := ConCat (EndString, 'Compaq PC or Compaq Deskpro');
-    $30 : EndString := ConCat (EndString, 'Sperry PC');
-    $E9 : EndString := ConCat (EndString, 'Peacock XT');
-    $00 : EndString := ConCat (EndString, 'AT&T 6300/Olivetti M24');
+    $FB:machStr:='PC/XT';
+    $FD:machStr:='PCjr';
+    $FC:machStr:='PC/AT';
+    $FA:machStr:='PS/2 Model 30';
+    $F9:machStr:='PS/2 Convertible';
+    $F8:machStr:='PS/2 Model 90/95?';
+    $9A:machStr:='Compaq XT or Compaq Plus';
+    $2D:machStr:='Compaq PC or Compaq Deskpro';
+    $30:machStr:='Sperry PC';
+    $E9:machStr:='Peacock XT';
+    $00:machStr:='AT&T 6300/Olivetti M24';
   Else
-    EndString := 'unknown, ID : ' + Hexword(xWord1);
+    machStr:='unknown, ID: ' + HexWord(idWord);
   End;
 
-  if EndString='' then EndString:='error!'; {we should never get here}
-  WhatMachineType := EndString;
+  if machStr='' then machStr:='error!'; {we should never get here}
+  WhatMachineType:=machStr;
 end;
 
 Function WhatCPU;
