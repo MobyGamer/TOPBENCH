@@ -137,7 +137,7 @@ const
     '   Jason Knight (PCjr/Tandy graphics detection)',
     ' ',
     ' Thanks to everyone at the Vintage Computer Forums: ',
-    ' http://www.vintage-computer.com/vcforum/forum.php',
+    ' http://www.vcfed.org/forum/forum.php',
     ''
   );
 
