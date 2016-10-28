@@ -114,8 +114,8 @@ const
   StubVersion='0.97d';
   StubBanner='TOPBENCH | Benchmark and detection stub | Version '+StubVersion;
 
-  FullVersion='0.38a';
-  FullBuildDate='20140328';
+  FullVersion='0.38f';
+  FullBuildDate='20161028';
   FullBanner='TOPBENCH | 16-bit real-mode x86 Benchmarking Suite | Version '+FullVersion;
 
   DefaultDate=19810812; {birth of IBM PC, roughly}
