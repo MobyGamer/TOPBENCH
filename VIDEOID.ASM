@@ -1,6 +1,16 @@
+                TITLE   'Listing C-1'
+                NAME    VideoID
+                PAGE    55,132
+
+;
 ; Name:         VideoID
+;
 ; Function:     Detects the presence of various video subsystems and associated
 ;               monitors.
+;
+; Caller:       Microsoft C:
+;
+;                       void VideoID(VIDstruct);
 ;
 ;                       struct
 ;                       {
@@ -26,13 +36,15 @@
 ;                                3  = EGA-compatible color
 ;                                4  = PS/2-compatible monochrome
 ;                                5  = PS/2-compatible color
-;
+;                                
 ;
 ;       The values returned in VIDstruct[0].VideoSubsystem and
 ;       VIDstruct[0].Display indicate the currently active subsystem.
 ;
 
-ARGpVID         EQU     word ptr [bp-4] ; stack frame addressing
+;ARGpVID         EQU     word ptr [bp+4] ; stack frame addressing
+; FAR calls only
+ARGpVID         EQU     word ptr [bp+6] ; stack frame addressing
 
 
 VIDstruct       STRUC                   ; corresponds to C data structure
@@ -50,7 +62,7 @@ Device0         EQU     word ptr Video0Type[di]
 Device1         EQU     word ptr Video1Type[di]
 
 
-MDA             EQU     1               ; subsystem types
+MDA             EQU     1               ; subsystem types               
 CGA             EQU     2
 EGA             EQU     3
 MCGA            EQU     4
@@ -275,7 +287,7 @@ FindMono        PROC    near            ; Returns:      VIDstruct updated
                 and     al,80h
                 mov     ah,al           ; AH := bit 7 (vertical sync on HGC)
 
-                mov     cx,8000h        ; do this 32768 times
+                mov     cx,8000h        ; do this 32768 times 
 L41:            in      al,dx
                 and     al,80h          ; isolate bit 7
                 cmp     ah,al
@@ -343,8 +355,8 @@ L51:            loop    L51             ; wait for 6845 to respond
 
                 stc                     ; set carry flag if no 6845 present
 
-L52:            ret
-
+L52:            ret     
+        
 Find6845        ENDP
 
 
@@ -451,5 +463,4 @@ NumberOfTests   EQU     ($-TestSequence)/3
 _DATA           ENDS
 
                 END
-
 

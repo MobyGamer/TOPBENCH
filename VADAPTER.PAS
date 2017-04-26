@@ -39,7 +39,7 @@ type
 var
   VidInfo:VidArray;
 
-Procedure _VideoID(var foo:VidArray); external; {$L videoid.obj}
+Procedure _VideoID(var foo:VidArray); far; external; {$L videoid.obj}
 
 constructor TVideoSubsystem.Init;
 const
