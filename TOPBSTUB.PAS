@@ -15,7 +15,7 @@ uses
   overlay, bstubov, {preserve this order or overlay system won't work}
   {$ENDIF}
   support,
-  cmdlin,
+  {cmdlin,} {not compatible with DOS 2.1}
   topb_detect,
   topb_constants,
   inifiles,
@@ -34,7 +34,6 @@ uses
   {$O cputype}
   {$O crc16}
   {$O dos}
-  {$O cmdlin}
   {{$O support} {to ensure waitfloppy doesn't wait for itself}
   {$ENDIF}
 
@@ -98,34 +97,10 @@ end;
 procedure stubtext; external;
 {$L stubtext.obj}
 
-procedure helptext; external;
-{$L helptext.obj}
-
 begin
   oldmem:=memavail;
 
   __DOSWrite(StubBanner+#13#10);
-
-  {set command-line vars}
-  if non_flag_count>0
-    then fname:=non_flag_param(1);
-  if is_param('d')
-    then description:=param_text('d');
-  if is_param('s')
-    then skiptests:=true;
-  if is_param('?') then begin
-    {print out the helptext}
-    asm
-      mov     ah,09h
-      mov     bx,seg helptext
-      mov     dx,offset helptext
-      push    ds
-      mov     ds,bx
-      int     21h
-      pop     ds
-    end;
-    exit;
-  end;
 
   {print out the stubtext}
   asm

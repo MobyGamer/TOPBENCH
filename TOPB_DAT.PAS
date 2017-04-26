@@ -15,7 +15,7 @@ EMS or XMS streams or something, because the test suites will crash
 protected mode (or worse, produce the wrong numbers!).
 }
 
-{$DEFINE DEBUG}
+{{$DEFINE DEBUG}
 
 interface
 

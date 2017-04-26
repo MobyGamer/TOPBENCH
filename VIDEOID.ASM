@@ -32,7 +32,7 @@
 ;       VIDstruct[0].Display indicate the currently active subsystem.
 ;
 
-ARGpVID         EQU     word ptr [bp+4] ; stack frame addressing
+ARGpVID         EQU     word ptr [bp-4] ; stack frame addressing
 
 
 VIDstruct       STRUC                   ; corresponds to C data structure

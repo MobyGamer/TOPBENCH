@@ -1,14 +1,6 @@
-Usage:  TOPBSTUB filename.ext [options]
+Usage:  TOPBSTUB
 
-...where options are:
-
-  -?               This help text
-  -d"description"  A short description of the system being benchmarked
-  -s               Skip aggresive detection routines (in case they crash)
-
-Example:  TOPBSTUB ps2m302.ini /d"IBM PS/2 Model 30-286"
-
-If no arguments are present, the filename will default to "output.ini"
+No command-line arguments are available.  The output filename is "output.ini"
 and no description will be inserted into the output file.  If the file
 already exists, information will be appended to the end of the file.
 $

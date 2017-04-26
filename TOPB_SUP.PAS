@@ -14,8 +14,8 @@ uses
   topb_detect,
   topb_datastructures,
 
-  totfast,
   totsys,
+  totfast, {totfast must always init after totsys}
   totmsg,
   totWIN,
   totIO1,
@@ -156,14 +156,14 @@ begin
     fatal  :fileLog^.Commit('=FATAL=  '+msg);
   end;
   {then, insert it into the message console}
-  ConScreen^.Scroll(up,1,2,Monitor^.Width,Monitor^.Depth);
+  ConScreen^.Scroll(up,1,2,ConScreen^.Width,ConScreen^.Depth);
   case m of
     info:color:=_cnormal;
     warning:color:=_chigh;
     error,
     fatal:color:=_cblink;
   end;
-  ConScreen^.WriteAt(1,Monitor^.Depth,color,msg);
+  ConScreen^.WriteAt(1,ConScreen^.Depth,color,msg);
   {if we have a fatal error,
   MAYDAY MAYDAY TOPBENCH IS BUDDY-SPIKED ABORT ABORT ABORT}
   if m=fatal then begin

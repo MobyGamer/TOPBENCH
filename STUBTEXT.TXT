@@ -5,5 +5,4 @@ identify your system and video adapter, benchmark various aspects of your
 system, and then write the information to an output file which can then be
 imported into the full benchmark tool, or emailed to trixter@oldskool.org to
 help seed TOPBENCH's internal database.
-
-Run with "-?" for additional command-line options.$
+$

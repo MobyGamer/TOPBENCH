@@ -16,7 +16,7 @@ Uses
   overlay;
 
 const
-  ovrname:string[12]='topbstub.ovr';
+  ovrname:string[12]='topbench.ovr';
   {$IFDEF BUFEXPAND}
   minfreeram=128 * 1024; {amount of free RAM we can't dip below}
   ovrsize=64 * 1024;
@@ -74,8 +74,10 @@ var
   b:byte;
 
 begin
+  (*
   {perform name fixup}
   ovrname:=copy(paramstr(0),length(paramstr(0))-sizeof(ovrname)+2,sizeof(ovrname)-4)+'ovr';
+  *)
 
   {First, initialize the overlay, since we can't continue until this succeeds.}
   __dosWrite('Initializing overlay manager... ');
