@@ -8,7 +8,7 @@ TOPBENCH's database.  This stub can run on system with as little as
 128KB total RAM, provided the user uses a non-bloated DOS boot disk.
 }
 
-{{$DEFINE OVERLAYS}
+{$I TOPBCONF.INC}
 
 uses
   {$IFDEF OVERLAYS}
@@ -40,7 +40,7 @@ uses
 const
   {command-line params}
   fname:string[79]='output.ini';
-  description:string='';
+  description:string[79]='';
   skiptests:boolean=false;
 
 var

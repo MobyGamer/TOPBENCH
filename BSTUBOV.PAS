@@ -1,9 +1,12 @@
 unit bstubov;
 {needed to get the overlay manager initialized before all others}
 
-{{$DEFINE USEEMS}
+{$I TOPBCONF.INC}
 
-{$DEFINE BUFEXPAND}
+{$IFNDEF STUB}
+  {$DEFINE USEEMS}
+  {$DEFINE BUFEXPAND}
+{$ENDIF}
 
 interface
 
@@ -16,7 +19,11 @@ Uses
   overlay;
 
 const
+  {$IFDEF STUB}
+  ovrname:string[12]='topbstub.ovr';
+  {$ELSE}
   ovrname:string[12]='topbench.ovr';
+  {$ENDIF}
   {$IFDEF BUFEXPAND}
   minfreeram=128 * 1024; {amount of free RAM we can't dip below}
   ovrsize=64 * 1024;
@@ -66,7 +73,7 @@ begin
     ovrNoEMSMemory   :__dosWriteln('Not enough EMS available.');
     {$ENDIF}
   else
-    __dosWriteln('Unknown overlay error! :-(');
+    __dosWriteln('Unknown overlay error!');
   end; {case}
 end;
 

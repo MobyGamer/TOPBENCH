@@ -24,6 +24,8 @@ INFOPLUS program, which itself borrowed from Steve Grant's SYSID program.
 Where Steve borrowed from, I have no idea.
 }
 
+{$I TOPBCONF.INC}
+
 unit topb_detect;
 
 interface
@@ -139,6 +141,10 @@ Begin
     Then If Regs.CX=$0101
       Then machStr:='HP 95LX'
       Else machStr:='HP 100LX/200LX';
+
+  {$IFNDEF STUB}
+  {Only newer systems are going to honor int15 extended info, so if building
+  the stub, don't bother}
 
   {Perform INT15-compilant model check}
   Regs.AH:=$C0;
@@ -420,18 +426,30 @@ Begin
     end;
   end;
 
+  {$ENDIF}
+
   {int 15/c0 came up short, so we look at the machine ID byte in desperation}
+  {T1000 info credit to John Eliott @ seasip.info/VintagePC/t1000.html}
   if machStr='' then Case Mem[$FFFF:$000E] Of
     $FF:if mem[$f000:$c000]=$21
-            then machStr:='Tandy 1000'
-            else machStr:='PC';
-    $FE,
-    $FB:machStr:='PC/XT';
+          then machStr:='Tandy 1000'
+          else machStr:='PC';
+    $FE:case mem[$f000:$fffa] of
+          $2c{,$44}:machStr:='Toshiba T1000';
+          $43:machStr:='Toshiba T1600';
+          $45:machStr:='Toshiba T1200';
+          $46:machStr:='Toshiba T1100+';
+          $47:machStr:='Toshiba T5200C';
+        else
+          machStr:='PC/XT';
+        end;
     $FD:machStr:='PCjr';
     $FC:machStr:='PC/AT';
-    $FA:machStr:='PS/2 Model 30';
+    $FB:machStr:='PC/XT';
+    $FA:machStr:='PS/2 Model 25/30';
     $F9:machStr:='PS/2 Convertible';
-    $F8:machStr:='PS/2 Model 90/95?';
+    $F8:machStr:='PS/2 Model 70/80';
+    $B6:machStr:='HP 110';
     $9A:machStr:='Compaq XT or Compaq Plus';
     $2D:machStr:='Compaq PC or Compaq Deskpro';
     $30:machStr:='Sperry PC';
@@ -440,6 +458,8 @@ Begin
   Else
     machStr:='unknown, ID: ' + HexWord(idWord);
   End;
+
+
 
   if machStr='' then machStr:='error!'; {we should never get here}
   WhatMachineType:=machStr;
@@ -497,7 +517,11 @@ var
 
 begin
   s:=v.PrimaryName;
+  {If building the stub, don't bother doing an extended VGA check, as there
+  is no system supporting VGA that came with only 128KB.}
+  {$IFNDEF STUB}
   if v.PrimaryType='VGA' then s:=WhatSVGACard;
+  {$ENDIF}
   if v.PrimaryType='CGA' then begin
     {Key kids, let's do all sorts of extended CGA adapter detection!
     Tandy, PCjr, AT&T 6300, Compaq Portable III, you name it!}

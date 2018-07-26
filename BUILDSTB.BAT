@@ -15,11 +15,11 @@ tpc -Tc:\bp\bin -L -GD -B -$A+ -$G- -$R- -$S- detect\detectgr
 tpc -Tc:\bp\bin -L -GD -B -$A+ -$G- -$R- -$S- topbstub
 rem pklite \compiled\topbstub.exe
 
-del c:\temp\tstub97d.zip
+del c:\temp\tstub97e.zip
 cd \compiled
-pkzip -ex c:\temp\tstub97d.zip dstub.exe dstub.map topbstub.exe topbstub.ovr
-cd \topbench
-pkzip -ex c:\temp\tstub97d.zip whatsnew.txt readstub.txt
+pkzip -ex c:\temp\tstub97e.zip topbstub.exe
+cd \projects\topbench
+pkzip -ex c:\temp\tstub97e.zip whatsnew.txt readstub.txt
 
-copy c:\temp\tstub97d.zip s:\temp\tmp
+copy c:\temp\tstub97e.zip s:\temp\tmp
 

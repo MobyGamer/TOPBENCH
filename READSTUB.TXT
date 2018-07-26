@@ -2,20 +2,8 @@ Thanks for offering to help with the development of TOPBENCH!
 This archive contains the following:
 
 topbstub.exe - The TOPBENCH profiling and detection stub.
-               Requires ~56K free RAM.
+               Requires ~53K free RAM.
 
-topbstub.ovr - Overlay code for topbstub
+Use -? to get command-line usage.  Once run, please email
+trixter@oldskool.org the resulting output.ini file.
 
-dstub.exe    - A "debug" version of the stub, in case topbstub
-               does not run properly.  No code is overlaid, it has
-               additional redundant safety checks, and more errors are
-               reported. Requires 96K free RAM.
-
-dstub.map    - A full segment and symbolic listing for topdstub.  If
-               dstub produces an error, the segment:offset can be looked
-               up in the .map to find the source of the problem.
-
-Both programs take optional arguments; use -? to get command-line usage.
-
-If dstub craps out on your system, please send me the details and I'll
-do my best to fix it.

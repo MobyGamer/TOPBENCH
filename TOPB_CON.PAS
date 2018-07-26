@@ -111,7 +111,7 @@ const
 
   RequiredFeatures=LTestMemF+LTestMemEAF+LTestOpcodesF+LTestVidMemF+LTest3DGamesF+Lbioscrc16F+LscoreF+LNameF;
 
-  StubVersion='0.97d';
+  StubVersion='0.97e';
   StubBanner='TOPBENCH | Benchmark and detection stub | Version '+StubVersion;
 
   FullVersion='0.38h';
