@@ -6,7 +6,7 @@ tpc -Tc:\bp\bin -L -GD -B -$A+ -$G- -$R- -$S- -$O- topbench
 pause
 pklite d:\compiled\topbench.exe
 
-del c:\temp\topbv38h.zip
-pkzip -ex c:\temp\topbv38h.zip d:\compiled\topbench.exe database.ini topbench.txt
-copy c:\temp\topbv38h.zip .
-copy c:\temp\topbv38h.zip s:\temp\tmp
+del c:\temp\topbv40.zip
+pkzip -ex c:\temp\topbv40.zip d:\compiled\topbench.exe database.ini topbench.txt
+copy c:\temp\topbv40.zip .
+copy c:\temp\topbv40.zip s:\temp\tmp
