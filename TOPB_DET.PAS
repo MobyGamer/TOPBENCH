@@ -459,8 +459,6 @@ Begin
     machStr:='unknown, ID: ' + HexWord(idWord);
   End;
 
-
-
   if machStr='' then machStr:='error!'; {we should never get here}
   WhatMachineType:=machStr;
 end;
@@ -740,9 +738,8 @@ var
 
 begin
   {build upcase array}
-  for b:=0 to ord('a')-1 do uchars[b]:=b;
+  for b:=0 to 255 do uchars[b]:=b;
   for b:=ord('a') to ord('z') do uchars[b]:=b-32;
-  for b:=ord('z')+1 to 255 do uchars[b]:=b;
 
   s:='';
   {First, try to find the location of one of the copyright notices}

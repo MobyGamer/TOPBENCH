@@ -33,7 +33,8 @@ type
     usecOpcodes:word;               {" "}
     usecVidMem:word;                {" "}
     usec3DGames:word;               {" "}
-    Score:longint;                  {TOPBENCH system score}
+    (* !!! Score:longint;           {TOPBENCH system score} *)
+    Score:word;                     {TOPBENCH system score}
     Name:pstring;                   {in .ini files as MACHINE}
     CPU:pstring;                    {Intel 8088, 80386, Pentium Pro, etc.}
     MHz:real;                       {4.77, 33, 2600, etc.}
@@ -49,7 +50,8 @@ type
       {required for DB to function at all}
       newUID:string;
       newusecMemTest,newusecMemEA,newusecOpcodes,newusecVidMem,newusec3DGames:word;
-      newScore:longint;
+      (* !!! newScore:longint; *)
+      newScore:word;
       {required for TOPBENCH to be useful to anyone}
       newName:string;
       newCPU:string;

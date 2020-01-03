@@ -1,3 +1,4 @@
+{$M 8192,0,655360} {in tests, prog used <7K of stack with ~300 systems loaded}
 program topbench;
 
 {{$DEFINE DEBUG}
@@ -8,6 +9,9 @@ within the Turbo Pascal IDE.  There should not be any reason to
 distribute the program with overlays because it only saves about 128K}
 
 uses
+  {$IFDEF DEBUG}
+  stackuse,
+  {$ENDIF}
   objects,
   {$IFDEF USEOVERLAYS}
   bstubov,
@@ -66,9 +70,9 @@ uses
 
 const
   DBdirty:boolean=false; {if dirty, DB needs to be written to disk}
-  DBreadonly:boolean=false; {if DB gets partially loaded to due low ram, don't save it back out again}
-  INIBufSize=18*512*2; {enough to hold an entire 1.44MB track}
-  minramfree=80*50*2;
+  DBreadonly:boolean=false; {if DB gets partially loaded to due low ram, don't write it out again}
+  INIBufSize=512*9; {a single 360k disk side, or about 12 DB.INI entries}
+  minramfree=80*50*4; {need to reserve room for both visible and hidden screen}
   {default colors that work with both MDA and CGA}
   cnormal:byte=$07;
   creverse:byte=$70;
@@ -81,6 +85,8 @@ const
   _skipvideotests:boolean=false;
   _searchdistance:byte=2; {fine-tune results n-sd to n+sd}
   _realMhz:boolean=false; {don't try to quantize detected MHz}
+  {common strings}
+  useclbl=' æsec';
 
 var
   mematstart:longint;
@@ -145,7 +151,7 @@ begin
   Systems^.Insert(NewSystem);
   {If the count did NOT increase, it's because it's a dupe.}
   if oldcount=Systems^.Count then begin
-    MsgConsole^.LogMsg(warning,NewSystem^.UID^+' rejected as a duplicate or redundant entry.');
+    MsgConsole^.LogMsg(warning,NewSystem^.UID^+' is a duplicate/redundant entry; rejected');
     dispose(NewSystem,done);
     {some evidence of this not happening, so we will ensure it:}
     NewSystem:=nil;
@@ -168,53 +174,55 @@ var
   vs:videosystems;
   s:string8;
 begin
-  PrepFWindow('Detecting System');
-  Screen.writeln('Getting microsecond timings...');
-  newsys^.usecMemTest:=testmemoryblockops;
-  newsys^.usecMemEA  :=testmemEA;
-  newsys^.usecOpcodes:=testCPUOpcodes;
-  newsys^.usecVidMem :=testVideoAdapterWrites;
-  newsys^.usec3DGames:=test3DGames;
-  Screen.writeln('Getting TOPSCORE fingerprint...');
-  newsys^.score:=topscorefingerprint;
-  Screen.writeln('Detecting: ');
+  with NewSys^ do begin
+    PrepFWindow('Detecting System');
+    Screen.writeln('Getting microsecond timings...');
+    usecMemTest:=testmemoryblockops;
+    usecMemEA  :=testmemEA;
+    usecOpcodes:=testCPUOpcodes;
+    usecVidMem :=testVideoAdapterWrites;
+    usec3DGames:=test3DGames;
+    Screen.writeln('Getting TOPSCORE fingerprint...');
+    score:=topscorefingerprint;
+    Screen.writeln('Detecting: ');
 
-  if not _skipcputests then begin
-    screen.writeln('CPU... ');
-    newsys^.SetCPU(WhatCPU);
+    if not _skipcputests then begin
+      screen.writeln('CPU... ');
+      SetCPU(WhatCPU);
 
-    screen.writeln('CPU speed... ');
-    if _realMHz
-      then newsys^.MHz:=WhatMHzReal
-      else newsys^.MHz:=WhatMHzRealNormalized;
+      screen.writeln('CPU speed... ');
+      if _realMHz
+        then MHz:=WhatMHzReal
+        else MHz:=WhatMHzRealNormalized;
+    end;
+
+    Screen.writeln('BIOS... ');
+    setbios(WhatBIOS);
+
+    Screen.writeln('BIOS Date... ');
+    biosdatenormalized:=(WhatBIOSDateNormalized);
+
+    Screen.writeln('CRC...');
+    BIOSCRC16:=WhatBIOSCRC16;
+
+    if not _skipvideotests then begin
+      Screen.writeln('Video subsystem...');
+      s:=WhatVideoSubsystem;
+      for vs:=MDA to VGA do
+        if upstring(s)=VidSysLabels[vs]
+          then VideoSubsystem:=vs;
+
+      Screen.writeln('Video adapter...');
+      setvideoadapter(WhatVideoAdapter);
+    end;
+    Screen.writeln('Machine type...');
+    setname(WhatMachineType);
+
+    SetUID(WhatMachineUID);
+
+    Screen.writeln('Done!');
+    dispose(fStatus,done);
   end;
-
-  Screen.writeln('BIOS... ');
-  NewSys^.setbios(WhatBIOS);
-
-  Screen.writeln('BIOS Date... ');
-  NewSys^.biosdatenormalized:=(WhatBIOSDateNormalized);
-
-  Screen.writeln('CRC...');
-  NewSys^.BIOSCRC16:=WhatBIOSCRC16;
-
-  if not _skipvideotests then begin
-    Screen.writeln('Video subsystem...');
-    s:=WhatVideoSubsystem;
-    for vs:=MDA to VGA do
-      if upstring(s)=VidSysLabels[vs]
-        then newsys^.VideoSubsystem:=vs;
-
-    Screen.writeln('Video adapter...');
-    newsys^.setvideoadapter(WhatVideoAdapter);
-  end;
-  Screen.writeln('Machine type...');
-  NewSys^.setname(WhatMachineType);
-
-  NewSys^.SetUID(WhatMachineUID);
-
-  Screen.writeln('Done!');
-  dispose(fStatus,done);
 end;
 
 Procedure ImportSystemFile(s:string128);
@@ -375,21 +383,6 @@ begin
   dispose(fStatus,done);
 end;
 
-(*
-Procedure PrintSystemList(s:PSystems);
-
-  procedure CallPrint(machine:PSystem); far;
-  begin
-    with machine^ do
-      writeln(UID^,',',name^,',',score);
-    {machine^.print;}
-  end;
-
-begin { Print }
-  Writeln('Systems printout:');
-  s^.ForEach(@CallPrint);
-end;
-*)
 
 Procedure SaveDatabase(s:PSystems;fn:string128);
 
@@ -404,7 +397,6 @@ var
       {mouse.show;}
       MsgConsole^.LogMsg(info,'Writing '+UID^+':'+name^+':'+inttostr(score));
       {Required fields:}
-      {i^.StartNewSection(UID^,Name^);}
       i^.StartNewSection(UID^,''); {eliminate the comment to save floppy space}
       i^.WriteKeyValue(LTestMem,inttostr(usecMemTest));
       i^.WriteKeyValue(LTestOpcodes,inttostr(usecOpcodes));
@@ -460,6 +452,11 @@ var
       tmps:=tmps+','+newbit;
     end;
 
+    procedure flushit;
+    begin
+      write(f,tmps); tmps:=',';
+    end;
+
   begin
     {again, with much, much terrible apologies about how crude this next
     section is.  When I have time to add polish, I'll rewrite how data
@@ -475,7 +472,8 @@ var
         +','+inttostr(usecOpcodes)
         +','+inttostr(usecVidmem)
         +','+inttostr(usecMemEA)
-        +','+inttostr(usec3DGames)+',';
+        +','+inttostr(usec3DGames)
+        +',';
       if CPU<>NIL then tmps:=tmps+CPU^;
       tmps:=tmps+',';
       if MHz<>0 then tmps:=tmps+support.RealToStr(MHz);
@@ -485,14 +483,14 @@ var
         +','+IntToStr(BIOSDateNormalized)
         +','+hexword(BIOSCRC16)+','
         +VidSysLabels[VideoSubsystem];
-      {we run the risk of exceeding 255 bytes here, so flush and continue}
-      write(f,tmps);
-      tmps:=','; if VideoAdapter<>NIL then tmps:=tmps+'"'+VideoAdapter^+'"';
-      write(f,tmps);
-      tmps:=','; if description<>NIL then tmps:=tmps+'"'+description^+'"';
-      write(f,tmps);
-      tmps:=','; if submitter<>NIL then tmps:=tmps+'"'+submitter^+'"';
-      write(f,tmps);
+      {we run the risk of exceeding 255 bytes here, so flush each of these}
+      flushit;
+      if VideoAdapter<>NIL then tmps:=tmps+'"'+VideoAdapter^+'"';
+      flushit;
+      if description<>NIL then tmps:=tmps+'"'+description^+'"';
+      flushit;
+      if submitter<>NIL then tmps:=tmps+'"'+submitter^+'"';
+      flushit;
     end;
     writeln(f);
   end;
@@ -549,6 +547,12 @@ begin
     end;
     resetwindow;
   end;
+end;
+
+Procedure writeTiming(cl:byte;header:string;uval:word);
+begin
+  tmpScreen^.writeat   (cl,1,LookTOT^.vmenutitle,header);
+  tmpScreen^.writeplain(cl,2,inttostr(uval)+useclbl);
 end;
 
 Procedure repaintSysInfo(x1,y1,x2,y2,style:byte;opttitle:string80;SysList:PSystems;curitem:word);
@@ -644,21 +648,17 @@ begin
     writeat(1,1,LookTOT^.vmenutitle,'SCORE:');
     writeplain(8,1,inttostr(tmpsys^.score));
 
-       writeat(us+(0*sm),1,LookTOT^.vmenutitle,'MemTest: ');
-    writeplain(us+(0*sm),2,inttostr(tmpsys^.usecMemtest)+' æsec');
-       writeat(us+(1*sm),1,LookTOT^.vmenutitle,'MemEA:   ');
-    writeplain(us+(1*sm),2,inttostr(tmpsys^.usecMemEA)+' æsec');
-       writeat(us+(2*sm),1,LookTOT^.vmenutitle,'Opcodes: ');
-    writeplain(us+(2*sm),2,inttostr(tmpsys^.usecOpcodes)+' æsec');
-       writeat(us+(3*sm),1,LookTOT^.vmenutitle,'VidMem:  ');
-    writeplain(us+(3*sm),2,inttostr(tmpsys^.usecVidmem)+' æsec');
-       writeat(us+(4*sm),1,LookTOT^.vmenutitle,'3DGames: ');
-    writeplain(us+(4*sm),2,inttostr(tmpsys^.usec3DGames)+' æsec');
-       writeat(us+(5*sm),1,LookTOT^.vmenutitle,'Total:   ');
+    writeTiming(us+(0*sm),'MemTest: ',tmpsys^.usecMemtest);
+    writeTiming(us+(1*sm),'MemEA:   ',tmpsys^.usecMemEA);
+    writeTiming(us+(2*sm),'Opcodes: ',tmpsys^.usecOpcodes);
+    writeTiming(us+(3*sm),'VidMem:  ',tmpsys^.usecVidmem);
+    writeTiming(us+(4*sm),'3DGames: ',tmpsys^.usec3DGames);
+
+    writeat(us+(5*sm),1,LookTOT^.vmenutitle,'Total:   ');
     with tmpsys^ do
     writeplain(us+(5*sm),2,inttostr(
          usecMemtest+usecMemEA+usecOpcodes+usecVidmem+usec3DGames
-         )+' æsec');
+         )+useclbl);
 
     writeat(1,3,LookTOT^.vmenutitle,'CPU:');
     writeplain(6,3,tmpsys^.CPU^);
@@ -718,99 +718,112 @@ begin
 
     writeat(1,1,LookTOT^.vmenutitle,'SCORE:');
     writeplain(8,1,inttostr(system^.score));
-       writeat(us+(0*sm),1,LookTOT^.vmenutitle,'MemTest: ');
-    writeplain(us+(0*sm),2,inttostr(system^.usecMemtest)+' æsec');
-       writeat(us+(1*sm),1,LookTOT^.vmenutitle,'MemEA:   ');
-    writeplain(us+(1*sm),2,inttostr(system^.usecMemEA)+' æsec');
-       writeat(us+(2*sm),1,LookTOT^.vmenutitle,'Opcodes: ');
-    writeplain(us+(2*sm),2,inttostr(system^.usecOpcodes)+' æsec');
-       writeat(us+(3*sm),1,LookTOT^.vmenutitle,'VidMem:  ');
-    writeplain(us+(3*sm),2,inttostr(system^.usecVidmem)+' æsec');
-       writeat(us+(4*sm),1,LookTOT^.vmenutitle,'3DGames: ');
-    writeplain(us+(4*sm),2,inttostr(system^.usec3DGames)+' æsec');
-       writeat(us+(5*sm),1,LookTOT^.vmenutitle,'Total:   ');
+
+    writeTiming(us+(0*sm),'MemTest: ',system^.usecMemtest);
+    writeTiming(us+(1*sm),'MemEA:   ',system^.usecMemEA);
+    writeTiming(us+(2*sm),'Opcodes: ',system^.usecOpcodes);
+    writeTiming(us+(3*sm),'VidMem:  ',system^.usecVidmem);
+    writeTiming(us+(4*sm),'3DGames: ',system^.usec3DGames);
+
+    writeat(us+(5*sm),1,LookTOT^.vmenutitle,'Total:   ');
     with system^ do
     writeplain(us+(5*sm),2,inttostr(
          usecMemtest+usecMemEA+usecOpcodes+usecVidmem+usec3DGames
-         )+' æsec');
+         )+useclbl);
     resetwindow;
   end;
 end;
 
-Procedure repaintSysTimings(x1,y1,x2,y2,style:byte;hiflags:word;SysList:PSystems;curitem:word);
-{like repaintSysInfo but only displays Score and each timing}
+function timesFasterStr(w1,w2:word):string;
 var
-  tmpsys:PSystem;
+  sr:string;
+  r:real;
+begin
+  if w1=0 then begin
+    timesFasterStr:=' (immeasurable) '
+  end else begin
+    r:=w2 / w1;
+    Str(r:12:2,sr);
+    repeat delete(sr,1,1) until sr[1]<>#32;
+    timesFasterStr:=' ('+sr+'x faster) ';
+  end;
+end;
+
+Procedure repaintSysTimings(x1,y1,x2,y2,style:byte;
+                            hiflags:word;
+                            SysList:PSystems;
+                            curitem,otheritem:word);
+{
+Like repaintSysInfo, but only displays the benchmark Score and timings.
+Better (lower) timing numbers display improvement factor.
+}
+
+var
+  tmpsys,othersys:PSystem;
   b:byte;
   lastrow:byte;
-  col,labelcol,normcol,wincol:byte;
+  colr,normcol,labelcol,wincol:byte;
 
 const
   sm=10;
   us=1;
 
+  Procedure paintUsec(row:byte;usecHeader:string;usecVal,otherusecVal:word);
+  begin
+    colr:=normcol;
+    with tmpscreen^ do begin
+      writeat(1,row,labelcol,usecHeader);
+      if hiflags AND $01=1 then colr:=wincol else colr:=normcol;
+      hiflags:=hiflags SHR 1;
+      writeat(sm,row,colr,inttostr(usecVal)+useclbl);
+      if colr=wincol
+        then writeat(sm+5+length(useclbl),row,colr,timesFasterStr(usecVal,otherusecVal));
+    end;
+  end;
+
 begin
   tmpsys:=SysList^.At(curitem);
+  othersys:=SysList^.At(otheritem);
   {tmpscreen must be init'd before getting here!}
   with tmpScreen^ do begin
     gotoxy(1,1);
-    {resetwindow;}
     TitledBox(x1,y1,x2,y2,
               LookTOT^.vmenuborder,LookTOT^.vmenutitle,LookTOT^.vmenuborder,
               style,'System Details:');
     setwindow(x1+1,y1+1,x2-1,y2-1);
     lastrow:=y2-y1-1;
-    {for debugging and layout:}
-    (*for b:=1 to lastrow do writecenter(b,cnormal,inttostr(b));
-    for b:=1 to x2-2 do begin
-      writeat(b,lastrow-4,cnormal,inttostr(b mod 10));
-      writeat(b,lastrow,cnormal,inttostr(b mod 10));
-    end;*)
     labelcol:=LookTOT^.vmenulonorm;
     wincol:=LookTOT^.vmenulohot;
     normcol:=labelcol;
-    col:=normcol;
+    colr:=normcol;
 
     writeat(1,1,labelcol,'SCORE:');
-    if hiflags AND $01=1 then col:=wincol else col:=normcol; hiflags:=hiflags SHR 1;
-    writeat(sm,1,col,inttostr(tmpsys^.score)); col:=normcol;
+    if hiflags AND $01=1 then colr:=wincol else colr:=normcol; hiflags:=hiflags SHR 1;
+    writeat(sm,1,colr,inttostr(tmpsys^.score)); colr:=normcol;
 
-    writeat(1,2,labelcol,'MemTest: ');
-    if hiflags AND $01=1 then col:=wincol else col:=normcol; hiflags:=hiflags SHR 1;
-    writeat(sm,2,col,inttostr(tmpsys^.usecMemtest)+' æsec'); col:=normcol;
+    paintUsec(2,'MemTest: ',tmpsys^.usecMemtest,othersys^.usecMemtest);
+    paintUsec(3,'MemEA:   ',tmpsys^.usecMemEA,othersys^.usecMemEA);
+    paintUsec(4,'Opcodes: ',tmpsys^.usecOpcodes,othersys^.usecOpcodes);
+    paintUsec(5,'VidMem:  ',tmpsys^.usecVidMem,othersys^.usecVidMem);
+    paintUsec(6,'3DGames: ',tmpsys^.usec3DGames,othersys^.usec3DGames);
 
-    writeat(1,3,labelcol,'MemEA:   ');
-    if hiflags AND $01=1 then col:=wincol else col:=normcol; hiflags:=hiflags SHR 1;
-    writeat(sm,3,col,inttostr(tmpsys^.usecMemEA)+' æsec'); col:=normcol;
-
-    writeat(1,4,labelcol,'Opcodes: ');
-    if hiflags AND $01=1 then col:=wincol else col:=normcol; hiflags:=hiflags SHR 1;
-    writeat(sm,4,col,inttostr(tmpsys^.usecOpcodes)+' æsec'); col:=normcol;
-
-    writeat(1,5,labelcol,'VidMem:  ');
-    if hiflags AND $01=1 then col:=wincol else col:=normcol; hiflags:=hiflags SHR 1;
-    writeat(sm,5,col,inttostr(tmpsys^.usecVidmem)+' æsec'); col:=normcol;
-
-    writeat(1,6,labelcol,'3DGames: ');
-    if hiflags AND $01=1 then col:=wincol else col:=normcol; hiflags:=hiflags SHR 1;
-    writeat(sm,6,col,inttostr(tmpsys^.usec3DGames)+' æsec'); col:=normcol;
-
+    colr:=normcol;
     writeat(1,7,labelcol,'Total:   ');
-    if hiflags AND $01=1 then col:=wincol else col:=normcol; hiflags:=hiflags SHR 1;
+    if hiflags AND $01=1 then colr:=wincol else colr:=normcol; hiflags:=hiflags SHR 1;
     with tmpsys^ do
-    writeat(sm,7,col,inttostr(
+    writeat(sm,7,colr,inttostr(
          usecMemtest+usecMemEA+usecOpcodes+usecVidmem+usec3DGames
-         )+' æsec'); col:=normcol;
+         )+useclbl); colr:=normcol;
 
     writeat(1,8,labelcol,'CPU:');
-    writeat(6,8,col,tmpsys^.CPU^);
+    writeat(6,8,colr,tmpsys^.CPU^);
     if tmpsys^.MHz<>0
-      then writeat(6+length(tmpsys^.CPU^),8,col,' @ '+realtostr(tmpsys^.MHz)+MHzLabel);
+      then writeat(6+length(tmpsys^.CPU^),8,colr,' @ '+realtostr(tmpsys^.MHz)+MHzLabel);
 
     writeat(1,9,labelcol,'Video Adapter:');
-    writeat(16,9,col,vidsyslabels[tmpsys^.videosubsystem]);
+    writeat(16,9,colr,vidsyslabels[tmpsys^.videosubsystem]);
     if length(tmpsys^.videoadapter^)>1
-      then writeat(16+length(vidsyslabels[tmpsys^.videosubsystem]),9,col,' ('+tmpsys^.videoadapter^+')');
+      then writeat(16+length(vidsyslabels[tmpsys^.videosubsystem]),9,colr,' ('+tmpsys^.videoadapter^+')');
     (*
     writeat(1,lastrow-8,LookTOT^.vmenutitle,'Submitter:');
     if length(tmpsys^.Submitter^)>1
@@ -1296,6 +1309,9 @@ var
     fVidMem =$10;
     f3DGames=$20;
     fTotal  =$40;
+    uparrows=#24#24#24#24#24#24#24#24#24#24#24#24#24#24#24#24#24#24#24;
+    dnarrows=#25#25#25#25#25#25#25#25#25#25#25#25#25#25#25#25#25#25#25;
+
 
   begin
     bheight:=(Monitor^.Depth - 3) div 2;
@@ -1304,28 +1320,23 @@ var
     end;
     for b:=0 to 1 do tmpsys[b]:=SystemList^.at(cursys[b]);
     compresult:=Systems^.Compare(tmpsys[0],tmpsys[1]);
-    case compresult of
-      -1:begin
-        r:=tmpsys[1]^.score / tmpsys[0]^.score;
-        Str(r:12:2,sr);
-        repeat delete(sr,1,1) until sr[1]<>#32;
-        sr:=#32+sr;
-        s:= #32#32#25#25#25#25#25#25#25#25#25#25
-           +sr+'x Faster '
-           +#25#25#25#25#25#25#25#25#25#25#32#32;
-      end;
-      0:begin
-        s:='      ÄÄÄÄÄÄÄÄÄÄ  Same  ÄÄÄÄÄÄÄÄÄÄ      ';
-      end;
-      1:begin
-        r:=tmpsys[0]^.score / tmpsys[1]^.score;
-        Str(r:12:2,sr);
-        repeat delete(sr,1,1) until sr[1]<>#32;
-        sr:=#32+sr;
-        s:= #32#32#24#24#24#24#24#24#24#24#24#24
-           +sr+'x Faster '
-           +#24#24#24#24#24#24#24#24#24#24#32#32;
+    {
+    Assume they're the same.
+    SCOREs that are equal are always reported as the same,
+    regardless of what the compare function returns.
+    }
+    s:='  ÄÄÄÄÄ  Both systems have an identical SCORE of '+inttostr(tmpsys[0]^.score)+'  ÄÄÄÄÄ  ';
 
+    if tmpsys[0]^.score <> tmpsys[1]^.score then begin
+      case compresult of
+        -1:begin
+          sr:=timesFasterStr(tmpsys[0]^.score,tmpsys[1]^.score);
+          s:='   '+dnarrows+sr+dnarrows+'   ';
+        end;
+        1:begin
+          sr:=timesFasterStr(tmpsys[1]^.score,tmpsys[0]^.score);
+          s:='   '+uparrows+sr+uparrows+'   ';
+        end;
       end;
     end;
 
@@ -1344,15 +1355,17 @@ var
     new(tmpScreen,init);
     tmpScreen^.save;
 
+    {repaint the top selected system, compare to the bottom}
     repaintSysList(1,1,(Monitor^.Width div 2),bheight,
       (active xor 1)+1,false,'',SystemList,curSys[0]);
     repaintSystimings((Monitor^.Width div 2)+1,1,Monitor^.Width,bheight,
-      (active xor 1)+1,hflags[0],SystemList,curSys[0]);
+      (active xor 1)+1,hflags[0],SystemList,curSys[0],curSys[1]);
 
+    {repaint the bottom selected system, compare to the top}
     repaintSysList(1,Monitor^.Depth-1-bheight,(Monitor^.Width div 2),Monitor^.Depth-1,
       active+1,false,'',SystemList,curSys[1]);
     repaintSystimings((Monitor^.Width div 2)+1,Monitor^.Depth-1-bheight,Monitor^.Width,Monitor^.depth-1,
-      active+1,hflags[1],SystemList,curSys[1]);
+      active+1,hflags[1],SystemList,curSys[1],curSys[0]);
 
     tmpScreen^.display;
     dispose(tmpScreen,done);
@@ -1443,12 +1456,12 @@ begin
   if is_param('v') then _skipvideotests:=true;
   if is_param('r') then _realMHZ:=true;
   if is_param('i') then begin
-    writeln('Score:                ',TopScore);
-    writeln('Memory:               ',testmemoryblockops,' æs');
-    writeln('Effective addressing: ',testmemEA,' æs');
-    writeln('Opcode exercise:      ',testCPUOpcodes,' æs');
-    writeln('Vid adapter speed:    ',testVideoAdapterWrites,' æs');
-    writeln('3DGame distribution:  ',test3DGames,' æs');
+    writeln('Score:                  ',TopScore);
+    writeln('Memory:                 ',testmemoryblockops,' æs');
+    writeln('Effective addressing:   ',testmemEA,' æs');
+    writeln('Opcode exercise:        ',testCPUOpcodes,' æs');
+    writeln('Vid adapter speed:      ',testVideoAdapterWrites,' æs');
+    writeln('3DGame opcode exercise: ',test3DGames,' æs');
     halt(4);
   end;
   if is_param('l') then begin
@@ -1552,6 +1565,9 @@ var
     Dispose(SystemsByName,done);
   end;
 
+const
+  DBEmptyMsg='Database empty!  Add a system first?';
+
 begin
   embrighten;
   DBDirty:=false; {after first import, DB is clean}
@@ -1569,25 +1585,25 @@ begin
           BuildAlternateSorts;
           SystemBrowser(SystemsByName);
           DestroyAlternateSorts;
-        end else PopUserMessage(warning,'Cannot browse an empty database!  Add a system first?');
+        end else PopUserMessage(warning,DBemptyMsg);
       end;
       mBrowseSpeed:begin
         if Systems^.Count>0 then begin
           BuildAlternateSorts;
           SystemBrowser(Systems);
           DestroyAlternateSorts;
-        end else PopUserMessage(warning,'Cannot browse an empty database!  Add a system first?');
+        end else PopUserMessage(warning,DBEmptyMsg);
       end;
       mRealTime:if Systems^.Count>1
         then RealtimeCompare
-        else PopUserMessage(warning,'Need more than one database entry for this to be useful.');
+        else PopUserMessage(warning,'Need 2+ database entries for this to be useful.');
       mCompare:begin
         if Systems^.Count>1 then begin
           BuildAlternateSorts;
           CompareSystems(SystemsByName);
           DestroyAlternateSorts;
         end
-        else PopUserMessage(warning,'Need more than one database entry for this to be useful.');
+        else PopUserMessage(warning,'Need 2+ database entries for this to be useful.');
       end;
       mAbout:PopAbout;
       mConsole:begin
@@ -1618,7 +1634,7 @@ begin
             DBDirty:=false;
           end
           else
-            PopUserMessage(warning,'Cannot save an empty database.  Add a system first?');
+            PopUserMessage(warning,DBEmptyMsg);
         end
         else
           PopUserMessage(warning,'Database read-only; only partially loaded due to lack of RAM.');
@@ -1628,7 +1644,7 @@ begin
         if Systems^.Count>0 then begin
           temps:=PromptForFilename('Enter the path+file to export to a .CSV file.');
           SaveDatabaseCSV(Systems,temps)
-        end else PopUserMessage(warning,'Cannot export an empty database.  Add a system first?');
+        end else PopUserMessage(warning,DBEmptyMsg);
       end;
       mIntro:PopIntro;
       mAdd:begin
@@ -1651,7 +1667,7 @@ begin
           end;
       end;
     else
-      PopUserMessage(warning,'Somehow you managed to find non-implemented menu #'+inttostr(menuChoice)+'!');
+      PopUserMessage(warning,'Whoops: Non-implemented menu #'+inttostr(menuChoice)+'!');
     end; {case}
 
     SaveScreen^.Display;

@@ -114,8 +114,8 @@ const
   StubVersion='0.97e';
   StubBanner='TOPBENCH | Benchmark and detection stub | Version '+StubVersion;
 
-  FullVersion='0.38h';
-  FullBuildDate='20180130';
+  FullVersion='0.40';
+  FullBuildDate='20200103';
   FullBanner='TOPBENCH | 16-bit real-mode x86 Benchmarking Suite | Version '+FullVersion;
 
   DefaultDate=19810812; {birth of IBM PC, roughly}
@@ -141,20 +141,20 @@ const
     ''
   );
 
-  numHelpLines=14;
+  numHelpLines=13;
   CommandLineHelp:array[0..numHelpLines-1] of pChar=(
     '',
     'Command-line options:',
     '  -?,-h    This help message',
-    '  -c       Attempt setting "condensed" mode on VGA and EGA systems',
-    '  -q       Turn off sound in the realtime benchmarking section',
-    '  -s       Skip the CPU detection tests',
-    '  -v       Skip the video detection tests',
-    '  -d#      Specify realtime benchmark search distance (default: 2)',
-    '  -i       Profile this machine, print Score, then immediately exit',
-    '  -l       Profile this machine infinitely, printing Score (any key exits)',
-    '  -p       Skip test for protected mode',
     '  -k       Disable video "special effects" on color systems',
+    '  -c       Use 43/50-line video mode on EGA/VGA',
+    '  -q       Turn off sound during realtime benchmarking',
+    '  -s       Skip CPU detection tests',
+    '  -v       Skip video detection tests',
+    '  -p       Skip protected mode detection',
+    (*'  -d#      Specify realtime benchmark search distance (default: 2)',*)
+    '  -i       Profile this machine, print Score, then immediately exit',
+    '  -l       Profile this machine continuously (any key exits)',
     '  -r       Return raw detected MHz (instead of quantizing to friendly value)',
     '  FILENAME Specify an alternate database filename'
   );
