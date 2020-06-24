@@ -228,7 +228,7 @@ end;
 Procedure ImportSystemFile(s:string128);
 {Imports one or more entries from an ini-style database file}
 const
-  usecThreshold=10000;
+  usecThreshold=65535-256;
   invalid=': invalid value';
 
 var
