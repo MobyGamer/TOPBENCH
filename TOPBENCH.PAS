@@ -407,13 +407,13 @@ var
       i^.WriteKeyValue(LTest3DGames,inttostr(usec3DGames));
       i^.WriteKeyValue(LScore,inttostr(score));
       {Optional fields:}
-      if CPU<>NIL then i^.WriteKeyValue(LCPU,CPU^);
+      if (CPU<>NIL) and (CPU^<>' ') then i^.WriteKeyValue(LCPU,CPU^);
       if MHz<>0 then i^.WriteKeyValue(LCpuSpeed,support.RealToStr(MHz)+mhzlabel);
-      if BIOS<>NIL then i^.WriteKeyValue(LBIOSInfo,BIOS^);
+      if (BIOS<>NIL) and (BIOS^<>' ') then i^.WriteKeyValue(LBIOSInfo,BIOS^);
       if BIOSDateNormalized<>DefaultDate then i^.WriteKeyValue(LBIOSDate,IntToStr(BIOSDateNormalized));
       if BIOSCRC16<>0 then i^.WriteKeyValue(LBIOSCRC16,hexword(BIOSCRC16));
       if VideoSubsystem in [MDA..VGA] then i^.WriteKeyValue(LVidSystem,VidSysLabels[VideoSubsystem]);
-      if VideoAdapter<>NIL then i^.WriteKeyValue(LVidAdapter,VideoAdapter^);
+      if (VideoAdapter<>NIL) and (VideoAdapter^<>' ') then i^.WriteKeyValue(LVidAdapter,VideoAdapter^);
       if Name<>NIL then i^.WriteKeyValue(LName,Name^);
       if (Description<>NIL) and (Description^<>' ') then i^.WriteKeyValue(LDescription,description^);
       if (submitter<>NIL) and (submitter^<>' ') then i^.WriteKeyValue(LSubmitter,submitter^);
