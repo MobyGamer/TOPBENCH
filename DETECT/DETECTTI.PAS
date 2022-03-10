@@ -73,6 +73,7 @@ END;
 
 
 BEGIN
+  {$IFDEF STARTUP_MSGS} writeln('DetectTime starting...'); {$ENDIF}
    asm cli end;
    Port [$43] := $34;                { need rate generator, not square wave }
    Port [$40] := 0;                  { generator as programmed by some BIOSes }

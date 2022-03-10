@@ -805,6 +805,7 @@ asm
 end;
 
 begin
+  {$IFDEF STARTUP_MSGS} writeln('TOPBENCH small detection unit starting...'); {$ENDIF}
   {init wilton detect code}
   v.init;
   {find the BIOS CRC for use later}

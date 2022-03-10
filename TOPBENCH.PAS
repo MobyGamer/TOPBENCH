@@ -3,6 +3,8 @@ program topbench;
 
 {{$DEFINE DEBUG}
 
+{$DEFINE STARTUP_DEBUGGING}
+
 {{$DEFINE USEOVERLAYS}
 {Overlays are only used while trying to run and debug the program
 within the Turbo Pascal IDE.  There should not be any reason to
@@ -71,7 +73,7 @@ uses
 const
   DBdirty:boolean=false; {if dirty, DB needs to be written to disk}
   DBreadonly:boolean=false; {if DB gets partially loaded to due low ram, don't write it out again}
-  INIBufSize=512*9; {a single 360k disk side, or about 12 DB.INI entries}
+  INIBufSize=512*9*2; {a single 360k disk track, or about 24 DB.INI entries}
   minramfree=80*50*4; {need to reserve room for both visible and hidden screen}
   {default colors that work with both MDA and CGA}
   cnormal:byte=$07;
@@ -413,8 +415,8 @@ var
       if VideoSubsystem in [MDA..VGA] then i^.WriteKeyValue(LVidSystem,VidSysLabels[VideoSubsystem]);
       if VideoAdapter<>NIL then i^.WriteKeyValue(LVidAdapter,VideoAdapter^);
       if Name<>NIL then i^.WriteKeyValue(LName,Name^);
-      if Description<>NIL then i^.WriteKeyValue(LDescription,description^);
-      if submitter<>NIL then i^.WriteKeyValue(LSubmitter,submitter^);
+      if (Description<>NIL) and (Description^<>' ') then i^.WriteKeyValue(LDescription,description^);
+      if (submitter<>NIL) and (submitter^<>' ') then i^.WriteKeyValue(LSubmitter,submitter^);
     end;
   end;
 
@@ -1430,6 +1432,7 @@ var
   w:word;
 
 begin
+  {$IFDEF STARTUP_MSGS} writeln('TOPBENCH Initializing...'); {$ENDIF}
   writeln(FullBanner);
   if is_param('?') or is_param('h') then begin
     for w:=0 to numHelpLines-1 do writeln(strpas(CommandLineHelp[w]));

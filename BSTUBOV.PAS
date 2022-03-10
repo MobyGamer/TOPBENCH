@@ -81,6 +81,7 @@ var
   b:byte;
 
 begin
+  {$IFDEF STARTUP_MSGS} __dosWriteln('Overlay unit starting...'); {$ENDIF}
   (*
   {perform name fixup}
   ovrname:=copy(paramstr(0),length(paramstr(0))-sizeof(ovrname)+2,sizeof(ovrname)-4)+'ovr';

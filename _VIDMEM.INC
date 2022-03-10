@@ -3,6 +3,7 @@ Function testVideoAdapterWrites:longint;
 begin
   {getmem(buf1,screenarea);}
   buf1:=@scratchspace;
+  If Mem[$0000:$0449]=7 then screenseg:=ptr($b000,0);
 
   asm
 {Performs common memory write operations to video cards.
@@ -14,6 +15,7 @@ it would be a major slowdown to the tests.}
     mov     dx,ds
 
     les     di,[buf1]
+    (*lds     si,[screenseg]*)
     lds     si,[screenseg]
     mov     cx,screenarea
     shr     cx,1

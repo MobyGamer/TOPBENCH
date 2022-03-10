@@ -265,9 +265,12 @@ begin
 end;
 
 begin
+  (*
+  {$IFDEF STARTUP_MSGS} writeln('BT suites starting...'); {$ENDIF}
   {In case no sophisticated detection routines are used to set this, we will
   perform a cheating half-assed way of determining if we're using CGA or MDA.}
   If Mem[$0000:$0449]=7
     then screenseg:=ptr($b000,0)
     else screenseg:=ptr($b800,0);
+  *)
 end.
